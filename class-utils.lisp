@@ -18,14 +18,14 @@
 ;;; The class STD-CLASS is an implementation-specific common
 ;;; superclass of the classes STANDARD-CLASS and
 ;;; FUNCALLABLE-STANDARD-CLASS.
-;;; 
+;;;
 ;;; (sb-mop:class-direct-subclasses (class-of 'find-class))
 ;;; (sb-mop:class-direct-superclasses (class-of 'find-class))
-;;; 
+;;;
 ;;; ==============================
 ;;; Usefull symbols, functions, etc.
 ;;;
-;;; object-plist ;; ;; SB-PCL class plist-mixin (standard-object) 
+;;; object-plist ;; ;; SB-PCL class plist-mixin (standard-object)
 ;;;
 ;;; class-p
 ;;; standard-class-p
@@ -38,13 +38,13 @@
 ;;; slots-to-inspect
 ;;;
 ;;; :FILE sbcl/src/pcl/env.lisp
-;;; trace-method, untrace-method,  *traced-methods*, traced-method <CLASS> 
+;;; trace-method, untrace-method,  *traced-methods*, traced-method <CLASS>
 ;;;
 ;;; ==============================
 ;; :SEE (info "(sbcl)Metaobject Protocol")
 ;;
 ;; (mon:where-is "class-finalized-p") => (SB-MOP:CLASS-FINALIZED-P)
-;; 
+;;
 ;; `ensure-class', `ensure-class-using-class', `frob-ensure-class-args',
 ;; `legal-class-name-p', `classp', `metaclassp'
 ;;
@@ -60,9 +60,9 @@
 ;;;  SIGNATURE (<generic-function-spec> qualifiers* (specializers*) &optional errorp)
 ;;;
 ;;;  Getting at <generic-function-spec> requires finding the fdefinition of the
-;;;  generic function symbol. This is accomplished with either: 
+;;;  generic function symbol. This is accomplished with either:
 ;;;  (fdefinition '<SYMBOL>) or (fdefinition '(setf <SYMBOL>))
-;;;  or alternatively (find-method #'<SYMBOL>) 
+;;;  or alternatively (find-method #'<SYMBOL>)
 ;;;
 ;;; :NOTE That when the generic-function is of type (setf <SYMBOL>)
 ;;; It is a "writer specializer"  and  has the form '(t <OBJECT>)
@@ -217,7 +217,7 @@
 ;;; :COURTESY Stas Boukarev :SEE (URL `http://paste.lisp.org/+2KXX')
 ;;; :PASTE 120453 :TITLE shallow-copy-object :WAS `shallow-copy-object'
 ;;; :NOTE Following requires closer-mop
-;;; 
+;;;
 ;;; (defun shallow-copy-object (object)
 ;;;   (let* ((class (class-of object))
 ;;;          (new (allocate-instance class)))
@@ -226,7 +226,7 @@
 ;;;        do (setf (c2mop:slot-value-using-class class new slot)
 ;;;                 (c2mop:slot-value-using-class class object slot)))
 ;;;     new))
-;;; 
+;;;
 ;;; Attempt to do it with sb-mop
 ;;; (where-is "class-slots")             ;=> (SB-MOP:CLASS-SLOTS :CLASS-SLOTS SB-KERNEL::CLASS-SLOTS) c2mop imports-from sb-mop
 ;;; (where-is "slot-boundp-using-class") ;=> (SB-MOP:SLOT-BOUNDP-USING-CLASS) c2mop imports-from sb-mop
@@ -235,7 +235,7 @@
 (defun copy-instance-of-class-shallowly (instance-of-class)
   (let* ((class (class-of instance-of-class))
          (new   (allocate-instance class)))
-    (loop 
+    (loop
        for slot in (sb-mop:class-slots class)
        when (sb-mop:slot-boundp-using-class class instance-of-class slot)
        do (setf (sb-mop:slot-value-using-class class new slot)
@@ -250,12 +250,12 @@
 ;;; ==============================
 
 (defun slot-definition-and-name (class slot-name-or-def)
-  (let (;; Don't signal directly when find-class doesn't 
+  (let (;; Don't signal directly when find-class doesn't
         ;; so we may provide a handler later if desired.
-        (fc (find-class class nil))) 
+        (fc (find-class class nil)))
     (if fc
         (if (sb-mop:class-finalized-p fc)
-            (values 
+            (values
              (find slot-name-or-def
                    (sb-mop:class-slots fc)
                    :key #'sb-mop:slot-definition-name)
@@ -271,10 +271,10 @@
 (defun class-bound-slot-names (object)
   ;; :EXAMPLE (class-bound-slot-names (ql-dist:find-system "closer-mop"))
   (let ((class (class-of object)))
-    (loop 
-       :for slotd in (closer-mop:class-slots class) 
-       :when (closer-mop:slot-boundp-using-class class object slotd)
-       :collect (closer-mop:slot-definition-name slotd))))
+    (loop
+       for slotd in (closer-mop:class-slots class)
+       when (closer-mop:slot-boundp-using-class class object slotd)
+       collect (closer-mop:slot-definition-name slotd))))
 
 ;; :COURTESY lokedhs dhs-db/persistmetaclasses.lisp
 ;; :WAS `find-slot-instance'

@@ -2,10 +2,11 @@
 ;;; :FILE mon-systems/chronos.lisp
 ;;; ==============================
 
+
 ;;; ==============================
 ;; :NOTES
 ;; Other CL time related functions:
-;; 
+;;
 ;; get-internal-real-time
 ;; get-universal-time
 ;; get-decoded-time
@@ -27,8 +28,8 @@
 ;; sb-unix::micro-seconds-per-internal-time-unit
 ;; sb-unix::system-real-time-values
 ;; sb-unix::unix-get-seconds-west
-;; sb-unix:nanosleep 
-;; sb-unix::get-timezone 
+;; sb-unix:nanosleep
+;; sb-unix::get-timezone
 ;;
 ;; sb-impl::real-time->sec-and-usec
 ;;
@@ -37,36 +38,35 @@
 ;; sb-posix:utimes
 ;; sb-posix:timeval ;; CLASS
 ;; sb-posix:timeval-sec sb-posix:timeval-usec ;; READERS
-;; 
+;;
 ;;
 ;; (sb-unix::system-real-time-values) => 1301412244, 298
 ;;
 ;; (where-is "stat")
 ;;
 ;; (sb-posix:stat-ctime (sb-posix:stat (translate-logical-pathname "MON:MON-SYSTEMS;chronos.lisp")))
-;; 
+;;
 ;;; ==============================
 
 
 (in-package #:mon)
 ;; *package*
 
-(defun current-time ()  
-  (multiple-value-bind (secs usec)
-      (sb-ext:get-time-of-day)
-    (list (ldb (byte 16 16) secs) ;; hi-bit 
+(defun current-time ()
+  (multiple-value-bind (secs usec) (sb-ext:get-time-of-day)
+    (list (ldb (byte 16 16) secs) ;; hi-bit
 	  (ldb (byte 16 0)  secs) ;; lo-bit
 	  usec)))
 
 
 ;; :SOURCE CLOCC-cllib/port/sys.lisp :WAS `tz->string'
-;; 
+;;
 ;; we want -0500 (EST) and -0400 (EDT) and aren't getting them.
 ;; (time-zone-to-string 5 t)   (cond ((and (plusp tz) dst) ; -0400
 ;; (time-zone-to-string 5 nil)        (and (plusp tz) (null dst)) ; -0500
 ;; (time-zone-to-string -5 nil)       (and (minusp tz) (null dst)) ; -0500
 ;; (time-zone-to-string -5 t)
-;; 
+;;
 ;; :NOTE BROKEN!
 (defun time-zone-to-string (tz dst &optional (long t))
   (declare (type rational tz))
@@ -74,7 +74,7 @@
     (let ((mi (floor (* 60 mm)))
           (zo (assoc tz (the list *time-zones*))) )
       (format nil "~:[+~;-~]~2,'0d~:[:~;~]~2,'0d~@[ (~a)~]"
-              ;;     tz +/-       
+              ;;     tz +/-
               ;; not sure what/where the problem is but the original is missing on DST
               ;; :WAS (minusp tz)
               (or (minusp tz) dst)
@@ -124,13 +124,12 @@
 	    ;; :WAS "~4d-~2,'0d-~2,'0d ~a ~2,'0d:~2,'0d:~2,'0d ~a"
 	    ;; ye mo da (aref (the (simple-array simple-string (7)) *week-days*) dw) ho mi se
 	    "~4d-~2,'0d-~2,'0dT~2,'0d:~2,'0d:~2,'0d~aZ"
-	    ye mo da  ho mi se 
-            (eastern-time-zone-to-string nil)
-            )))
+	    ye mo da  ho mi se
+            (eastern-time-zone-to-string nil))))
 
 (defun timestamp (&optional stream)
   (declare (stream-or-boolean-or-string-with-fill-pointer stream))
-  ;; (let ((chk-usr (or (and (consp *user-name*) 
+  ;; (let ((chk-usr (or (and (consp *user-name*)
   ;;                         (cdr *user-name*))
   ;;                    "")))
   ;;   (format stream "<Timestamp: #{~A} - by ~A>" (time-string-right-now) chk-usr))
@@ -157,11 +156,11 @@
       (time-string-get-universal-time)
       ;; (multiple-value-bind (sec min hr day mon yr wd dp zn) (get-decoded-time)
       ;;   (declare (ignore wd dp zn))
-      ;;   (format nil "~4,'0d-~2,'0d-~2,'0dT~2,'0d~2,'0d~2,'0d" 
+      ;;   (format nil "~4,'0d-~2,'0d-~2,'0dT~2,'0d~2,'0d~2,'0d"
       ;;           ;;       yr     mon    day     hr    min   sec
       ;;           yr mon day hr min sec))
       (format-timestring nil (local-time:now)
-                         :format (if with-utc-offset 
+                         :format (if with-utc-offset
                                      *timestamp-for-file-gmt-no-colon-offset-format*
                                      *timestamp-for-file-format*)
                          :timezone local-time:*default-timezone*)))
@@ -178,14 +177,14 @@
           (*print-circle* nil))
       (with-output-to-string (result nil :element-type 'base-char)
         (dolist (fmt format)
-          (case (or (and (stringp fmt) :string) 
+          (case (or (and (stringp fmt) :string)
                     (and (characterp fmt) :character)
                     fmt)
             ((or :gmt-offset :gmt-offset-or-z :gmt-offset-no-colon)
              (multiple-value-bind (offset-hours offset-secs)
                  (floor offset local-time:+seconds-per-hour+)
                (declare (fixnum offset-hours offset-secs))
-               (if (and (eql fmt :gmt-offset-or-z) 
+               (if (and (eql fmt :gmt-offset-or-z)
                         (zerop offset))
                    (princ #\Z result)
                    (format result (if (eql fmt :gmt-offset-no-colon)
@@ -253,23 +252,29 @@
 ;; :SOURCE dhs-db/dhs-db-api/timestamp.lisp
 ;; :WAS `make-database-timestamp'
 (defun timestamp-from-database-convert (v)
+  ;; :NOTE The regex below is sloppy wrt HH:MM:SS we could be checking for this instead:
+  ;; "^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-2][0-9]):([0-6][0-9]):([0-6][0-9])(\\.[0-9]+)?$"
   (multiple-value-bind (matched values) (cl-ppcre:scan-to-strings "^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?$" v)
-    (unless matched (error "Can't parse ~S as a timestamp" v))
-    ;;(make-instance 'database-timestamp :value 
-    (encode-universal-time  (parse-integer (aref values 5))
-                           (parse-integer (aref values 4))
-                           (parse-integer (aref values 3))
-                           (parse-integer (aref values 2))
-                           (parse-integer (aref values 1))
-                           (parse-integer (aref values 0)));)
-    ))
+    (if matched
+        ;; (make-instance 'database-timestamp :value
+        ;;
+        ;; Drop 6th elt of values array e-u-t doesn't want it
+        (encode-universal-time  (parse-integer (aref values 5))  ; SECOND
+                                (parse-integer (aref values 4))  ; MINUTE
+                                (parse-integer (aref values 3))  ; HOUR
+                                (parse-integer (aref values 2))  ; DATE
+                                (parse-integer (aref values 1))  ; MONTH
+                                (parse-integer (aref values 0))) ; YEAR
+        (error "Can't parse ~S as a timestamp" v))))
+
+;;
 ;; :SOURCE dhs-db/dhs-db-api/timestamp.lisp
 ;; :WAS `make-database-date'
 (defun date-from-database-convert (v)
   (multiple-value-bind (matched values) (cl-ppcre:scan-to-strings "^([0-9]{4})-([0-9]{2})-([0-9]{2})$" v)
     (unless matched
       (error "Can't parse ~S as a date" v))
-    ;;(make-instance 'database-date :value 
+    ;;(make-instance 'database-date :value
     (encode-universal-time 0 0 0
                            (parse-integer (aref values 2))
                            (parse-integer (aref values 1))
@@ -287,7 +292,7 @@
 "Return the current time as number of seconds since 1970-01-01 00:00:00.~%~@
 Return value is a list of three integers wit the format:~%~@
  \( MSB LSB USEC \)~%~@
-The first has the most significant 16 bits of the seconds, 
+The first has the most significant 16 bits of the seconds,
 The second has the least significant 16 bits.~%~@
 The third integer gives the microsecond count.~%~@
 :EXAMPLE~%
@@ -303,7 +308,7 @@ The third integer gives the microsecond count.~%~@
  \(time-string-right-now\)~%
  \(let \(\(get-tm \(make-string-output-stream\)\)\)
    \(format get-tm \"Hey, bubba! Got the time?~~%\"\)
-   \(time-string-right-now get-tm\) 
+   \(time-string-right-now get-tm\)
    \(format get-tm \"~~&Thanks, bubba!\"\)
    \(get-output-stream-string get-tm\)\)~%~@
 :SEE-ALSO `mon:time-string-yyyy-mm-dd', `mon:current-time',
@@ -315,15 +320,15 @@ The third integer gives the microsecond count.~%~@
 Return value has the format:~%
  YYYY-MM-DD~%~@
 Optional arg STREAM when non-nil should be of type
-`mon:stream-or-boolean-or-string-with-fill-pointer'. 
+`mon:stream-or-boolean-or-string-with-fill-pointer'.
 When provided return value is output to STREAM.~%~@
 :EXAMPLE~%
  \(time-string-yyyy-mm-dd\)~%
  \(time-string-yyyy-mm-dd \(get-universal-time\)\)~%
  \(time-string-yyyy-mm-dd nil t\)~%
- \(let \(\(str \(make-array 6 
-                        :element-type 'base-char 
-                        :fill-pointer 6 
+ \(let \(\(str \(make-array 6
+                        :element-type 'base-char
+                        :fill-pointer 6
                         :initial-contents \":date \"\)\)\)
    \(time-string-yyyy-mm-dd \(get-universal-time\) str\)
    str\)
@@ -399,22 +404,22 @@ So, instead of either +NN:NN or -NN:NN we can now get +NNNN or -NNNN.~%
  time-numoffset = \(\"+\" / \"-\"\) time-hour time-minute~%~@
 :EXAMPLE~%
  \(%lt-construct-timestring \(local-time:now\)
-                           '\(\(:year 4\) #\\- \(:month 2\) #\\- \(:day 2\) 
-                             #\\T \(:hour 2\) \(:min 2\) \(:sec 2\) 
+                           '\(\(:year 4\) #\\- \(:month 2\) #\\- \(:day 2\)
+                             #\\T \(:hour 2\) \(:min 2\) \(:sec 2\)
                              :gmt-offset-no-colon\)
                            local-time:*default-timezone*\)~%
  \(%lt-construct-timestring \(local-time:now\)
                            '\(\(:year 4\) #\\- \(:month 2\) #\\- \(:day 2\) #\\_ \"FOO\"\)
                            local-time:*default-timezone*\)~%
  \(%lt-construct-timestring \(local-time:now\)
-                           '\(\(:year 4\) #\\- \(:month 2\) #\\- \(:day 2\) 
-                             #\\T \(:hour 2\) #\\_ \(:min 2\) #\\_ \(:sec 2\) 
+                           '\(\(:year 4\) #\\- \(:month 2\) #\\- \(:day 2\)
+                             #\\T \(:hour 2\) #\\_ \(:min 2\) #\\_ \(:sec 2\)
                              :gmt-offset #\\_ #\\\( :timezone #\\\)\)
                            local-time:*default-timezone*\)~%
  \(%lt-construct-timestring \(local-time:now\)
-                           '\(\(:year 4\) #\\- \(:month 2\) #\\- \(:day 2\) 
-                             #\\T \(:hour 2\) #\\_ \(:min 2\) #\\_ \(:sec 2\) 
-                             :gmt-offset-or-z\) 
+                           '\(\(:year 4\) #\\- \(:month 2\) #\\- \(:day 2\)
+                             #\\T \(:hour 2\) #\\_ \(:min 2\) #\\_ \(:sec 2\)
+                             :gmt-offset-or-z\)
                            local-time:+utc-zone+\)~%
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
