@@ -16,12 +16,12 @@
 ;; numbering conventions can be seen in big-endian machines. Some architectures
 ;; like SPARC and Motorola 68000 use "LSB 0" bit numbering, while S/390, PowerPC
 ;; and PA-RISC use "MSB 0".
-;; 
+;;
 ;; The recommended style for Request for Comments documents is "MSB 0" bit numbering.
-;; LSB-0 
+;; LSB-0
 ;; 7 6 5 4 3 2 1 0
 ;; 0 0 0 0 0 0 0 1
-;; 
+;;
 ;; MSB-0
 ;; 7 6 5 4 3 2 1 0
 ;; 0 0 0 0 0 0 0 1 => #b10000000 => 128
@@ -49,18 +49,18 @@
 (defun bit-format (integer &optional (width 8) stream)
   (format stream "~v,'0B" width integer))
 
-;; 
-(defun number-to-bit-list (unsigned-integer) 
+;;
+(defun number-to-bit-list (unsigned-integer)
   (declare (type (integer 0 *) unsigned-integer)
            (optimize (speed 3)))
   (let ((int-len (integer-length unsigned-integer)))
-    (loop 
+    (loop
        for i below int-len
        collect (or (and (logbitp i unsigned-integer) 1) 0) into rslt
        finally (return (nreverse rslt)))))
 ;;
 ;; Variant of above with tail-call.
-;; (defun number-to-bit-list (unsigned-integer) 
+;; (defun number-to-bit-list (unsigned-integer)
 ;;   (declare (type (integer 0 *) unsigned-integer)
 ;;            (optimize (speed 3)))
 ;;   (if (or (zerop unsigned-integer)
@@ -83,7 +83,7 @@
                                        :adjustable      nil)))
              (declare (fixnum-bit-width mk-len)
                       (simple-bit-vector bv-29))
-             (loop 
+             (loop
                 for i-lb from 0 below mk-len
                 do (and (logbitp i-lb fixnum-int)
                         (setf (sbit bv-29 i-lb) 1))
@@ -97,18 +97,33 @@
                                            :adjustable      nil)))
              (declare (bignum-bit-width mk-big-len)
                       (simple-bit-vector bv-big))
-             (loop 
+             (loop
                 for i-lb from 0 below mk-big-len
                 do (and (logbitp i-lb bignum-int)
                         (setf (sbit bv-big i-lb) 1))
                 finally (return (nreverse bv-big))))))
     (etypecase unsigned-integer
-      (fixnum-0-or-over (the simple-bit-vector 
+      (fixnum-0-or-over (the simple-bit-vector
                           (number-to-bit-vector-fixnum
                            (the fixnum-0-or-over unsigned-integer))))
       (bignum-0-or-over  (the simple-bit-vector
                            (number-to-bit-vector-bignum
                             (the bignum-0-or-over unsigned-integer)))))))
+
+
+(defun bit-vector-leading-byte (bit-vector)
+  (declare (simple-bit-vector bit-vector))
+  (if (< (length bit-vector) 8)
+      (bit-vector-to-integer bit-vector)
+      (bit-vector-to-integer (subseq bit-vector 0 8))
+      ;; (loop
+      ;; for bit-vector-index from 0
+      ;; for result-index from 7 downto 0
+      ;; for result = (dpb (sbit bit-vector bit-vector-index)
+      ;;                   (byte 1 result-index) 0)
+      ;; then (dpb (sbit bit-vector bit-vector-index) (byte 1 result-index) result)
+      ;; finally (return result))
+      ))
 
 ;; :SOURCE (URL `http://www.lispforum.com/viewtopic.php?f=2&t=1205#p6269')
 ;; with modifications
@@ -143,12 +158,12 @@ Stas version using `cl:flet' and `cl:loop'."
          (result 0)
          (index -1))
     (flet ((build-word ()
-             (loop 
+             (loop
                 repeat word-size
                 for j = 0 then (logior (bit bit-vector (incf index))
                                        (ash j 1))
                 finally (return j))))
-      (loop 
+      (loop
          repeat (floor length word-size)
          do (setf result (logior (build-word)
                                  (ash result (1- word-size)))))
@@ -757,6 +772,14 @@ The elts of array are indexed by their octet value as generated with `mon:octet-
  \(bit-format 42 16\)
   => 0000000000101010~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
+
+(fundoc 'bit-vector-leading-byte
+        "Return an integer made of eight bits from BIT-VECTOR (a simple-bit-vector).
+:EXAMPLE~%
+ \(bit-vector-leading-byte \(number-to-bit-vector 88\)\)~%
+ \(bit-vector-leading-byte \(number-to-bit-vector 888\)\)~%
+ \(bit-vector-leading-byte \(number-to-bit-vector 1046\)\)~%~@
+:SEE-ALSO `bit-vector-to-integer', `number-to-bit-vector'.~%▶▶▶")
 
 ;;; ==============================
 
