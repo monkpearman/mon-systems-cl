@@ -2,9 +2,9 @@
 ;;; :FILE environ.lisp
 ;;; ==============================
 
-;; CL:MACHINE-TYPE 
+;; CL:MACHINE-TYPE
 ;; CL:MACHINE-VERSION
-;; CL:MACHINE-INSTANCE what a name for a symbol... 
+;; CL:MACHINE-INSTANCE what a name for a symbol...
 ;; We have (make-pathname :host {...} ) not (make-pathname :machine-instance {...} )
 ;;
 ;; (osicat-posix:gethostname)
@@ -16,23 +16,23 @@
 ;; :SORUCE git://git.feelingofgreen.ru/executor :FILE executor/portable-spawn.lisp
 (defun setenv (variable value)
   ;;
-  ;; #+osicat (setf (osicat:environment-variable variable) value)
-  ;;
+  ;; :NOTE  `uiop/os:getenv' is CL:SETF'able but returns as per sb-posix:setenv
+  ;; (setf (uiop/os:getenv "HOME") "BAR")
   ;; :NOTE putenv on sbcl unix is unsetenv && setenv
-  #+sbcl
-  (sb-posix:putenv (concatenate 'string variable "=" value))
-  #+ccl
-  (ccl:setenv variable value t)
-  #+ecl
-  (si:setenv variable value)
-  #+clisp
-  (setf (ext:getenv variable) value))
+  #+sbcl(sb-posix:putenv (concatenate 'string variable "=" value))
+
+  #+ccl(ccl:setenv variable value t)
+
+  #+ecl(si:setenv variable value)
+
+  #+clisp(setf (ext:getenv variable) value))
+
 
 (defun getenv-path-pathnames ()
   ;; Return the pathnmames of directories for current environment varbiable $PATH.~%~@
   ;;:EXAMPLE~%
   ;;  \(getenv-path-pathnames\)
-  ;; 
+  ;;
   (let* ((env-path  #+sbcl (sb-posix:getenv "PATH")
                     #-sbcl (osicat:environment-variable "PATH"))
          (env-split (and env-path (cl-ppcre:split ":" env-path))))
@@ -51,9 +51,9 @@
                                      (skip-tilde     t))
   (declare (string command)
            (boolean skip-alias skip-functions skip-dot skip-tilde))
-  (unless (and (sb-posix:getenv "HOME") ; (osicat-posix:getenv "HOME")
+  (unless (and (sb-posix:getenv "HOME") ;; (uiop/os:getenv "HOME")
                (not (string= "" command)))
-    (return-from executable-find 
+    (return-from executable-find
       (values nil (cons :exit-status "ENOHOME"))))
   (let ((which-args (delete-if #'null (list (and skip-tilde     "--skip-tilde")
                                             (and skip-functions "--skip-functions")
@@ -64,20 +64,20 @@
         (got-path   nil)
         (status     nil))
     (unwind-protect
-         (progn 
-           (setf status (sb-ext:process-exit-code 
+         (progn
+           (setf status (sb-ext:process-exit-code
                          (sb-ext:run-program "which" which-args :output out-string :search t)))
            (unless (zerop status)
              (close out-string)
              (return-from executable-find (values nil (cons :exit-status status))))
            (setf got-path (get-output-stream-string out-string)))
       (close out-string))
-    (when got-path 
+    (when got-path
       (setf got-path (string-right-trim *whitespace-chars* got-path))
       (let ((length-got      (length got-path))
             (length-exec     (length command))
             (ensure-got-path (search command got-path :from-end t)))
-        (and ensure-got-path 
+        (and ensure-got-path
              (= (- length-got ensure-got-path) length-exec)
              (values (namestring (truename got-path))
                      (cons command got-path)))))))
@@ -97,44 +97,47 @@
 ;;  (setf (ccl:current-directory) (namestring to-directory))
 ;;
 ;; :NOTE The implementation equivalences are courtesy :FILE pergamum/feet-of-clay.lisp
-;; :SEE (URL `git://git.feelingofgreen.ru/pergamum') 
+;; :SEE (URL `git://git.feelingofgreen.ru/pergamum')
 (defun set-posix-working-directory (to-directory &key (return-as-pathname nil))
   (declare (boolean return-as-pathname))
   ;; :NOTE Clisp accepts NIL and "" for arg TO-DIRECTORY is not good IMHO.
   ;; SBCL doesn't and errors. We go with SBCL and bail early.
-  (when (or (null to-directory) 
+  (when (or (null to-directory)
             (string-empty-p to-directory)
             (wild-pathname-p to-directory))
     (error ":FUNCTION `set-posix-working-directory' -- arg TO-DIRECTORY not valid~%~Tgot: ~S~%~Ttype-of: ~S~%"
            to-directory (type-of to-directory)))
   (values
    (zerop
-    #-(or sbcl ecl ccl clisp) (osicat-posix:chdir to-directory)
-    #+ecl   (si:chdir pathname)
+    #-(or sbcl ecl ccl clisp)(osicat-posix:chdir to-directory) ;; what is equivalent UIOP function instead of osicat?
+
+    #+ecl(si:chdir pathname)
+
     #+ccl   (ccl::%chdir (namestring to-directory))
+
     #+clisp (if (null to-directory) (ext:cd to-directory) 0)
-    #+sbcl  (sb-posix:chdir to-directory))
-   (or 
-    (and return-as-pathname 
+
+    #+sbcl(sb-posix:chdir to-directory))
+   (or
+    (and return-as-pathname
          (pathname to-directory))
     to-directory)))
 
 ;; :NOTE The implementation equivalences are courtesy :FILE pergamum/feet-of-clay.lisp
-;; :SEE (URL `git://git.feelingofgreen.ru/pergamum') 
+;; :SEE (URL `git://git.feelingofgreen.ru/pergamum')
 (defun posix-working-directory ()
-  #-(or sbcl ecl ccl clisp) (osicat-posix::getcwd)
-  #+ecl   (si:getcwd)
-  #+ccl   (ccl::current-directory-name)
-  #+clisp (ext:cd)
-  #+sbcl  (sb-posix:getcwd))
+  #-(or sbcl ecl ccl clisp)(osicat-posix::getcwd)
+  #+ecl(si:getcwd)
+  #+ccl(ccl::current-directory-name)
+  #+clisp(ext:cd)
+  #+sbcl(sb-posix:getcwd))
 
 (defun (setf posix-working-directory) (to-directory)
   (multiple-value-bind (bool set-pth)
       (set-posix-working-directory to-directory)
     (values set-pth bool)))
 
-#+sbcl
-(defun syslog-action (&key 
+#+sbcl(defun syslog-action (&key
                       (log-message "<EMPTY-SBCL-LOG-MESSAGE>")
                       (log-ident "sbcl")
                       (log-priority 6)) ;; 6 indicates informational
@@ -142,16 +145,16 @@
            ((mod 8) log-priority))
   (unwind-protect
        (progn
-         (sb-posix:openlog log-ident 
-                           (or 
-                            (and (string-equal log-ident "sbcl") 
+         (sb-posix:openlog log-ident
+                           (or
+                            (and (string-equal log-ident "sbcl")
                                  sb-posix:log-pid)
                             0)
                            sb-posix:log-user)
          (sb-posix:syslog log-priority log-message))
     (sb-posix:closelog)))
 
-(defun %syslog-action-osicat (&key 
+(defun %syslog-action-osicat (&key
                               (log-message "<EMPTY-SBCL-LOG-MESSAGE>")
                               (log-ident "sbcl")
                               (log-priority 6)) ;; 6 indicates informational
@@ -162,8 +165,8 @@
            ((mod 8) log-priority))
   (unwind-protect
        (progn
-         (osicat-posix:openlog log-ident 
-                               (or 
+         (osicat-posix:openlog log-ident
+                               (or
                                 (and (string-equal log-ident "sbcl")
                                      osicat-posix:log-pid)
                                 0)
@@ -181,54 +184,33 @@
        for host being each hash-key of SB-IMPL::*LOGICAL-HOSTS*
        collect host)))
 
+
 (defun lisp-implementation-description (&optional stream)
-  #-sbcl (format stream "Lisp Implementation: ~A ~A~%~%" 
-                 (lisp-implementation-type) 
-                 (lisp-implementation-version))
-  #+sbcl (format stream "Lisp Implementation: ~A ~A~%~
-                  Lisp Runtime Pathname: ~S~%~
-                  Lisp Core Pathname: ~S~%~
-                  Lisp File Types: ~S, ~S~%~
-                  Lisp Default External Format: ~S~%~
-                  Host Machine Spec: ~A ~A~%~
-                  Host Machine Instance: ~A~%~
-                  Host OS Type: ~A~%~
-                  Host OS Implementation: ~A~%~
-                  Host Directory Separator: ~S~%~
-                  Host Customary Case: ~S~%"
-                 (lisp-implementation-type)
-                 (lisp-implementation-version)
-                 sb-ext:*runtime-pathname* ;; sb-ext:*POSIX-ARGV* 
-                 sb-ext:*core-pathname*
-                 sb-int:*load-source-default-type*
-                 sb-impl::*fasl-file-type*
-                 sb-impl::*default-external-format*
-                 (sb-ext::machine-type)
-                 (sb-ext::machine-version) ;; (sb-sys::get-machine-version)
-                 (sb-ext::machine-instance)
-                 (sb-sys::software-type)
-                 (sb-sys::software-version)
-                 (sb-impl::unix-host-unparse-directory-separator sb-impl::*unix-host*)
-                 (sb-impl::unix-host-customary-case sb-impl::*unix-host*)
-                 ))
+(format stream "Lisp Implementation: ~A ~A~%~%"
+        (lisp-implementation-type)
+        (lisp-implementation-version)))
 
 ;; (sb-unix: (sb-unix:UNIX-GETUID)
 ;; (sb-unix:UID-USERNAME (sb-unix:UNIX-GETUID))
 ;; (sb-posix:GETUID)
 ;; (sb-posix:GETEUID)
+;; (sb-posix:GETUID)
 ;; sb-posix:OPENDIR
 
-;; (osicat-posix:getpwnam <NAME>)
+;; (sb-posix:getpwnam (sb-unix:UID-USERNAME (sb-unix:UNIX-GETUID)))
+;; (sb-posix:getpwnam (sb-posix:GETUID))
+;; (sb-posix:GETPWUID  (sb-posix:GETUID))
+;; (sb-posix:getpwnam )
 ;; (osicat-posix::funcall-getpw #'osicat-posix::%getpwnam-r <NAME>)
 ;;
 ;; (osicat-posix:getpwnam "<NAME>")
 ;; => <NAME>, <PASSWD>, <UID>, <GID>, <GECOS>, <DIR>, <SHELL>
 ;;
-;; (let ((verify-getpwnam 
-;;        (sb-posix:getpwnam 
+;; (let ((verify-getpwnam
+;;        (sb-posix:getpwnam
 ;;         (elt (pathname-directory (namestring (user-homedir-pathname))) 2))))
-;;   (values-list 
-;;    (list  
+;;   (values-list
+;;    (list
 ;;     (sb-posix:passwd-name   verify-getpwnam)
 ;;     (sb-posix:passwd-passwd verify-getpwnam)
 ;;     (sb-posix:passwd-uid    verify-getpwnam)
@@ -244,23 +226,22 @@
 (defun username-for-system-var-p (verify-with)
   #-sbcl(and (format t "~%:FUNCTION `username-for-system-var-p' -- Current implementation not SBCL~%~
                     Declining further verification of argument VERIFY-WITH~%") nil)
-  ;; 
-  ;; osicat-posix::passwd 
-  #+sbcl
-  (if (find-package "SB-POSIX")
-      (let* ((verify-nm verify-with)
-             (verify-home (elt (pathname-directory (namestring (user-homedir-pathname))) 2))
-             ;; #+osicat  (verify-getpwnam (osicat-posix:getpwnam (car verify-nm)))
-             (verify-getpwnam (sb-posix:getpwnam (car verify-nm))))
-        (and 
-         ;; #+osicat (string-equal (or verify-getpwnam "") (car verify-nm))
-         (string-equal (or (and verify-getpwnam (sb-posix:passwd-name verify-getpwnam)) "") (car verify-nm))
-         (string-equal verify-home  (car verify-nm))
-         verify-nm))
-      (and (format t 
-                   "~%:FUNCTION `username-for-system-var-p' -- Current implementation is SBCL~%~
+  ;;
+  ;; osicat-posix::passwd
+  #+sbcl(if (find-package "SB-POSIX")
+             (let* ((verify-nm verify-with)
+                    (verify-home (elt (pathname-directory (namestring (user-homedir-pathname))) 2))
+                    ;; #+osicat  (verify-getpwnam (osicat-posix:getpwnam (car verify-nm)))
+                    (verify-getpwnam (sb-posix:getpwnam (car verify-nm))))
+               (and
+                ;; #+osicat (string-equal (or verify-getpwnam "") (car verify-nm))
+                (string-equal (or (and verify-getpwnam (sb-posix:passwd-name verify-getpwnam)) "") (car verify-nm))
+                (string-equal verify-home  (car verify-nm))
+                verify-nm))
+           (and (format t
+                        "~%:FUNCTION `username-for-system-var-p' -- Current implementation is SBCL~%~
                     need SB-POSIX:PASSWD-NAME but did not find-package SB-POSIX")
-           nil)))
+                nil)))
 
 ;; ;; :NOTE (translate-logical-pathname "MON:MON-SYSTEMS;")
 (defun username-for-system-var-bind (bind-it)
@@ -275,10 +256,10 @@
               (cons (format msg "~%~Aalready bound~% ~
                                     arg: ~S~% ~
                                     binding: ~S~%" msg-if bind-it val-of))
-              (pathname 
+              (pathname
                (with-input-file (unm val-of)
                  (let ((rd-nm-pair (read unm)))
-                   (or (and rd-nm-pair 
+                   (or (and rd-nm-pair
                             (consp rd-nm-pair)
                             (or (and (username-for-system-var-p rd-nm-pair)
                                      (progn (setf (symbol-value bind-it) rd-nm-pair)
@@ -309,7 +290,7 @@
 ;;; :DOCUMENTATION
 ;;; ==============================
 
-(fundoc 'setenv 
+(fundoc 'setenv
         "Set the value of the environment VARIABLE named variable to VALUE.~%
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
@@ -471,7 +452,7 @@ which accomplishes similiarly.
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; show-trailing-whitespace: t
+;; show-trailing-whitespace: nil
 ;; mode: lisp-interaction
 ;; package: mon
 ;; End:

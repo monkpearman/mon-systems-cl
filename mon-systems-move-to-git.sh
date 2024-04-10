@@ -9,6 +9,8 @@
 ### elisp> (getenv "DEVHOME")
 ### shell> $DEVHOME
 ###
+### (getenv "CL_MON_CODE")
+###
 ### $DEVHOME
 ### No doubt there are better ways of doing this with a shell script, but... 
 ### I F*CKING HATE SHELL SCRIPTING!!!
@@ -27,9 +29,16 @@ MON_SYSTEM_GIT=$CL_MON_CODE/mon-systems-GIT
 
 MON_SYSTEM_FILES="mon.asd
 mon-test.asd
+DEPENDENCIES
+LICENSE.txt
+README
+make-mon-systems-etags.sh
+mon-systems-make-tarball.sh
+mon-systems-move-to-git.sh
 alist.lisp
 arrays.lisp
 bit-twiddle.lisp
+buffer.lisp
 char-numeric.lisp
 chars.lisp
 chronos.lisp
@@ -37,12 +46,14 @@ class-doc.lisp
 class-utils.lisp
 compose.lisp
 conditions.lisp
+deprecated.lisp
+docs.lisp
+emacs-compat.lisp
 environ.lisp
 file-dir.lisp
 file-io.lisp
 format.lisp
 hash.lisp
-image-rotate.lisp
 introspect.lisp
 io.lisp
 loadtime-bind.lisp
@@ -52,21 +63,25 @@ package.lisp
 plist.lisp
 regexp.lisp
 seqs.lisp
+sldb-specials-deprecated.lisp
 specials.lisp
 strings.lisp
-types.lisp
-LICENSE.txt
-make-mon-systems-etags.sh
-mon-systems-move-to-git.sh"
+types.lisp"
 
 # $MON_SYSTEM_SRC/tests
-MON_SYSTEM_TEST_FILES="defalias-test
-package.lisp
-testing.lisp
+MON_SYSTEM_TEST_FILES="package.lisp
 test.lisp
+testing.lisp
 timing.lisp
 timings.lisp
 usec-tests.lisp"
+
+#/docs
+MON_SYSTEM_DOC_FILE="ifnottex.texinfo
+mon-top-level.texinfo
+mon.info
+mon.texinfo
+texinfo-macros.texinfo"
 
 ensure_abort_dirs () 
 {
@@ -86,6 +101,16 @@ ensure_tests_dir ()
         then
         mkdir -p "$MON_SYSTEM_GIT/tests";
         echo "Created previously non-existent directory: $MON_SYSTEM_GIT/tests"
+        echo
+    fi
+}
+
+ensure_docs_dir ()
+{
+    if [ ! -d "$MON_SYSTEM_GIT/docs" ]
+        then
+        mkdir -p "$MON_SYSTEM_GIT/docs";
+        echo "Created previously non-existent directory: $MON_SYSTEM_GIT/docs"
         echo
     fi
 }
@@ -127,8 +152,6 @@ copy_mon_files ()
  done;
 }
 
-# 
-
 copy_mon_test_files ()
 { 
  for f in $MON_SYSTEM_TEST_FILES; do 
@@ -141,6 +164,23 @@ copy_mon_test_files ()
 	 cp $MON_SYSTEM_SRC/tests/$f $MON_SYSTEM_GIT/tests/$f;
          echo "Copied :FILE $f"; 
          echo "From   :SOURCE $MON_SYSTEM_SRC/tests to :DEST $MON_SYSTEM_GIT/tests";
+         echo
+     fi
+ done;
+}
+
+copy_mon_doc_files ()
+{ 
+ for f in $MON_SYSTEM_DOC_FILES; do 
+     if [ ! -e "$MON_SYSTEM_SRC/docs/$f" ]                     # Check if file exists.
+     then
+        echo ":FILE $MON_SYSTEM_SRC/docs/$f does not exist";  
+        echo
+     else                         # On to next.
+         # cp `echo $MON_SYSTEM_SRC/tests/$f $MON_SYSTEM_GIT/docs/$f`;
+	 cp $MON_SYSTEM_SRC/docs/$f $MON_SYSTEM_GIT/docs/$f;
+         echo "Copied :FILE $f"; 
+         echo "From   :SOURCE $MON_SYSTEM_SRC/docs to :DEST $MON_SYSTEM_GIT/docs";
          echo
      fi
  done;
@@ -168,8 +208,10 @@ cd $MON_SYSTEM_SRC
 
 ensure_abort_dirs
 ensure_tests_dir
+ensure_docs_dir
 copy_mon_files
 copy_mon_test_files
+copy_mon_doc_files
 ensure_readme
 ensure_loadtime_bind
 etags_src
@@ -179,4 +221,3 @@ exit 0
 
 ### ==============================
 ### EOF
-

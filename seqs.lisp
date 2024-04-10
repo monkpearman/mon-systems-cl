@@ -14,7 +14,7 @@
 ;; (sb-impl::last-cons-of in-list))
 ;;
 ;;
-;; #:string-listify       ;; sb-impl::string-listify 
+;; #:string-listify       ;; sb-impl::string-listify
 ;; (sb-impl::string-listify (list #\s #\t #\r #\i #\n #\g))
 ;; #:symbol-listify       ;; sb-impl::symbol-listify
 ;;
@@ -35,7 +35,7 @@
 
 ;;; :SOURCE D. Mcdermott ytools/base.lisp :SEE-ALSO Mark Kantrowitz' xref.lisp
 (declaim (inline car-eq))
-(defun car-eq (lst-a obj-b) 
+(defun car-eq (lst-a obj-b)
   (and (consp lst-a)
        (eq (car lst-a) obj-b)))
 
@@ -47,7 +47,7 @@
     (when (eq (car i) item)
       (return j))))
 
-#+sbcl 
+#+sbcl
 (defun position-eq (item lst)
   (sb-int::posq item lst))
 
@@ -68,14 +68,14 @@
 ;;; ==============================
 
 ;;; :SOURCE Sam Steingold :HIS /clocc/src/cllib/elisp.lisp
-#-sbcl (defun memq (elt list) 
+#-sbcl (defun memq (elt list)
 	 (declare (list list))
 	 (member elt list :test #'eq))
 
 #-sbcl (declaim (inline not-eq))
 #-sbcl (defun not-eq (obj-x obj-y) (not (eq obj-x opj-y)))
 
-#+sbcl 
+#+sbcl
 (defun not-eq (obj-x obj-y)
   (sb-int::neq obj-x obj-y))
 
@@ -90,7 +90,7 @@
                                         "Arg cons-a~14Tgot: ~S~%arg cons-a type-of: ~S~%"
                                         "arg cons-b~14Tgot: ~S~%arg cons-b type-of: ~S~%")
                           :w-args `(,cons-a ,(type-of cons-a) ,cons-b ,(type-of cons-b))))
-   (or (and 
+   (or (and
         (realp (car (the cons cons-a)))
         (realp (car (the cons cons-b))))
        (simple-error-mon  :w-sym '%ensure-both-cars
@@ -129,14 +129,14 @@
 ;;; (defun list-length-n-p (x)
 ;;;   (values (ignore-errors (list-length x))))
 ;;; ==============================
-;; :SOURCE asdf.lisp :WAS `length=n-p' 
+;; :SOURCE asdf.lisp :WAS `length=n-p'
 ;; :NOTE See `cl:list-length' and `cl:endp'
-(defun list-length-n-p (cnt-list int) 
+(defun list-length-n-p (cnt-list int)
   ;; :WAS (check-type n (integer 0 *))
   (unless (list-proper-p cnt-list)
     (typecase cnt-list
       (circular-list (circular-list-error cnt-list
-                                          :w-sym 'list-length-n-p 
+                                          :w-sym 'list-length-n-p
                                           :w-type 'function
                                           :signal-or-only nil))
       (t (proper-list-error
@@ -145,18 +145,18 @@
           :error-args `(cnt-list ,cnt-list)
           :signal-or-only nil))))
   (unless (typep int 'fixnum-0-or-over)
-    (error (make-condition 'type-error 
+    (error (make-condition 'type-error
                            :datum int
                            :expected-type 'fixnum-0-or-over)))
   (let nil
     (declare (type proper-list cnt-list)
              (type fixnum-0-or-over int))
     (loop
-       :for l = (the proper-list cnt-list) :then (cdr l)
-       :for i :downfrom (the fixnum-0-or-over int) 
-       :do (cond
-             ((zerop i) (return (null l)))
-             ((not (consp l)) (return nil))))))
+      for l = (the proper-list cnt-list) then (cdr l)
+      for i downfrom (the fixnum-0-or-over int)
+      do (cond
+           ((zerop i) (return (null l)))
+           ((not (consp l)) (return nil))))))
 
 
 ;;; ==============================
@@ -171,7 +171,7 @@
 ;;       (return i))))
 ;;
 ;; #+sbcl
-;; (defun memq (elt list) 
+;; (defun memq (elt list)
 ;;   (declare (type proper-list list))
 ;;   (sb-int::memq elt list))
 ;;
@@ -210,12 +210,12 @@
         (ht (make-hash-table)))
     (declare (type list gthr)
              (type hash-table ht))
-    (loop 
-       :for list :in lists
-       :do (loop 
-              :for inner :in list
-              :unless (gethash inner ht)
-              :do (setf (gethash inner ht) t)
+    (loop
+      for list in lists
+      do (loop
+           for inner in list
+           unless (gethash inner ht)
+           do (setf (gethash inner ht) t)
               (push inner gthr)))
     (nreverse gthr)))
 
@@ -224,14 +224,14 @@
 ;;; :SEQ-ACCESSORS
 ;;; ==============================
 
-;; :NOTE 
-;; (nth 3 '(a b c)) => NIL 
-;; (elt '(a b c) 3) => error 
+;; :NOTE
+;; (nth 3 '(a b c)) => NIL
+;; (elt '(a b c) 3) => error
 ;; (setf (nth 3 '(a b c)) 'q) => error
 
 ;;; :SOURCE D. Mcdermott ytools/nilscompat.lisp
 (declaim (inline list-elt))
-(defun list-elt (lst idx) 
+(defun list-elt (lst idx)
   (declare (type list lst) (type index idx))
   ;; (elt lst index idx)
   (nth idx lst))
@@ -242,19 +242,19 @@
 
 ;;; :SOURCE D. Mcdermott ytools/base.lisp
 (declaim (inline last-elt))
-(defun last-elt (lst) 
+(defun last-elt (lst)
   (car (last lst)))
 
 (declaim (inline list-last))
 (defalias 'list-last 'last-elt)
 
-#+sbcl
-(defun last-cons (in-list)
-  (sb-impl::last-cons-of in-list))
+;; #+sbcl
+;; (defun last-cons (in-list)
+;;   (sb-impl::last-cons-of in-list))
 
-#+sbcl
-(defun nth-sane (lst idx)
-  (sb-int::nth-but-with-sane-arg-order lst idx))
+;; #+sbcl
+;; (defun nth-sane (lst idx)
+;;   (sb-int::nth-but-with-sane-arg-order lst idx))
 
 ;; :SOURCE xit/cl-utilities/cl-utilities.lisp :WAS `single-to-list'
 (declaim (inline list-from-singleton))
@@ -283,25 +283,25 @@
 ;;; :DATE 2008-11-20 :SUBJECT Re: Detection of dotted list?
 ;;; :SOURCE (URL `http://groups.google.com/group/comp.lang.lisp/msg/0977b44e2331bb7e')
 ;;; :MODIFICATIONS
-(defun list-dotted-p-destructure (object)  
+(defun list-dotted-p-destructure (object)
   (multiple-value-bind (is-dot is-type) (list-dotted-p object)
     (case is-type
       ;; (circular-list (values is-dot is-type))
       (circular-list (circular-list-error object
-                                          :w-sym  'list-dotted-p-destructure 
+                                          :w-sym  'list-dotted-p-destructure
                                           :w-type 'function
                                           :signal-or-only nil))
       (null          (values is-dot is-dot))
       ((eql nil)     (values is-dot object))
       (proper-list   (values nil object))
-      (dotted-list   (loop 
-                        :with terminator
-                        :for tail :on object
-                        :collecting (car tail) :into new-list
-                        :when (atom (cdr tail))
-                         :do (setf terminator (cdr tail))
-                        :finally (return (values terminator
-                                                 (if terminator new-list object))))))))
+      (dotted-list   (loop
+                       with terminator
+                       for tail on object
+                       collecting (car tail) into new-list
+                       when (atom (cdr tail))
+                       do (setf terminator (cdr tail))
+                       finally (return (values terminator
+                                                (if terminator new-list object))))))))
 
 
 
@@ -309,10 +309,10 @@
 (defun list-dotted-length (dotted-list)
   (declare (list dotted-list))
   (loop
-     :for length :from 0
-     :for current = dotted-list :then (cdr current)
-     :until (atom current)
-     :finally (return length)))
+    for length from 0
+    for current = dotted-list then (cdr current)
+    until (atom current)
+    finally (return length)))
 
 ;; :SOURCE PJB common-lisp/cesarum/list.lisp :WAS `circular-list-lengths' :LICENSE GPL
 (defun list-circular-lengths (circular-list)
@@ -320,15 +320,15 @@
   (let ((cells (make-hash-table)))
     (declare (hash-table cells))
     (loop
-       :for index :from 0
-       :for cell = circular-list :then (cdr cell)
-       :for previous = (gethash cell cells)
-       :do (if previous
-               (return-from list-circular-lengths (values previous (- index previous)))
-               (setf (gethash cell cells) index)))))
+      for index from 0
+      for cell = circular-list then (cdr cell)
+      for previous = (gethash cell cells)
+      do (if previous
+             (return-from list-circular-lengths (values previous (- index previous)))
+             (setf (gethash cell cells) index)))))
 
 ;; :SOURCE PJB common-lisp/cesarum/list.lisp :WAS `list-lengths' :LICENSE GPL
-;; :NOTE Has test in mon-test/testing.lisp 
+;; :NOTE Has test in mon-test/testing.lisp
 (defun list-lengths (list)
   (declare ((or atom list) list))
   (labels ((proper (current slow)
@@ -351,12 +351,12 @@
 ;;; :SEQ-DESTURCTIVE
 ;;; ==============================
 
-#-sbcl (defun delq (elt list) 
+#-sbcl (defun delq (elt list)
 	 (declare (list list))
 	 (delete elt list :test #'eq))
 
 #+sbcl
-(defun delq (elt list) 
+(defun delq (elt list)
   (declare (type list list))
   (sb-int::delq elt list))
 
@@ -390,29 +390,29 @@
 
 (defun delete-all-elts-eq (in-list from-list)
   (declare (type list in-list from-list))
-  (delete-if #'(lambda (element) 
+  (delete-if #'(lambda (element)
 		 (member element in-list :test #'eq))
 	     from-list))
 
 ;;; :SOURCE GBBopen/source/tools/tools.lisp :WAS Counted-delete
-(defun delete-w-count (item seq &rest args &key (test #'eql) 
+(defun delete-w-count (item seq &rest args &key (test #'eql)
 		       (test-not nil test-not-supplied-p)
                        &allow-other-keys)
   (declare (dynamic-extent args))
   ;; no need to check for both test and test-not, delete should do it for us
   ;; (but doesn't in most implementations...):
   (let ((items-deleted 0)
-        (test (if test-not 
-                  (coerce test-not 'function) 
+        (test (if test-not
+                  (coerce test-not 'function)
                   (coerce test 'function))))
     (declare (type function test))
     (flet ((new-test (a b)
              (when (funcall test a b)
                (incf (the fixnum items-deleted)))))
       (declare (dynamic-extent #'new-test))
-      (values (apply #'delete item seq 
+      (values (apply #'delete item seq
                      (if test-not-supplied-p ':test-not ':test)
-                     #'new-test 
+                     #'new-test
                      args)
               items-deleted))))
 
@@ -434,18 +434,18 @@
 ;;; :SOURCE cllib/simple.lisp
 (defun nsublist (lst &optional pos0 pos1)
   (declare (type list lst))
-  (when pos1 
+  (when pos1
     (let ((cut (nthcdr pos1 lst)))
       (when cut (setf (cdr cut) nil))))
   (if pos0 (nthcdr pos0 lst) lst))
 
 (declaim (inline setcar))
-(defun setcar (cell newcar) 
+(defun setcar (cell newcar)
   ;;(setf (car cell) newcar)
   (rplaca cell newcar))
 
 (declaim (inline setcdr))
-(defun setcdr (cell newcdr) 
+(defun setcdr (cell newcdr)
   ;;(setf (cdr cell) newcdr))
   (rplacd cell newcdr))
 
@@ -460,7 +460,7 @@
            (type index n)
            (optimize (speed 3)))
   (do ((cell (or list (setf list (list nil)))
-             (or (cdr cell) 
+             (or (cdr cell)
                  ;; :WAS (setf (cdr cell) (list nil))
                  (rplacd cell (list nil)) ))
        ;; :WAS (i n (1- i)))
@@ -471,7 +471,7 @@
 
 ;;; :SOURCE D. Mcdermott ytools/base.lisp :WAS `take'
 (defun list-take (take-n from-lst)
-  (declare 
+  (declare
    ;;(type fixnum take-n)
    (type list from-lst))
   (cond ((< take-n 0)
@@ -483,7 +483,7 @@
 (defun list-drop (drop-n from-lst)
   (declare (type index drop-n)
 	   (type list from-lst))
-  (cond ((< drop-n 0) 
+  (cond ((< drop-n 0)
 	 (subseq from-lst 0 (+ (length from-lst) drop-n)))
 	(t (subseq from-lst drop-n (length from-lst)))))
 
@@ -502,13 +502,13 @@
   (do ((rest in-list (nthcdr n-tuples rest)))
       ((null rest) (values))
     (funcall w-fun
-             (subseq (the list rest) 0 
+             (subseq (the list rest) 0
                      ;; (min n-tuples  (length (the list rest)))))))
                      ;; NOTE list-length is likely to return wacko if rest is ever circular.
                      (min n-tuples  (list-length rest))))))
 
 (defun list-slice (n-tuples in-list)
-  (declare 
+  (declare
    (index-from-1 n-tuples)
    (list in-list)
    (optimize (speed 3)))
@@ -530,7 +530,7 @@
 
 ;;; :SOURCE D. Mcdermott ytools/nilscompat.lisp
 (declaim (inline adjoinq))
-(defun adjoinq (item lst);; &key key) 
+(defun adjoinq (item lst);; &key key)
   (declare (type list lst))
   ;; (adjoin item lst :test #'eq :key key))
   (adjoin item lst :test #'eq))
@@ -553,7 +553,7 @@
 ;;; :SOURCE clocc/src/simple.lisp
 ;; (defun flatten (lst-of-lsts)
 ;;  "atom -> (atom); (1 (2) (3 (4) (5 (6) 7) 8) 9) -> (1 2 3 4 5 6 7 8 9)"
-;;   (labels ((fl (lst-of-lsts acc) 
+;;   (labels ((fl (lst-of-lsts acc)
 ;;              (cond ((null lst-of-lsts lst-of-lsts) acc)
 ;;                    ((atom lst-of-lsts) (cons lst-of-lsts acc))
 ;;                    (t (fl (car lst-of-lsts) (fl (cdr lst-of-lsts) acc))))))
@@ -592,7 +592,7 @@
 ;;; :SOURCE cllib/matrix.lisp
 (defun list-to-array (list dims)
   (declare (type list list))
-  (let* ((arr (make-array dims)) 
+  (let* ((arr (make-array dims))
          (sz (array-total-size arr)))
     (unless (= (length list) sz)
       (simple-error-mon :w-sym 'list-to-array
@@ -607,12 +607,11 @@
     arr))
 
 
-		
-;; :COURTESY Kaz Kylheku   	
+;; :COURTESY Kaz Kylheku
 ;; :NEWSGROUP comp.lang.lisp
 ;; :DATE Wed, 4 Jan 2012 05:53:52 +0000 (UTC)
 ;; :SUBJECT Re: rather simple list/set operation
-;; 
+;;
 ;; (fundoc 'disjoint-sets
 ;; "Given a list of lists return members of intersecting lists grouped into the same sublist.~%~@
 ;; :EXAMPLE~%
@@ -638,37 +637,26 @@
         (let ((fs (get-set (first set))))
           (dolist (elem (rest set))
             (merge-set (get-set elem) fs))))
-      (loop 
-         for x being the hash-values of disj-sets-hash
-         collecting x into partitions
-         finally (return (mapcar #'car (remove-duplicates partitions)))))))
-
-;; (defparameter *tt--array* (make-array '(2 3) :initial-contents '((a b c) (1 2 3))))
-;; *tt--array* ;=> #2A((A B C) (1 2 3))
-;;   
-;; #2A((A B C)  ;; A is at rank 0 idx 0 => (aref *tt--array* 0 0)
-;;     (1 2 3)) ;; 2 is at rank 1 idx 1 => (aref *tt--array* 1 2)
-
-;; (row-major-aref *tt--array* 4) ;=> 2 
-;; #2A((a    ;; 0 
-;;      b    ;; 1
-;;      c)   ;; 2
-;;     (1    ;; 3
-;;      2    ;; 4
-;;      3))  ;; 5
+      (loop
+        for x being the hash-values of disj-sets-hash
+        collecting x into partitions
+        finally (return (mapcar #'car (remove-duplicates partitions)))))))
 
 ;;; :SOURCE clocc/src/list.lisp
 (defun freqs (seq &key (test #'eql) (key #'identity))
-  (declare (sequence seq) 
+  (declare (sequence seq)
 	   (type (function (t t) t) test)
            (type (function (t) t) key)
            (optimize (speed 3)))
   #-sbcl (assert (sequencep seq))
   (unless (sequence-zerop seq)
     (sort
-     (reduce (lambda (res el)
-               (let ((fi (assoc el res :test test)))
-                 (cond (fi (incf (cdr fi)) res) ((acons el 1 res)))))
+     (reduce #'(lambda (res el)
+                 (let ((fi (assoc el res :test test)))
+                   (cond (fi
+                          (incf (cdr fi))
+                          res)
+                         ((acons el 1 res)))))
              seq :key key :initial-value nil)
      #'> :key #'cdr)))
 
@@ -708,7 +696,7 @@
       (group-by-w-seq  list test key)))
 
 
-;; :SOURCE (URL `http://paste.lisp.org/+2K4L')  
+;; :SOURCE (URL `http://paste.lisp.org/+2K4L')
 ;; :WAS `count-subsequence-occurance'
 ;; Stas Boukarev's initial version using reduce/search:
 ;; (defun subseq-count-2 (subsequence sequence)
@@ -738,8 +726,8 @@
 
 ;;; :SOURCE cllib/string.lisp
 (defun split-seq (seq pred &key (start 0) end key strict)
-  (declare (type sequence seq) 
-	   (type (function (t t) t) pred) 
+  (declare (type sequence seq)
+	   (type (function (t t) t) pred)
 	   ;; (type fixnum start)
 	   (type fixnum-exclusive start))
   (loop :for st0 = (if strict start
@@ -757,7 +745,7 @@
   (do ((lis lst (cddr lis))
        (odds '())
        (evens '()))
-      ((null lis) (if return-list 
+      ((null lis) (if return-list
                       (list (nreverse odds) (nreverse evens))
                       (values (nreverse odds) (nreverse evens))))
     (push (car lis) odds)
@@ -792,7 +780,7 @@
 ;;; :SEQS-DOCUMENTATION
 ;;; ==============================
 
-(fundoc 'list-elt 
+(fundoc 'list-elt
   "Return element at IDX in LST.~%~@
 setfable~%~@
 :EXAMPLE~%~@
@@ -805,17 +793,17 @@ setfable~%~@
  { ... EXAMPLE ... }~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'list-take 
+(fundoc 'list-take
   "TAKE-N elements FROM-LST.~%~@
 :EXAMPLE~%
  \(list=take 2 '\(a b c d e\)\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'last-cons 
-      "Get the last cons IN-LIST.~%~@
-:EXAMPLE~%
- \(last-cons '\(a b c \(d . \(a\)\)\)\)~%~@
-:SEE-ALSO `<XREF>'.~%▶▶▶")
+;; (fundoc 'last-cons
+;;       "Get the last cons IN-LIST.~%~@
+;; :EXAMPLE~%
+;;  \(last-cons '\(a b c \(d . \(a\)\)\)\)~%~@
+;; :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'list-dotted-p-destructure
  "Return tail of dotted-list for destructuring.~%~@
@@ -839,7 +827,7 @@ When OBJECT is of type `mon:circular-list' signal a `mon:circular-list-error'.~%
 `mon:last-cons', `mon:nth-sane', `mon:list-from-singleton',
 `mon:list-get-singleton', `mon:car-safe', `mon:cdr-safe', `cl:last'.~%▶▶▶")
 
-(fundoc 'list-drop 
+(fundoc 'list-drop
   "~%DROP-N elements FROM-LST~%~@
 :EXAMPLE~%
  \(drop 2 '\(a b c d e\)\)~%~@
@@ -859,7 +847,7 @@ N-TUPLES must be an integer value 1 or greater.
  \(list-n-tuples \(lambda \(x\) \(print x\)\) 3 '\(1 2 3 4 5 6 7\)\)~%~@
 :SEE-ALSO `mon:list-slice'.~%▶▶▶")
 
-(fundoc 'last-elt 
+(fundoc 'last-elt
   "Return the car of the `last' elt in LST.~%~@
 :EXAMPLE~%
  \(last-elt '(a b c d))~%
@@ -867,33 +855,33 @@ N-TUPLES must be an integer value 1 or greater.
  \(last-elt '\(a b c . \(d \(a\)\)\)\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'freqs 
+(fundoc 'freqs
   "Return an alist of (num . freq) of elements of the SEQ.~%~@
 The alist is sorted by decreasing frequencies. TEST defaults to `eql'.~%~@
 :EXAMPLE~%~@
  { ... EXAMPLE ... }~%~@
 :SEE-ALSO `sequence-zero-len-p'.~%▶▶▶")
 
-(fundoc 'list-group-by 
+(fundoc 'list-group-by
   "Group list items by TEST with KEY.~%~@
-When TEST is an equality function satisfying the precicate `standard-test-function-p' 
+When TEST is an equality function satisfying the precicate `standard-test-function-p'
 dispatch return value is as if by `group-by-hash' and will most likely evaluate considerably faster
 than calls which must instead dispatch on `group-by-list'.~%~@
 :EXAMPLE~%
  \(list-group-by '\(\"the\" \"tan\" \"ant\" \"gets\" \"some\" \"fat\"\) :key #'length\)~%
  \(defparameter *nums* \(loop repeat 100000 collect \(random 100000\)\)\)~%
- \(time \(progn 
+ \(time \(progn
 	 \(list-group-by *nums* :key #'\(lambda \(x\) \(mod x 100\)\)\) nil\)\)~%
- \(time \(progn 
+ \(time \(progn
 	 \(list-group-by *nums* :test #'\(lambda \(x y\) \(eql x y\)\)
 			:key #'\(lambda \(x\) \(mod x 100\)\)\) nil\)\)~%~@
 :SEE-ALSO `group-by-w-hash', `group-by-w-seq'.~%▶▶▶")
 
-(fundoc 'group-by-w-seq 
+(fundoc 'group-by-w-seq
   "Group LIST items by TEST with KEY.~%~@
 Helper function for list-group-by~%~@
 :EXAMPLE~%
- \(group-by-w-seq '\(\"the\" \"tan\" \"ant\" \"gets\" \"some\" \"fat\"\) 
+ \(group-by-w-seq '\(\"the\" \"tan\" \"ant\" \"gets\" \"some\" \"fat\"\)
                  #'\(lambda \(x\) \(> length 2\)\)  #'length \)~%~@
 :NOTE When TEST is an equality function satisfying the precicate
 `standard-test-function-p' it is faster to evaluate LIST with `group-by-w-hash'.
@@ -947,35 +935,35 @@ If N exceeds the bounds of LIST's lenth List is extended if necessary.~%~@
  \(add-to-nth-list '\(nil nil\) 'q 1\)
  \(add-to-nth-list \"\" 'q 1\)
  \(let \(\(lst '\(a b c d e f\)\)\)
-   \(loop 
+   \(loop
       for add upfrom 0 below 10
       for new = \(copy-seq lst\)
       collect \(list :at-nth add \(add-to-nth-list new \"bubba\" add\)\) into rtn
       finally \(return \(nconc `\(\(:original ,lst\)\) rtn\)\)\)\)~%~@
 :SEE-ALSO `mon:add-to-list', `cl:pushnew'.~%▶▶▶")
 
-(fundoc  'setcar  
+(fundoc  'setcar
   "Set the car of CELL to be NEWCAR.  Return NEWCAR.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :EMACS-LISP-COMPAT~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc  'setcdr  
+(fundoc  'setcdr
   "Set the cdr of CELL to NEWCDR, return NEWCDR.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :EMACS-LISP-COMPAT~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc  'car-safe 
+(fundoc  'car-safe
 "Return the car of OBJECT if it is a cons cell, else NIL.~%~@
 :EXAMPLE~%~@
  { ... EXAMPLE ... }~%~@
 :EMACS-LISP-COMPAT~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'cdr-safe 
+(fundoc 'cdr-safe
 "Return the cdr of OBJECT if it is a cons cell, or else nil.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
@@ -987,7 +975,7 @@ If N exceeds the bounds of LIST's lenth List is extended if necessary.~%~@
 ;;; :EQ-FUNCTIONS
 ;;; ==============================
 
-(fundoc 'not-eq 
+(fundoc 'not-eq
 "Return non-nil if OBJ-X is not `cl:eq' OBJ-Y~%~@
 :EXAMPLE~%
  \(not-eq 'a 'a\)~%
@@ -1006,13 +994,13 @@ If N exceeds the bounds of LIST's lenth List is extended if necessary.~%~@
  `----~%~@
 :NOTE The following operators are defined to use `cl:eq' rather than `cl:eql':
  `cl:catch', `cl:throw',
- `cl:get', `cl:get-properties', `cl:getf', 
+ `cl:get', `cl:get-properties', `cl:getf',
  `cl:remf', `cl:remprop'~%
 :SEE \(info \"\(ansicl\)eq\"\)~%
 :SEE-ALSO `mon:car-eq', `mon:not-eq', `mon:memq', `mon:position-eq', `delq',
 `mon:remq', `mon:adjoinq', `mon:union-eq-keep-first'.~%▶▶▶")
 
-(fundoc 'car-eq 
+(fundoc 'car-eq
  "Return non-nil when car of LST-X is `eq' OBJ-B.~%~@
 :EXAMPLE~%
  (let ((mk-car 1.0))
@@ -1021,14 +1009,14 @@ If N exceeds the bounds of LIST's lenth List is extended if necessary.~%~@
          (eq 1.0 1.0)
          (eq mk-car 1.0)
          (eq mk-car (float 1))))
-:NOTE It is likeley that called at top level `cl:eq' will not return t for 
+:NOTE It is likeley that called at top level `cl:eq' will not return t for
  (eq 1.0 1.0)~%
  (eql 1.0 1.0)~%~%
 :SEE-ALSO `mon:not-eq', `mon:memq', `mon:position-eq', `delq', `mon:remq',
 `mon:adjoinq', `mon:union-eq-keep-first', `cl:catch', `cl:throw', `cl:get',
 `cl:get-properties', `cl:getf', `cl:remf', `cl:remprop'.~%▶▶▶")
 
-(fundoc 'adjoinq 
+(fundoc 'adjoinq
   "Add ITEM to LIST as if by `cl:adjoin' with :test arg `cl:eq'~%~@
 :EXAMPLE~%~@
  { ... EXAMPLE ... }~%~@
@@ -1036,7 +1024,7 @@ If N exceeds the bounds of LIST's lenth List is extended if necessary.~%~@
 `mon:remq', `mon:union-eq-keep-first', `cl:catch', `cl:throw',
 `cl:get', `cl:get-properties', `cl:getf', `cl:remf', `cl:remprop'.~%▶▶▶")
 
-(fundoc 'memq 
+(fundoc 'memq
  "Return non-nil if elt is an element of list.~%~@
 Comparison is as if by `cl:eq'.~%~@
 The value is actually the tail of list whose car is elt.~%~@
@@ -1103,7 +1091,7 @@ The modified list is returned.  Comparison is as if by `cl:eq'.~%~@
 `mon:union-eq-keep-first', `mon:car-eq', `mon:adjoinq', `cl:catch', `cl:throw',
 `cl:get', `cl:get-properties', `cl:getf', `cl:remf', `cl:remprop'.~%▶▶▶")
 
-(fundoc 'remq  
+(fundoc 'remq
   "Return LIST with all occurrences of ELT removed.~%~@
 The comparison is done with `cl:eq'.~%~@
 Contrary to `cl:delq', this does not use side-effects, and the argument LIST is
@@ -1146,7 +1134,7 @@ Of several `cl:equal' occurrences of an element in LIST, the first one is kept.~
 :SEE-ALSO `mon:delete-dups', `delete-all-elts-eq', `cl:delete',
 `cl:remove'.~%▶▶▶")
 
-(fundoc 'copy-sequence  
+(fundoc 'copy-sequence
     "Return a copy of a list, vector, string or char-table.~%~@
  The elements of a list or vector are not copied; they are shared with the original.~%~@
 :EXAMPLE~%~@
@@ -1155,39 +1143,39 @@ Of several `cl:equal' occurrences of an element in LIST, the first one is kept.~
 :SEE-ALSO `cl:copy-tree', `cl:copy-seq', `cl:copy-alist', `cl:copy-list',
 `cl:copy-structure'.~%▶▶▶")
 
-(fundoc 'nsublist 
+(fundoc 'nsublist
  "Return the part of list LST between POS0 and POS1, *destructively*.~%~@
 0 Indexed.~%~@
 :EXAMPLE~%
  \(nsublist '(1 2 3 4 5) nil 2\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'flatten 
+(fundoc 'flatten
 "Traverses the tree in order, collecting non-null leaves into a list.~%~@
 :EXAMPLE~%
  \(flatten \(1 \(2\) \(3 \(4\) \(5 \(6\) 7\) 8\) 9\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'list-subsets 
+(fundoc 'list-subsets
 "Return a list of all subsets of the given set \(represented as a list\).~%~@
 :EXAMPLE~%
  \(list-subsets '\(a b a b c d\)\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'list-to-array 
+(fundoc 'list-to-array
 "Convert the list to an array of given dimensions DIM, assuming row-major order.~%~@
 :EXAMPLE~%
  \(list-to-array '\(0 1 3 5 7\) 5\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'list-to-intervals 
+(fundoc 'list-to-intervals
 "Return the intervals for conses in LIST.~%~@
 :EXAMPLE~%
- \(list-to-intervals '\(10 9 8 5 4 3 1\)\)~% 
+ \(list-to-intervals '\(10 9 8 5 4 3 1\)\)~%
  ;=> \(\(10 . 10\) \(9 . 9\) \(8 . 8\) \(5 . 5\) \(4 . 4\) \(3 . 3\) \(1 . 1\)\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'list-split-odd-even 
+(fundoc 'list-split-odd-even
         "Split LIST into odd and even numbered elements.~%~@
 Return odd and even postioned elements as if by `cl:values':~%
  - nth-value 0 is a list contained of the evens
@@ -1205,7 +1193,7 @@ When optional arg RETURN-LIST is non-nil return valuis is a two element list:
    \(reverse \(pairlis even odd\)\)\)~%~@
 :SEE-ALSO `cl:pairlist', `cl:acons'.~%▶▶▶")
 
-(fundoc 'split-seq 
+(fundoc 'split-seq
 "Return a list of subseq's of SEQ, split on predicate PRED.~%~@
 Start from START, end with END.~%~@
 If STRICT is non-nil, collect zero-length sub-sequences too.~%~@
@@ -1214,33 +1202,33 @@ If STRICT is non-nil, collect zero-length sub-sequences too.~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'list-from-singleton 
+(fundoc 'list-from-singleton
 "When ARG is an atom a list containing the atom is returned, else return ARG.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `singleton-p', `list-get-singleton'.~%▶▶▶")
 
-(fundoc 'list-get-singleton 
+(fundoc 'list-get-singleton
 "When ARG is a list with a single element return ARG as singleton.~%~@
 When ARG is not single element list return ARG.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `singleton-p', `list-from-singleton'.~%▶▶▶")
 
-(fundoc 'list-quote-elts 
+(fundoc 'list-quote-elts
 "Quote the elements in list lst.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'car-less-than-car 
+(fundoc 'car-less-than-car
 "Return T if \(car A\) is numerically less than \(car B\).~%~@
 Arg A and B should satisfy `cl:consp'.~%~@
 Signal an error if car of either A or B is not `cl:realp'
 :EXAMPLE~%
  \(car-less-than-car '\(2 . a\) '\(3 . b\)\)~%
  \(car-less-than-car '\(2  a\)  '\(3  b\)\)~%~@
-;; Following errors successfully:~% 
+;; Following errors successfully:~%
  \(car-less-than-car '\(2  a\)  '\(b  3\)\)~%
  \(car-less-than-car '\(2  a\)  nil\)~%~@
 :EMACS-LISP-COMPAT~%~@
@@ -1253,7 +1241,7 @@ Signal an error if car of either A or B is not `cl:realp'
 :EXAMPLE~%~@
  \(car-less-than-car '\(3 . a\) '\(2 . b\)\)~%
  \(car-less-than-car '\(3  a\)  '\(2  b\)\)~%~@
-;; Following errors successfully:~% 
+;; Following errors successfully:~%
  \(car-less-than-car '\(3  a\)  '\(b  2\)\)~%
  \(car-less-than-car nil  '\(b  2\)\)~%~@
 :SEE-ALSO `mon:car-less-than-car'.~%▶▶▶")
@@ -1359,7 +1347,7 @@ Signal a `cl:type-error' if INT is not of type `mon:fixnum-0-or-over'.~%~@
  \(list-length-n-p '\(\) -1\) ~%~@
 :SEE-ALSO `mon:sequence-zerop', `cl:list-length', `cl:length', `cl:endp'.~%▶▶▶")
 
-(fundoc 'list-transpose 
+(fundoc 'list-transpose
 "Turn a list-of-lists on its side.~%~@
 If the rows are of unequal length, truncate uniformly to the shortest.~%~@
 :EXAMPLE~%
@@ -1388,8 +1376,8 @@ Helper function for `mon:mapcar-sharing'.~%~@
 ;;; Provide better documentation of functions for the split-sequence package
 ;;; ==============================
 
-#+split-sequence 
-(fundoc 'split-sequence:split-sequence 
+#+split-sequence
+(fundoc 'split-sequence:split-sequence
   "Split SEQ delimited by DELIMITER.~%~@
 Return value is as if by `cl:values':~%
  - nth-value 0 is a list of subsequences~%

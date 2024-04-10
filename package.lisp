@@ -7,15 +7,15 @@
 
 
 (defpackage #:mon (:use #:common-lisp) ;; #+sbcl #:sb-int
-            (:import-from #:alexandria 
+            (:import-from #:alexandria
                           #:once-only
-                          #-sbcl #:symbolicate 
+                          #-sbcl #:symbolicate
                           #-sbcl #:keywordicate
                           #-sbcl #:make-gensym-list
                           #-sbcl #:featurep)
 
  ;; sbcl/src/code/early-extensions.lisp
-  #+sbcl 
+  #+sbcl
   (:import-from #:sb-int
                 ;;
                 ;; <MACROS>
@@ -31,15 +31,15 @@
 		;;
                ;; <FUNCTIONS>
 		;;
-                #:symbolicate 
+                #:symbolicate
                 #:keywordicate)
-  
-  #+sbcl 
+
+  #+sbcl
   (:import-from #:sb-introspect
 		#:function-type
 		#:deftype-lambda-list)
 
-  #+sbcl 
+  #+sbcl
   (:import-from #:sb-ext
 		;; native-namestring
 		;; native-pathname
@@ -58,14 +58,14 @@
   ;;
   ;; (:shadowing-import-from  {...} )
   ;;
-  (:export 
+  (:export
    ;;
  ;; specials.lisp
    ;;
    ;; #:*sldb-bitvector-length-no-miser-me*
    ;; #:*sldb-string-length-no-miser-me*
    ;; #:*sldb-printer-bindings-no-miser-me*
-   ;; 
+   ;;
    #:doc-set
    #:typedoc
    #:vardoc
@@ -131,7 +131,7 @@
    #:while
    #:for
    #:map-do-list
-   #:dosublists 
+   #:dosublists
    #:dosequence
    #:doenumerated
    #:dorange
@@ -153,7 +153,7 @@
    #:string-case-fast  ;; string-case:string-case
    #:output-stream-normalize
    ;;
-   #:aset  
+   #:aset
    #:mk-array
    #:vector-remove-element
    #:vector-insert-element
@@ -172,7 +172,7 @@
    #:condition-case
    ;;
  ;; file-io.lisp
-   ;; 
+   ;;
    #:with-opened-file
    #:with-temp-file        ;; alexandria:with-output-to-file
    #:with-each-stream-line
@@ -182,44 +182,45 @@
    #:with-new-file-renaming-old
    #:with-file-overwritten ;; flexi-streams make-flexi-stream'
    #:write-file
+   #:write-file-header
    #:read-file-to-string
    #:read-file-list-from-fprint0-file
    #:read-file-forms
-   ;; 
-   #:with-pipe-stream 
+   ;;
+   #:with-pipe-stream
    #:make-pipe-stream              ;; sb-sys:make-fd-stream, ccl::make-fd-stream, ccl::external-format-character-encoding
    #:pipe-stream-close-read-side
    #:pipe-stream-close-write-side
    ;;
    ;; Following three functions require:
-   ;; flex:with-output-to-sequence, chipz:decompress 
+   ;; flex:with-output-to-sequence, chipz:decompress
    ;; salza2:with-compressor salza2:compress-octet-vector salza2:make-stream-output-callback
    ;; [ sb-ext:octets-to-string | flex:octets-to-string ]
    ;; [ sb-ext:string-to-octets | flex:string-to-octets ]
-   #:read-file-gunzip-to-string     
-   #:write-string-to-file-gzip      
+   #:read-file-gunzip-to-string
+   #:write-string-to-file-gzip
    #:read-file-gzip-to-gunzip-file
    #:gzip-files-and-delete-source
    ;;
  ;; environ.lisp
    #:executable-find                ;; sb-ext:run-program
-   #:setenv                         ;; sb-posix:putenv 
+   #:setenv                         ;; sb-posix:putenv
    #:getenv-path-pathnames
    #:posix-working-directory        ;; sb-posix:getcwd, si:getcwd, ccl::current-directory-name, ext:cd
    #:set-posix-working-directory    ;; sb-posix:chdir, si:chdir, ccl::%chdir, ext:cd, 
-   #+sbcl #:username-for-system-var-bind   
+   #+sbcl #:username-for-system-var-bind
    #+sbcl #:lisp-implementation-description
    #+sbcl #:username-for-system-var-p      ;; sb-posix:getpwnam sb-posix:passwd-name
    #+sbcl #:syslog-action                  ;; sb-posix:syslog, sb-posix:openlog, sb-posix:closelog
    #+sbcl #:logical-hosts
-   ;; 
+   ;;
  ;; introspect.lisp
    ;;
    #:intern-soft
    #:make-keyword-sanely
    #:keyword-prune
    #:keyword-property-to-function
-   #:fset   
+   #:fset
    #:where-is
    #:where-is-local          ;; sb-int:sane-package
    #:find-package*
@@ -255,11 +256,11 @@
  ;; class-doc-.lisp
    ;;
    #:documented-class-doc                          ;; GENERIC
-   #:documented-class-slot-doc                     ;; GENERIC   
-   #:make-documented-class      
+   #:documented-class-slot-doc                     ;; GENERIC
+   #:make-documented-class
    #:classdoc
    #:documented-class-verify-init
-   ;; #:%verify-hash-table-for-documented-class    ;; INTERNAL 
+   ;; #:%verify-hash-table-for-documented-class    ;; INTERNAL
    #:documented-class-with-docs                    ;; CLASS
    ;;
  ;; types.lisp
@@ -311,7 +312,7 @@
    #:simple-string-not-empty
    #:simple-string-null-or-empty
    #:simple-string-not-null-or-empty
-   #:simple-string-of-length-1   
+   #:simple-string-of-length-1
    #:simple-string-or-null
    #:simple-ascii-string
    #:simple-latin-1-string
@@ -337,7 +338,7 @@
    #:fixnum-bit-width
    #:bignum-bit-width
    #:fixnum-0-or-over
-   #:fixnum-exclusive 
+   #:fixnum-exclusive
    #:unsigned-byte-128
    #:unsigned-byte-96
    #:unsigned-byte-64
@@ -374,7 +375,7 @@
    #:unsigned-byte-29-integer-length
    #:unsigned-byte-24-integer-length
    #:unsigned-byte-16-integer-length
-   #:unsigned-byte-8-integer-length 
+   #:unsigned-byte-8-integer-length
    #:each-a-character
    #:whitespace-char
    #:char-not-whitespace-char
@@ -489,7 +490,7 @@
    #:error-got         ;; reader-for simple-error-mon
    #:error-type-of     ;; reader-for simple-error-mon
    ;;
-   #:case-error   
+   #:case-error
    #:case-spec         ;; reader-for case-error
    #:case-args         ;; reader-for case-error
    ;;
@@ -588,7 +589,7 @@
    ;; :NOTE `hash-resize' requires the following:
    ;; sb-thread::with-recursive-system-spinlock, sb-impl::hash-table-spinlock
    ;; sb-impl::hash-table-next-vector, sb-impl::rehash-size, sb-impl::hash-table-rehash-size
-   ;; #+sbcl #:hash-resize 
+   ;; #+sbcl #:hash-resize
    ;;
  ;; seqs.lisp
    ;;
@@ -608,7 +609,7 @@
    #:remq
    #:delete-all-elts-eq
    #:positions
-   #:position-eq        ;; sb-int::posq  
+   #:position-eq        ;; sb-int::posq
    #:union-eq-keep-first
    #:memq
    #:not-eq             ;; sb-int:neq
@@ -619,8 +620,8 @@
    #:list-from-singleton
    #:list-get-singleton
    #:list-dotted-p-destructure
-   #+sbcl #:last-cons    ;; sb-impl::last-cons-of
-   #+sbcl #:nth-sane     ;; sb-int::nth-but-with-sane-arg-order
+   ;; #+sbcl #:last-cons    ;; sb-impl::last-cons-of
+   ;; #+sbcl #:nth-sane     ;; sb-int::nth-but-with-sane-arg-order
    ;;
    #:nth-remove
    #:delete-w-count
@@ -671,7 +672,7 @@
    #:number-average-seq-simple
    #:number-power-of-two-ceiling
    #:bits-set-p
-   ;; 
+   ;;
  ;; char-numeric.lisp
    ;;
    ;; #:%char-numeric=  ;; INTERNAL!
@@ -702,8 +703,8 @@
    #:char-or-char-code-integer-or-string-1-ensure-char
    #:char-invert-case-maybe
    #:char-for-readtable-case
-   #+sbcl #:char-length         ;; sb-impl::char-len-as-utf8
-   #:string-escape-as-unicode-octo-chars 
+   ;; #+sbcl #:char-length         ;; sb-impl::char-len-as-utf8
+   #:string-escape-as-unicode-octo-chars
    #:char-escape-as-unicode-octochar-string
    ;;
    ;; #+sbcl
@@ -758,7 +759,7 @@
    #:string-map
    #:string-join-strings
    #:string-no-upper-p
-   #:capitalize 
+   #:capitalize
    #:downcase
    #:upcase
    #:capitalize-loosely
@@ -773,13 +774,14 @@
    #:string-subdivide
    #:string-call-with-substrings
    #:string-percent-encode
-   #+sbcl #:string-remove-backslashes ;; sb-impl::remove-backslashes
+   #:string-increment-numeric
+   ;; #+sbcl #:string-remove-backslashes ;; sb-impl::remove-backslashes
    ;;
  ;; file-dir.lisp
    ;;
-   #:substitute-in-file-name    ;; sb-ext:posix-getenv 
+   #:substitute-in-file-name    ;; sb-ext:posix-getenv
    #:pathname-strip-filespec
-   #:copy-file 
+   #:copy-file
    #:directorize-namestring
    #:directory-file-name
    #:file-truename
@@ -817,13 +819,13 @@
    #:pathname-as-directory               ;; osicat:pathname-as-directory/cl-fad:pathname-as-directory
    #:pathname-as-file                    ;; osicat:pathname-as-file/cl-fad:pathname-as-file
    ;; These require cl-fad/osicat
-   #:directory-files                     ;; osicat:list-directory osicat:file-exists-p/cl-fad:directory-exists-p 
+   #:directory-files                     ;; osicat:list-directory osicat:file-exists-p/cl-fad:directory-exists-p
    #:make-pathname-directory-w-type-wild ;; osicat:file-exists-p/cl-fad:directory-exists-p
    #:pathname-directory-pathname         ;; cl-fad:pathname-as-directory
    #:make-pathname-directory-wildcard
 
    ;; :FINISH-ME
-   ;; #:make-pathname-directory-w-name-wild ;; cl-fad::directory-wildcard 
+   ;; #:make-pathname-directory-w-name-wild ;; cl-fad::directory-wildcard
    ;;
    #:pathname-absolute-p
    #+asdf #:default-directory   ;; asdf:truenamize, asdf:pathname-directory-pathname
@@ -842,6 +844,7 @@
    #:number-to-bit-list
    #:number-to-bit-vector
    #:bit-vector-to-integer
+   #:bit-vector-leading-byte
    #:bit-from-boolean
    #:boolean-to-bit
    #:byte-swap
@@ -903,8 +906,8 @@
    #:read-skip-bytes
    #:read-integer-as-text
    ;;
- ;; regexp.lisp 
-   ;; 
+ ;; regexp.lisp
+   ;;
    #:string-underscore-to-dash   ;; cl-ppcre:regex-replace-all
    #:string-find-matching        ;; cl-ppcre:create-scanner, cl-ppcre:scan 
    #:string-whitespace-to-char       ;; cl-ppcre:create-scanner, regex-replace-all
@@ -914,7 +917,7 @@
    ;;
    ;;
  ;; chronos.lisp
-   ;; 
+   ;;
    #+sbcl #:current-time          ;; sb-ext:get-time-of-day
    #:time-string-right-now
    #:time-string-yyyy-mm-dd
@@ -928,7 +931,7 @@
    ;; :NOTE Don't export the `%compose' macro its only needed by `class-slot-list' and
    ;; `class-slot-initargs' in :FILE class-utils.lisp Use alexandria's `compose'
    ;; `multiple-value-compose' when possible they're nicer
-   ;; #:%compose 
+   ;; #:%compose
    ;;
    #:compose-fun
    #:compose-all
@@ -947,7 +950,7 @@
    ;; #:bits-to-number
    ;; #:number-to-bits
    ;;
-   )) 
+   ))
 
 
 ;; (in-package #:mon)

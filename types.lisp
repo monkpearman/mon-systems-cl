@@ -130,14 +130,14 @@
   '(or string pathname file-stream)) ;; logical-pathname subclassses pathname
 
 ;; :SOURCE sbcl/src/code/deftypes-for-target.lisp :WAS `filename'
-(deftype filename-designator () 
+(deftype filename-designator ()
   '(and pathname-designator (not file-stream))) ;; logical-pathname
 
 ;; :NOTE Should `pathname-designator', `filename-designator', and
 ;; `pathname-or-namestring' fail for the empty string, e.g.:
 ;;  (or string-not-empty ...)
 ;; No. b/c of this:
-;;  (make-pathname :host "") => #P"" 
+;;  (make-pathname :host "") => #P""
 ;;  (namestring #P"") => ""
 ;;  (pathname "") => #P""
 ;; However, in general the emtpy-string/pathname is rarely of use. As such,
@@ -150,7 +150,7 @@
 ;;; ==============================
 ;;;
 ;;; ,---- #lisp 2011-01-07
-;;; | 
+;;; |
 ;;; | <stassats> the most juicy part from ansi-tests is that: 
 ;;; |              (stringp (make-array 0 :element-type 'nil)) => T
 ;;; | <stassats> (subtypep '(array nil (*)) 'string) => T 
@@ -176,16 +176,16 @@
 ;;; (let ((str (make-array 8 :element-type 'character :fill-pointer 0 )))
 ;;;   (dolist (i '(#\a #\b #\c #\d #\e #\f #\g #\h #\i))
 ;;;     (vector-push-extend i str))
-;;;   (list :string str 
+;;;   (list :string str
 ;;; 	:fill-pointer (fill-pointer str)
 ;;; 	:adjustable   (adjustable-array-p str)
 ;;; 	:type-of     (type-of str)
 ;;; 	:is-string   (stringp str)))
-;;; 
+;;;
 ;;; SIMPLE-STRING is an object of type:
 ;;;  (simple-array character (size))
 ;;; Supertypes: `simple-string', `string', `vector', `simple-array', `array', `sequence', `t'
-;;; A simple-string has the following constraints 
+;;; A simple-string has the following constraints
 ;;;  - it is of one dimension
 ;;;  - it has element-type  character (or subtype of)
 ;;;  - it does not have a fill pointer
@@ -198,11 +198,11 @@
 ;;;      (array-has-fill-pointer-p str))
 ;;;      (adjustable-array-p str))
 ;;;
-;;; (let ((str (make-array 18 :element-type 'character 
+;;; (let ((str (make-array 18 :element-type 'character
 ;;;                        :adjustable t
 ;;;                        :fill-pointer 0
 ;;;                        )))
-;;;   (loop 
+;;;   (loop
 ;;;      for chars from 65 to 90
 ;;;      do (vector-push-extend (code-char chars) str))
 ;;;   (list :as-string (type-of str)
@@ -210,8 +210,8 @@
 ;;;
 ;;; ==============================
 
-(deftype string-or-null () 
-  '(or 
+(deftype string-or-null ()
+  '(or
     null
     (array character (*))   ;; (vector character)
     (array nil (*))         ;; (vector nil)
@@ -227,7 +227,7 @@
 
 (deftype string-empty ()
   '(and string
-    (or 
+    (or
      (array character (0)) ;; <- (vector character 0)
      (array nil (0))	      ;; <- (vector nil 0)
      (array base-char (0))))) ;; <- (base-string 0)
@@ -239,7 +239,7 @@
   '(or null (and string string-empty)))
 
 (deftype string-null-empty-or-all-whitespace ()
-  '(and string-or-null 
+  '(and string-or-null
     (satisfies string-null-empty-or-all-whitespace-p)))
 
 (deftype string-not-null-or-empty ()
@@ -252,7 +252,7 @@
     (not string-null-empty-or-all-whitespace)))
 
 ;; (deftype string-not-empty-or-all-whitespace ()
-;; (and string string-not-empty 
+;; (and string string-not-empty
 ;; string-not-empty-or-all-whitespace-p
 
 (deftype string-of-length-1 ()
@@ -260,20 +260,20 @@
     (array character (1))))
 
 (deftype simple-string-or-null ()
-  '(or 
+  '(or
     null
     ;; simple-string
-    (simple-array character (*)) 
+    (simple-array character (*))
     (simple-array nil       (*))
     ;; (simple-base-string *)
-    (simple-array base-char (*)))) 
+    (simple-array base-char (*))))
 
 (deftype simple-string-not-null ()
   '(and not-null simple-string))
 
 (deftype simple-string-empty ()
   '(and simple-string
-    (or 
+    (or
      (simple-array character (0))
      (simple-array nil (0))
      (simple-array base-char (0))))) ;; <- (simple-base-string 0)
@@ -283,7 +283,7 @@
 
 (deftype simple-string-not-empty ()
   '(and simple-string (not simple-string-empty)))
-  
+
 (deftype simple-string-not-null-or-empty ()
   '(and simple-string-not-null simple-string-not-empty))
 
@@ -304,7 +304,7 @@
 
 ;; (and (notany #'characterp "") (every  #'characterp ""))  => t
 
-(deftype integer-or-null () 
+(deftype integer-or-null ()
   '(or integer null))
 
 (deftype standard-char-or-null ()
@@ -320,8 +320,8 @@
 (declaim (inline sequencep))
 (defun sequencep (object)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep object 'sequence)))
+  (the boolean
+       (typep object 'sequence)))
 
 ;;; ==============================
 ;;; :PASTED-BY PJB 2011-04-11
@@ -345,21 +345,21 @@
   (declare (inline sequencep)
            (optimize (speed 3)))
   (unless (sequencep object) (return-from list-proper-p (the boolean nil)))
-  (locally 
+  (locally
       (declare (sequence object))
     (the boolean
-      (cond ((not object) t)
-            ((consp object)
-             (do ((fast object (cddr fast))
-                  (slow (cons (car object) (cdr object)) (cdr slow)))
-                 (nil)
-               (unless (and (listp fast) (consp (cdr fast)))
-                 (return (the boolean (and (listp fast) (not (cdr fast))))))
-               (when (eq fast slow)
-                 (return (the boolean nil)))))
-            (t nil)))))
+         (cond ((not object) t)
+               ((consp object)
+                (do ((fast object (cddr fast))
+                     (slow (cons (car object) (cdr object)) (cdr slow)))
+                    (nil)
+                  (unless (and (listp fast) (consp (cdr fast)))
+                    (return (the boolean (and (listp fast) (not (cdr fast))))))
+                  (when (eq fast slow)
+                    (return (the boolean nil)))))
+               (t nil)))))
 
-;; 
+;;
 ;;; :SOURCE alexandria/lists.lisp `alexandria:proper-list'
 (deftype proper-list ()
   `(and list (satisfies list-proper-p)))
@@ -386,17 +386,17 @@
 
 (declaim (inline sequence-proper-p))
 (defun sequence-proper-p (sequence-putatively-proper)
-  (declare (inline list-proper-p 
+  (declare (inline list-proper-p
                    sequencep)
            (optimize (speed 3)))
   (unless (sequencep sequence-putatively-proper)
     (return-from sequence-proper-p (the boolean nil)))
-  (locally 
+  (locally
       (declare (sequence sequence-putatively-proper))
     (the boolean
-      (typep sequence-putatively-proper 'proper-sequence))))
+         (typep sequence-putatively-proper 'proper-sequence))))
 
-(deftype each-a-sequence () 
+(deftype each-a-sequence ()
   '(and sequence (satisfies each-a-sequence-p)))
 
 (deftype each-a-sequence-proper ()
@@ -405,10 +405,10 @@
 (deftype each-a-sequence-proper-or-character ()
   '(and sequence (satisfies each-a-sequence-proper-or-character-p)))
 
-;;; BAD BAD BAD BAD BAD BAD BAD BAD BAD BAD BAD BAD! 
+;;; BAD BAD BAD BAD BAD BAD BAD BAD BAD BAD BAD BAD!
 ;;; Left as a reminder that `list-of-len' is not reasonably possible.
-;;; (deftype list-of-len (&optional n) 
-;;;   (if (zerop n) 
+;;; (deftype list-of-len (&optional n)
+;;;   (if (zerop n)
 ;;;       'null
 ;;;       `(cons t (list-of-len ,(1- n)))))
 
@@ -450,9 +450,9 @@
 (defun %byte-vector-each-an-unsigned-byte-8 (byte-array)
   (declare (simple-vector byte-array)
            (optimize (speed 3)))
-  (loop 
-     for chk-byte upfrom 0 below (array-dimension byte-array 0)
-     always (typep (svref byte-array chk-byte ) 'unsigned-byte-8)))
+  (loop
+    for chk-byte upfrom 0 below (array-dimension byte-array 0)
+    always (typep (svref byte-array chk-byte ) 'unsigned-byte-8)))
 
 ;;; :SOURCE sbcl/src/code/early-extensions.lisp
 (deftype index ()
@@ -543,15 +543,15 @@
 ;; #b00011111111111111111111111111111 0-536870911  29 bits  4 octets
 ;; #b11111111111111111111111111111111 0-4294967295 32 bits  4 octets
 ;;           4       3      2       1
-;; 
+;;
 ;; 0-18446744073709551615 64 bits 8 octets
 ;; #b1111111111111111111111111111111111111111111111111111111111111111
 ;;           8       7      6       5        4       3      2       1
 
 (deftype unsigned-byte-128 ()
-  ;; 128 bits 
+  ;; 128 bits
   ;; 16 Octets
-  ;; 128 bits 
+  ;; 128 bits
   ;; 340282366920938463463374607431768211455
   ;; #xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
   ;; #o3777777777777777777777777777777777777777777
@@ -566,7 +566,7 @@
   '(unsigned-byte 96))
 
 (deftype unsigned-byte-64 ()
-  ;; 64 bits 
+  ;; 64 bits
   ;; 8 Octets
   ;; #xFFFFFFFFFFFFFFFF
   ;; 18446744073709551615
@@ -574,7 +574,7 @@
   ;; #b1111111111111111111111111111111111111111111111111111111111111111
   '(unsigned-byte 64))
 
-(deftype uint64 () 
+(deftype uint64 ()
   'unsigned-byte-64)
 
 (deftype unsigned-byte-56 ()
@@ -589,7 +589,7 @@
   ;; 48 bits
   ;; 6 Octets
   ;; #xFFFFFFFFFFFF
-  ;; 281474976710655 
+  ;; 281474976710655
   ;; #o7777777777777777
   ;; #b111111111111111111111111111111111111111111111111
   '(unsigned-byte 48))
@@ -603,7 +603,7 @@
   ;; #b11111111111111111111111111111111
   '(unsigned-byte 32))
 
-(deftype uint32 () 
+(deftype uint32 ()
   'unsigned-byte-32)
 
 (deftype unsigned-byte-29 ()
@@ -633,7 +633,7 @@
   ;; #b1111111111111111
   '(unsigned-byte 16))
 
-(deftype uint16 () 
+(deftype uint16 ()
   'unsigned-byte-16)
 
 (deftype unsigned-byte-8 ()
@@ -645,7 +645,7 @@
   ;; #b11111111
   '(unsigned-byte 8))
 
-(deftype uint8 () 
+(deftype uint8 ()
   'unsigned-byte-8)
 
 ;; :SOURCE flexi-streams-1.0.7/mapping.lisp
@@ -662,7 +662,7 @@
   ;; #xF
   ;; #o17
   ;; 15
-  ;; #b1111  
+  ;; #b1111
   '(unsigned-byte 4))
 
 ;;; Lisp integer types with the same numeric range as C++ ints.
@@ -670,25 +670,25 @@
 (deftype signed-byte-64 ()
   '(signed-byte 64))
 
-(deftype signed-byte-32 () 
+(deftype signed-byte-32 ()
   '(signed-byte 32))
 
-(deftype signed-byte-16 () 
+(deftype signed-byte-16 ()
   '(signed-byte 16))
 
-(deftype signed-byte-8 () 
+(deftype signed-byte-8 ()
   '(signed-byte 8))
 
-(deftype int64 () 
+(deftype int64 ()
   'signed-byte-64)
 
-(deftype int32 () 
-  'signed-byte-32) 
+(deftype int32 ()
+  'signed-byte-32)
 
-(deftype int16 () 
+(deftype int16 ()
   'signed-byte-16)
 
-(deftype int8 () 
+(deftype int8 ()
   'signed-byte-8)
 
 ;; Apache Thrift types:
@@ -702,7 +702,7 @@
   'signed-byte-16)
 
 ;; :NOTE A bad idea on their part :)
-;; (deftype byte () 
+;; (deftype byte ()
 ;;   'signed-byte-16)
 
 (deftype unsigned-byte-128-integer-length ()
@@ -739,7 +739,7 @@
 (deftype code-point ()
   ;; #x110000 => `cl:char-code-limit' (when charset is Unicode)
   ;; (mod 1114112) -> (integer 0 1114111)
-  '(mod #x110000)) 
+  '(mod #x110000))
 ;;
 ;; (code-char 1114111)
 
@@ -773,18 +773,18 @@
   '(satisfies string-all-whitespace-p))
 
 (deftype string-all-whitespace-safely ()
-  '(and 
+  '(and
     string-not-empty
     (satisfies %fast-string-all-whitespace-p)))
 
 ;; string-all-whitespace
-(deftype whitespace-char () 
+(deftype whitespace-char ()
   `(member ,@*whitespace-chars*))
 
 (deftype char-not-whitespace-char ()
   '(and character (not whitespace-char)))
 
-(deftype hexadecimal-char () 
+(deftype hexadecimal-char ()
   `(and standard-char (member ,@*hexadecimal-chars*)))
 
 (deftype string-or-char ()
@@ -817,12 +817,12 @@
 
 (deftype hash-table-or-symbol-with-hash ()
   `(and hash-table-or-symbol
-        (or hash-table 
+        (or hash-table
             (and not-boolean
                  (satisfies %hash-or-symbol-p-no-error)))))
 
-;; :SOURCE sbcl/src/code/kernel.lisp 
-#+sbcl 
+;; :SOURCE sbcl/src/code/kernel.lisp
+#+sbcl
 (deftype closure-obj ()
   '(satisfies closure-p))
 
@@ -839,7 +839,7 @@
          (typ-name (intern (cdr name-pair))))
     `(progn
        (defun ,fun-name (object)
-         ,(format nil 
+         ,(format nil
                   "Whether each element of OBJECT is of type ~A.~%~@
                    OBJECT should satisfy `mon:list-proper-p'. Signal an error if not." type)
          (and (or
@@ -848,9 +848,9 @@
                                       :w-type (quote function)
                                       :proper-list-error-args (list (quote object) object))))
               (unless (null object)
-                (loop 
-                   for chk in (the proper-list-not-null object)
-                   always (typep chk ',type)))))
+                (loop
+                  for chk in (the proper-list-not-null object)
+                  always (typep chk ',type)))))
        (deftype ,typ-name ()
          (quote (and proper-list-not-null (satisfies ,fun-name)))))))
 
@@ -864,12 +864,12 @@
                   type))
     (setf rtn (cons rtn (subseq rtn 0 (- (length rtn) 2))))))
 
-#+sbcl 
+#+sbcl
 (defun type-specifier-valid-p (type-specifier &optional env)
   (sb-ext:valid-type-specifier-p type-specifier env))
 
 ;;; :SOURCE flexi-streams-1.0.7/util.lisp
-(defun type-equal (type1 type2)  
+(defun type-equal (type1 type2)
   ;; (declare #.*standard-optimize-settings*)
   (and (subtypep type1 type2)
        (subtypep type2 type1)))
@@ -877,8 +877,8 @@
 (defun booleanp (obj &optional as-list)
   (declare (optimize (speed 3)))
   (if as-list
-      (values 
-       (or (and (typep obj 'boolean) 
+      (values
+       (or (and (typep obj 'boolean)
 		(list obj t))
 	   (list nil nil))
        (type-of obj)
@@ -887,19 +887,19 @@
 
 (defun symbol-not-a-constantp (symbol)
   ;; generalized-boolean
-  (and (symbolp symbol) 
+  (and (symbolp symbol)
        (not (constantp symbol))
        symbol))
 
 (declaim (inline symbol-not-null-or-string-not-empty-p))
-(defun symbol-not-null-or-string-not-empty-p (object) 
+(defun symbol-not-null-or-string-not-empty-p (object)
   (declare (optimize (speed 3)))
   (typep object 'symbol-not-null-or-string-not-empty))
 
 
-;;; ============================== 
+;;; ==============================
 ;;; :SOURCE sbcl/src/code/early-extensions.lisp
-#-sbcl 
+#-sbcl
 (defun type-any (op thing list)
   (declare (type function op))
   (let ((certain? t))
@@ -908,7 +908,7 @@
 	(if sub-certain?
 	    (when sub-value (return (values t t)))
 	    (setf certain? nil))))))
-#+sbcl 
+#+sbcl
 (defun type-any (op thing list)
   (sb-int:any/type op thing list))
 #-sbcl
@@ -920,7 +920,7 @@
 	(if sub-certain?
 	    (unless sub-value (return (values nil t)))
 	    (setf certain? nil))))))
-#+sbcl 
+#+sbcl
 (defun type-every (op thing list)
   (sb-int:every/type op thing list))
 
@@ -979,7 +979,7 @@
   (declare (optimize (speed 3)))
   (when (not (listp object))
     (return-from list-circular-p))
-  (locally 
+  (locally
       (declare (list object))
     ;;(and (listp object)
     (do ((fast object (cddr fast))
@@ -992,10 +992,10 @@
 
 (defun list-dotted-p (list)
   (declare (optimize (speed 3)))
-  (if  (null list) 
+  (if  (null list)
        (values nil 'null)
        (when (consp list)
-         (locally 
+         (locally
              (declare (cons list))
            (if (list-circular-p list)
                (values nil 'circular-list)
@@ -1007,23 +1007,23 @@
 (defun plist-proper-p (object)
   (declare (inline list-proper-p)
            (optimize (speed 3)))
-  (when (list-proper-p object) 
+  (when (list-proper-p object)
     (the boolean
-      ;; (evenp (length (the list-length object))))))
-      (evenp (length (the list object))))))
+         ;; (evenp (length (the list-length object))))))
+         (evenp (length (the list object))))))
 
 (declaim (inline plist-proper-not-null-p))
 (defun plist-proper-not-null-p (object)
   (declare (optimize (speed 3)))
-  (when (consp object) 
-    (the boolean 
-      (typep (the cons object) 'proper-plist-not-null))))
+  (when (consp object)
+    (the boolean
+         (typep (the cons object) 'proper-plist-not-null))))
 
 (declaim (inline list-proper-not-null-p))
 (defun list-proper-not-null-p (object)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep object 'proper-list-not-null)))
+  (the boolean
+       (typep object 'proper-list-not-null)))
 
 ;;; :SOURCE clocc/src/simple.lisp
 ;;; :NOTE :CALLED-BY `mon:freqs' :FILE seqs.lisp
@@ -1033,37 +1033,37 @@
            (optimize (speed 3)))
   (when (not (sequencep seq))
     (return-from sequence-zerop))
-  (locally 
+  (locally
       (declare (type sequence seq))
     (the boolean
-      (or (null seq) 
-        ;; :NOTE Don't test for arrayp b/c multi-dimension arrays are not sequences:
-        ;;      (typep (make-array '(2 3 4) :adjustable t) 'sequence) => NIL
-        ;;      (typep (make-array '(2 3 4)) 'sequence) => NIL
-        ;;      (typep (make-array 6 :adjustable t) 'sequence) => T
-        (and 
-         (vectorp seq)
-         (zerop (length seq)))))))
+         (or (null seq)
+             ;; :NOTE Don't test for arrayp b/c multi-dimension arrays are not sequences:
+             ;;      (typep (make-array '(2 3 4) :adjustable t) 'sequence) => NIL
+             ;;      (typep (make-array '(2 3 4)) 'sequence) => NIL
+             ;;      (typep (make-array 6 :adjustable t) 'sequence) => T
+             (and
+              (vectorp seq)
+              (zerop (length seq)))))))
 
 ;;; :SOURCE clocc/src/string.lisp
 (defun sequence-type (seq &optional (no-error nil))
   (declare (inline sequencep)
            (optimize (speed 3)))
-  (when no-error 
-    (when (not (sequencep seq)) 
+  (when no-error
+    (when (not (sequencep seq))
       (return-from sequence-type (the boolean nil))))
-  (typecase seq    
+  (typecase seq
     (null        (values nil 'null))
     (proper-list 'list)
     (cons        'cons)
-    (string      (values 'string 
+    (string      (values 'string
                          (or (and (simple-string-p seq) 'simple-string)
                              (type-of seq))))
-    (bit-vector  (values (or (and (simple-bit-vector-p seq) 'simple-bit-vector) 'bit-vector) 
+    (bit-vector  (values (or (and (simple-bit-vector-p seq) 'simple-bit-vector) 'bit-vector)
                          (type-of seq)))
     (vector (let ((eltype (array-element-type seq)))
               (if (eq eltype t) 'vector (list 'vector eltype))))
-    (t 
+    (t
      (unless no-error
        (error 'case-error
               :w-sym 'sequence-type
@@ -1089,40 +1089,40 @@
 (declaim (inline string-or-null-p))
 (defun string-or-null-p (obj)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep obj 'string-or-null)))
+  (the boolean
+       (typep obj 'string-or-null)))
 
 (declaim (inline string-empty-p))
 (defun string-empty-p (str)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep str 'string-empty)))
+  (the boolean
+       (typep str 'string-empty)))
 
 (declaim (inline string-not-empty-p))
 (defun string-not-empty-p (string)
   (declare (optimize (speed 3)))
   ;; (funcall (complement #'mon:string-empty-p) string)
   (the boolean
-    (when (stringp string) 
-      (not (zerop (the array-length (length (the string string))))))))
+       (when (stringp string)
+         (not (zerop (the array-length (length (the string string))))))))
 
 (declaim (inline string-not-null-or-empty-p))
 (defun string-not-null-or-empty-p (str)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep str 'string-not-null-or-empty)))
+  (the boolean
+       (typep str 'string-not-null-or-empty)))
 
 (declaim (inline string-null-or-empty-p))
 (defun string-null-or-empty-p (str)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep str 'string-null-or-empty)))
+  (the boolean
+       (typep str 'string-null-or-empty)))
 
 (declaim (inline string-not-null-p))
 (defun string-not-null-p (str)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep str 'string-not-null)))
+  (the boolean
+       (typep str 'string-not-null)))
 
 (declaim (inline string-of-length-1-p))
 (defun string-of-length-1-p (string)
@@ -1132,38 +1132,38 @@
 (declaim (inline string-with-fill-pointer-p))
 (defun string-with-fill-pointer-p (putative-string-with-fill-pointer)
   (declare (optimize (speed 3)))
- (the boolean 
-   (typep putative-string-with-fill-pointer 'string-with-fill-pointer)))
+  (the boolean
+       (typep putative-string-with-fill-pointer 'string-with-fill-pointer)))
 
 (declaim (inline simple-string-or-null-p))
 (defun simple-string-or-null-p (obj)
   (declare (optimize (speed 3)))
- (the boolean 
-   (typep obj 'simple-string-or-null)))
+  (the boolean
+       (typep obj 'simple-string-or-null)))
 
 (declaim (inline simple-string-empty-p))
 (defun simple-string-empty-p (str)
   (declare (optimize (speed 3)))
- (the boolean 
-   (typep str 'simple-string-empty)))
+  (the boolean
+       (typep str 'simple-string-empty)))
 
 (declaim (inline simple-string-null-or-empty-p))
 (defun simple-string-null-or-empty-p (str)
   (declare (optimize (speed 3)))
- (the boolean 
-   (typep str 'simple-string-null-or-empty)))
+  (the boolean
+       (typep str 'simple-string-null-or-empty)))
 
 (declaim (inline simple-string-not-null-or-empty-p))
 (defun simple-string-not-null-or-empty-p (str)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep str 'simple-string-not-null-or-empty)))
+  (the boolean
+       (typep str 'simple-string-not-null-or-empty)))
 
 (declaim (inline simple-string-not-null-p))
 (defun simple-string-not-null-p (str)
   (declare (optimize (speed 3)))
-  (the boolean 
-    (typep str 'simple-string-not-null)))
+  (the boolean
+       (typep str 'simple-string-not-null)))
 
 (declaim (inline simple-string-of-length-1-p))
 (defun simple-string-of-length-1-p (string)
@@ -1195,19 +1195,19 @@
     (return-from each-a-string-or-vector-in-vector (the boolean nil)))
   (flet ((chk-string-like (string-like)
            (if (sequencep string-like)
-               (if (or (stringp string-like) 
+               (if (or (stringp string-like)
                        (typep string-like '(vector character *)))
                    t
                    (if (simple-vector-p string-like)
-                       (loop 
-                          for chk-char across (the simple-vector string-like)
-                          always (characterp  chk-char)))))))
-    (locally 
+                       (loop
+                         for chk-char across (the simple-vector string-like)
+                         always (characterp  chk-char)))))))
+    (locally
         (declare (vector vector))
       (the boolean
-        (loop
-           :for chk-str across vector
-           :always (chk-string-like chk-str))))))
+           (loop
+             for chk-str across vector
+             always (chk-string-like chk-str))))))
 
 (defun each-a-string-or-vector-in-list (list)
   (declare (inline sequencep)
@@ -1222,88 +1222,86 @@
     (return-from each-a-string-or-vector-in-list (the boolean nil)))
   (flet ((chk-string-like (string-like)
            (if (sequencep string-like)
-               (if (or (stringp string-like) 
+               (if (or (stringp string-like)
                        (typep string-like '(vector character *)))
                    t
                    (if (simple-vector-p string-like)
-                       (loop 
-                          for chk-char across (the simple-vector string-like)
-                          always (characterp  chk-char)))))))
-    (locally 
+                       (loop
+                         for chk-char across (the simple-vector string-like)
+                         always (characterp  chk-char)))))))
+    (locally
         (declare ((and not-null list) list))
       (the boolean
-        (loop
-           :for chk-str in list
-           :always (chk-string-like chk-str))))))
+           (loop
+             for chk-str in list
+             always (chk-string-like chk-str))))))
 
 (declaim (inline each-a-string-p))
 (defun each-a-string-p (string-list)
   (declare (inline list-proper-not-null-p  list-proper-p)
            (optimize (speed 3)))
-  (unless (list-proper-not-null-p string-list) 
+  (unless (list-proper-not-null-p string-list)
     (return-from each-a-string-p nil))
-  (locally 
+  (locally
       (declare (list string-list))
     (the boolean ;; (the boolean (every #'stringp string-list))
-      (loop
-         :for chk-str :in string-list
-         :always (stringp chk-str)))))
+         (loop
+           for chk-str in string-list
+           always (stringp chk-str)))))
 
 (declaim (inline each-a-string-or-null-p))
 (defun each-a-string-or-null-p (string-list)
-  (declare 
-   (inline string-or-null-p)
-   (optimize (speed 3)))
+  (declare (inline string-or-null-p)
+           (optimize (speed 3)))
   (unless (typep string-list 'proper-list)
     (return-from each-a-string-or-null-p nil))
   (when (null string-list)
     (return-from each-a-string-or-null-p t))
-  (locally 
+  (locally
       (declare (proper-list-not-null string-list))
     (the boolean     ;; (the boolean (every #'string-or-null-p string-list))
-      (loop
-         :for chk-str :in string-list
-         :always (string-or-null-p chk-str)))))
+         (loop
+           for chk-str in string-list
+           always (string-or-null-p chk-str)))))
 
 (defun each-a-simple-string-p (string-list)
-  (declare 
-   (inline list-proper-not-null-p)
-   (optimize (speed 3)))
+  (declare (inline list-proper-not-null-p)
+           (optimize (speed 3)))
   (when (list-proper-not-null-p string-list)
-    (locally 
+    (locally
         (declare (list  string-list))
       (the boolean ;; (the boolean (every #'simple-string-p string-list))
-        (loop
-           :for chk-str :in string-list
-           :always (simple-string-p chk-str))))))
+           (loop
+             for chk-str in string-list
+             always (simple-string-p chk-str))))))
 
 (defun each-a-string-of-length-1-p (string-list)
   (declare (inline string-of-length-1-p
                    string-not-null-or-empty-p)
-   (optimize (speed 3)))
+           (optimize (speed 3)))
   (when (typep string-list 'proper-list-not-null)
-    (locally 
+    (locally
         (declare (list string-list))
       (the boolean
-        (loop
-           :for chk-str :in string-list
-           :always (and (string-not-null-or-empty-p chk-str)
-                        ;; (= (the array-length (string-length (the string-not-empty chk-str))) 1)))))))
-                        (string-of-length-1-p (the string-not-empty chk-str))))))))
+           (loop
+             for chk-str in string-list
+             always (and (string-not-null-or-empty-p chk-str)
+                         ;; (= (the array-length (string-length (the string-not-empty chk-str))) 1)))))))
+                         (string-of-length-1-p (the string-not-empty chk-str))))))))
 
 (defun each-a-simple-string-of-length-1-p (string-list)
   (declare (inline simple-string-not-null-or-empty-p
                    simple-string-of-length-1-p)
-   (optimize (speed 3)))
+           (optimize (speed 3)))
   (when (typep string-list 'proper-list-not-null)
-    (locally 
+    (locally
         (declare (list string-list))
       (the boolean
-        (loop
-           :for chk-str :in string-list
-           :always (and (simple-string-not-null-or-empty-p chk-str)
-                        ;; (= (the array-length (string-length (the simple-string-not-empty chk-str))) 1)))))))
-                        (simple-string-of-length-1-p (the simple-string-not-empty chk-str))))))))
+           (loop
+             for chk-str in string-list
+             always (and (simple-string-not-null-or-empty-p chk-str)
+                         ;; (= (the array-length (string-length (the simple-string-not-empty chk-str))) 1)))))))
+                         (simple-string-of-length-1-p (the simple-string-not-empty chk-str))))))))
 
 
 ;;; ==============================
@@ -1313,7 +1311,7 @@
 (defun each-a-sequence-p (seq)
   (declare  (inline sequencep)
             (optimize (speed 3)))
-  (when (null seq) 
+  (when (null seq)
     (return-from each-a-sequence-p (the (values boolean symbol) (values t (quote null)))))
   (unless (sequencep seq)
     (return-from each-a-sequence-p (the boolean nil)))
@@ -1328,32 +1326,32 @@
       (locally
           (declare ((and sequence (not string) (not bit-vector)) seq))
         (the (values boolean symbol)
-          (etypecase seq
-            (list 
-             (setf string-or-bv (quote list))
-             (values (loop 
-                        for elt in seq
-                        always (sequencep elt))
-                     string-or-bv))
-            (simple-array 
-             (setf string-or-bv (quote simple-array))
-             (values (loop 
-                        for elt across (the simple-array seq)
-                        always (sequencep elt))
-                     string-or-bv))
-            (array 
-             (setf string-or-bv (quote array))
-             (values (loop 
-                        for elt across (the array seq)
-                        always (sequencep elt))
-                     string-or-bv))))))))
+             (etypecase seq
+               (list
+                (setf string-or-bv (quote list))
+                (values (loop
+                          for elt in seq
+                          always (sequencep elt))
+                        string-or-bv))
+               (simple-array
+                (setf string-or-bv (quote simple-array))
+                (values (loop
+                          for elt across (the simple-array seq)
+                          always (sequencep elt))
+                        string-or-bv))
+               (array
+                (setf string-or-bv (quote array))
+                (values (loop
+                          for elt across (the array seq)
+                          always (sequencep elt))
+                        string-or-bv))))))))
 
 (defun each-a-sequence-proper-p (seq)
-  (declare  (inline sequencep 
+  (declare  (inline sequencep
                     list-proper-p
                     sequence-proper-p)
             (optimize (speed 3)))
-  (when (null seq) 
+  (when (null seq)
     (return-from each-a-sequence-proper-p (the (values boolean symbol) (values t (quote null)))))
   (unless (sequencep seq)
     (return-from each-a-sequence-proper-p (the boolean nil)))
@@ -1365,36 +1363,36 @@
       (declare (symbol string-or-bv))
       (when string-or-bv
         (return-from each-a-sequence-proper-p (the (values boolean symbol) (values nil string-or-bv))))
-      ;; (locally 
+      ;; (locally
       ;;     (declare ((and sequence (not string) (not bit-vector)) seq))
       ;;   (the boolean (every #'sequence-proper-p seq))))))
       (locally
           (declare ((and sequence (not string) (not bit-vector)) seq))
         (the (values boolean symbol)
-          (etypecase seq
-            (list 
-             (setf string-or-bv (quote list))
-             (values (loop 
-                        for elt in seq
-                        always (sequencep elt))
-                     string-or-bv))
-            (simple-array 
-             (setf string-or-bv (quote simple-array))
-             (values (loop 
-                        for elt across (the simple-array seq)
-                        always (sequencep elt))
-                     string-or-bv))
-            (array 
-             (setf string-or-bv (quote array))
-             (values (loop 
-                        for elt across (the array seq)
-                        always (sequencep elt))
-                     string-or-bv))))))))
+             (etypecase seq
+               (list
+                (setf string-or-bv (quote list))
+                (values (loop
+                          for elt in seq
+                          always (sequencep elt))
+                        string-or-bv))
+               (simple-array
+                (setf string-or-bv (quote simple-array))
+                (values (loop
+                          for elt across (the simple-array seq)
+                          always (sequencep elt))
+                        string-or-bv))
+               (array
+                (setf string-or-bv (quote array))
+                (values (loop
+                          for elt across (the array seq)
+                          always (sequencep elt))
+                        string-or-bv))))))))
 
 (defun each-a-sequence-proper-or-character-p (seq)
   (declare (inline sequencep list-proper-p)
            (optimize (speed 3)))
-  (when (null seq) 
+  (when (null seq)
     (return-from each-a-sequence-proper-or-character-p t))
   (unless (sequencep seq)
     (return-from each-a-sequence-proper-or-character-p nil))
@@ -1403,7 +1401,7 @@
                     (if (listp (the sequence x))
                         (list-proper-p (the list x))
                         t))
-               (characterp x)))) 
+               (characterp x))))
     (declare (sequence seq))
     (the boolean (every #'chk-all seq))))
 
@@ -1411,6 +1409,7 @@
 ;;; ==============================
 ;;; :CHAR-TYPE-PREDICATES
 ;;; ==============================
+
 ;; (declaim (inline string-null-empty-or-all-whitespace-p))
 (defun string-null-empty-or-all-whitespace-p (maybe-empty-string)
   (declare (optimize (speed 3)))
@@ -1419,9 +1418,9 @@
   (unless (stringp maybe-empty-string)
     (return-from string-null-empty-or-all-whitespace-p nil))
   (the boolean
-    (when (or (string-empty-p maybe-empty-string)
-              (string-all-whitespace-p maybe-empty-string))
-      t)))
+       (when (or (string-empty-p maybe-empty-string)
+                 (string-all-whitespace-p maybe-empty-string))
+         t)))
 
 (defun string-not-null-empty-or-all-whitespace-p (maybe-good-string)
   (declare (optimize (speed 3)))
@@ -1431,20 +1430,20 @@
     (return-from string-not-null-empty-or-all-whitespace-p nil))
   (when (string-empty-p (the string-not-null maybe-good-string))
     (return-from string-not-null-empty-or-all-whitespace-p nil))
-  (locally 
-      (declare (string-not-null-or-empty maybe-good-string)) 
+  (locally
+      (declare (string-not-null-or-empty maybe-good-string))
     (the boolean
-      (typep maybe-good-string 'string-not-null-empty-or-all-whitespace))))
+         (typep maybe-good-string 'string-not-null-empty-or-all-whitespace))))
 
 (defun string-not-empty-or-all-whitespace-p (maybe-good-string)
   (declare (inline string-not-empty-p)
            (optimize (speed 3)))
   (when (stringp maybe-good-string)
     (when (the boolean (string-not-empty-p (the string maybe-good-string)))
-      (locally 
+      (locally
           (declare (string-not-empty maybe-good-string))
         (not (the (values boolean array-length array-length)
-               (string-all-whitespace-p maybe-good-string)))))))
+                  (string-all-whitespace-p maybe-good-string)))))))
 
 ;;  mon:string-empty-p (mon:string-not-empty-or-all-whitespace-p "")
 
@@ -1465,35 +1464,35 @@
     (return-from %fast-string-all-whitespace-p nil))
   (unless (string-not-empty-p (the string maybe-good-string))
     (return-from %fast-string-all-whitespace-p nil))
-  (locally 
+  (locally
       (declare (string-not-empty maybe-good-string))
-    (loop 
-       :for chars :across maybe-good-string
-       :always (whitespace-char-p chars))))
+    (loop
+      for chars across maybe-good-string
+      always (whitespace-char-p chars))))
 
 ;; (string-empty-p nil)
-;;; ==============================  
+;;; ==============================
 (defun string-all-whitespace-p (string)
   (declare ((and not-null string) string)
            (optimize (speed 3)))
-  (values-list 
+  (values-list
    (if (string-empty-p string)
        (list nil 0 0)
-       (locally 
+       (locally
            (declare (string-not-null-or-empty string))
-         (let ((chk-if 
-                (the array-length
-                  (loop
-                     ;; :WAS :for chars :across (the string-not-null-or-empty string)
-                     :for chars :across string
-                     ;; :when (not (whitespace-char-p chars)) 
-                     :unless (whitespace-char-p chars)
-                     :do (loop-finish)
-                     :count chars)))
+         (let ((chk-if
+                 (the array-length
+                      (loop
+                        ;; :WAS :for chars :across (the string-not-null-or-empty string)
+                        for chars across string
+                        ;; :when (not (whitespace-char-p chars))
+                        unless (whitespace-char-p chars)
+                        do (loop-finish)
+                        count chars)))
                ;; :WAS (chk-len (length string)))
                (chk-len (the array-length (length string))))
            (declare (array-length chk-if chk-len))
-           (or (and (eq chk-len chk-if) 
+           (or (and (eq chk-len chk-if)
                     (list t chk-len chk-len))
                (list nil chk-if chk-len)))))))
 
@@ -1501,19 +1500,19 @@
   (declare ((and not-null string) string)
            (inline string-empty-p)
            (optimize (speed 3)))
-  (values-list 
+  (values-list
    (if (string-empty-p string)
        (list nil 0 0)
-       (let ((chk-if (loop 
-                        :for chars :across (the string-not-null-or-empty string)
-                        :when (whitespace-char-p chars)
-                        :do   (loop-finish)
-                        :count chars))
+       (let ((chk-if (loop
+                       for chars across (the string-not-null-or-empty string)
+                       when (whitespace-char-p chars)
+                       do   (loop-finish)
+                       count chars))
              (chk-len (the array-length (length string))))
-         (or (and (eq chk-len chk-if) 
+         (or (and (eq chk-len chk-if)
                   (list nil chk-len))
              (list t chk-if chk-len))))))
-         
+
 (defun string-no-whitespace-p (string)
   (declare ((and not-null string) string)
            (inline string-empty-p)
@@ -1521,112 +1520,111 @@
   (values-list
    (if (string-empty-p string)
        (list t 0 0)
-       (let ((chk-if (loop 
-                        :for chars :across (the string-not-null-or-empty string)
-                        :when (whitespace-char-p chars)
-                        :do (loop-finish)
-                        :count chars))
+       (let ((chk-if (loop
+                       for chars across (the string-not-null-or-empty string)
+                       when (whitespace-char-p chars)
+                       do (loop-finish)
+                       count chars))
              (chk-len (length string)))
-         (or (and (eq chk-len chk-if) 
-                  (list t chk-len)) 
+         (or (and (eq chk-len chk-if)
+                  (list t chk-len))
              (list nil chk-if chk-len))))))
 
 (declaim (inline char-or-char-code-integer-p))
 (defun char-or-char-code-integer-p (char-or-char-code-integer)
   (declare (optimize (speed 3)))
   (the boolean
-    (typep char-or-char-code-integer 'char-or-char-code-integer)))
+       (typep char-or-char-code-integer 'char-or-char-code-integer)))
 
 (defun each-a-character-or-char-code-integer-p (char-or-char-code-list)
-  (declare (inline sequencep 
+  (declare (inline sequencep
                    char-or-char-code-integer-p
                    list-proper-not-null-p)
            (optimize (speed 3)))
   (when (sequencep char-or-char-code-list)
     ;; (list-proper-not-null-p
     (when (list-proper-not-null-p (the sequence char-or-char-code-list))
-      ;; (loop 
+      ;; (loop
       ;;    :for char-or-code :in char-or-char-code-list
       ;;    ;; :always (typecase char-or-code
       ;;    ;;           (character t)
       ;;    ;;           (char-code-integer t)))))
       ;;    :always (char-or-char-code-integer-p char-or-code))
-      (locally 
+      (locally
           (declare (list char-or-char-code-list))
         (the boolean
-          (every #'char-or-char-code-integer-p char-or-char-code-list))))))
+             (every #'char-or-char-code-integer-p char-or-char-code-list))))))
 
 (defun each-a-character-p (char-list)
-  (declare (inline sequencep 
+  (declare (inline sequencep
                    list-proper-not-null-p)
            (optimize (speed 3)))
   (when (sequencep char-list)
     (when (list-proper-not-null-p (the sequence char-list))
-      (locally 
+      (locally
           (declare (list char-list))
         ;; (loop
-        ;;    :for chars :in char-list
-        ;;    :always (characterp chars))
+        ;;    for chars in char-list
+        ;;    always (characterp chars))
         (the boolean
-        (every #'characterp char-list))))))
+             (every #'characterp char-list))))))
 
 (declaim (inline char-code-integer-p))
 (defun char-code-integer-p (char-code-int)
   (declare (optimize (speed 3)))
   (the boolean
-    (typep char-code-int 'char-code-integer)))
+       (typep char-code-int 'char-code-integer)))
 
 (defun each-a-char-code-integer-p (char-code-integer-list)
-  (declare (inline sequencep 
+  (declare (inline sequencep
                    list-proper-not-null-p)
            (optimize (speed 3)))
   (when (sequencep char-code-integer-list)
     (when (list-proper-not-null-p (the sequence char-code-integer-list))
-      (locally 
+      (locally
           (declare (list char-code-integer-list))
         (the boolean
-          (loop
-             :for char-code-integer-list :in char-code-integer-list
-             :always (char-code-integer-p char-code-integer-list)))))))
+             (loop
+               for char-code-integer-list in char-code-integer-list
+               always (char-code-integer-p char-code-integer-list)))))))
 
 (declaim (inline base-char-p))
 (defun base-char-p (chr)
   (declare (optimize (speed 3)))
   (the boolean
-    (typep chr 'base-char)))
+       (typep chr 'base-char)))
 
 (declaim (inline %digit-char-0-or-1-p))
 (defun %digit-char-0-or-1-p (char-1or0)
   (declare (type standard-char-or-null char-1or0)
            (optimize (speed 3)))
   (the boolean
-    (and char-1or0 
-         (the (or (mod 2) null)
-           (digit-char-p char-1or0 2))
-         t)))
+       (and char-1or0
+            (the (or (mod 2) null)
+                 (digit-char-p char-1or0 2))
+            t)))
 
 (declaim (inline digit-char-0-or-1-p))
 (defun digit-char-0-or-1-p (char-1or0)
   (declare (inline %digit-char-0-or-1-p)
            (optimize (speed 3)))
-  (when 
-      (typep char-1or0 'standard-char-or-null)
+  (when (typep char-1or0 'standard-char-or-null)
     (the boolean
-      (%digit-char-0-or-1-p char-1or0))))
+         (%digit-char-0-or-1-p char-1or0))))
 
 (defun string-all-digit-char-0-or-1-p (1-and-0-string)
   (declare (string-or-null 1-and-0-string)
            (inline digit-char-0-or-1-p)
            (optimize (speed 3)))
   (when 1-and-0-string ;; allow null and bail
-    ;; :WAS (not (simple-string-empty-p 1-and-0-string))       
-    ;; 
+    ;; :WAS (not (simple-string-empty-p 1-and-0-string))
+    ;;
     (when (string-not-empty-or-all-whitespace-p (the string 1-and-0-string))
-      ;; (loop 
-      ;;   :for 1or0 :across 1-and-0-string
-      ;;   ;; :unless (digit-char-0-or-1-p 1or0)
-      ;;   ;; :return nil
-      ;;   ;; :finally (return t))))))
+      ;; (loop
+      ;;   for 1or0 across 1-and-0-string
+      ;;   ;; unless (digit-char-0-or-1-p 1or0)
+      ;;   ;; return nil
+      ;;   ;; finally (return t))))))
       ;;   :always (digit-char-0-or-1-p 1or0))
       (if (simple-string-p 1-and-0-string)
           (every #'digit-char-0-or-1-p (the simple-string-not-empty 1-and-0-string))
@@ -1637,15 +1635,15 @@
            (optimize (speed 3)))
   (when maybe-hex-string ;; allow null and bail
     (when (string-not-null-empty-or-all-whitespace-p (the string maybe-hex-string))
-      ;; (loop 
-      ;;    :for chk-hex :across (the string maybe-hex-string)
-      ;;    :unless (hexadecimal-char-p chk-hex)
-      ;;    :return nil
-      ;;    :finally (return t))
+      ;; (loop
+      ;;    for chk-hex across (the string maybe-hex-string)
+      ;;    unless (hexadecimal-char-p chk-hex)
+      ;;    return nil
+      ;;    finally (return t))
       (the boolean
-        (if (simple-string-p maybe-hex-string)
-          (every #'hexadecimal-char-p (the simple-string-not-empty maybe-hex-string))
-          (every #'hexadecimal-char-p (the string-not-empty maybe-hex-string)))))))
+           (if (simple-string-p maybe-hex-string)
+               (every #'hexadecimal-char-p (the simple-string-not-empty maybe-hex-string))
+               (every #'hexadecimal-char-p (the string-not-empty maybe-hex-string)))))))
 
 
 ;;; ==============================
@@ -1654,7 +1652,7 @@
 
 (declaim (inline logical-pathname-p))
 (defun logical-pathname-p (maybe-logical-pathname)
-    (declare (optimize (speed 3)))
+  (declare (optimize (speed 3)))
   (typep maybe-logical-pathname 'logical-pathname-designator))
 
 (declaim (inline file-stream-designator-p))
@@ -1664,12 +1662,12 @@
 
 (declaim (inline filename-designator-p))
 (defun filename-designator-p (maybe-filename-designator)
-    (declare (optimize (speed 3)))
+  (declare (optimize (speed 3)))
   (typep maybe-filename-designator 'filename-designator))
 
 (declaim (inline pathname-designator-p))
 (defun pathname-designator-p (maybe-pathname-designator)
-    (declare (optimize (speed 3)))
+  (declare (optimize (speed 3)))
   (typep maybe-pathname-designator 'pathname-designator))
 
 (declaim (inline pathname-or-namestring-p))
@@ -1681,8 +1679,12 @@
   (declare (optimize (speed 3)))
   (unless (pathnamep maybe-empty-pathname)
     (return-from pathname-empty-p nil))
-  (let ((surely-empty-pathname
-         (make-pathname :host nil :device nil :directory nil :name nil :type nil :version nil))) 
+  (let ((surely-empty-pathname (make-pathname :host nil
+                                              :device nil
+                                              :directory nil
+                                              :name nil
+                                              :type nil
+                                              :version nil)))
     (declare (pathname maybe-empty-pathname surely-empty-pathname))
     #-sbcl (equal maybe-empty-pathname surely-empty-pathname)
     #+sbcl (sb-impl::pathname= maybe-empty-pathname surely-empty-pathname)))
@@ -1695,36 +1697,35 @@
 (defun fixnump (fixnum-maybe)
   (declare (optimize (speed 3)))
   (the boolean
-    (typep fixnum-maybe 'fixnum)))
+       (typep fixnum-maybe 'fixnum)))
 
 (declaim (inline bignump))
 (defun bignump (bignum-maybe)
   (declare (optimize (speed 3)))
   (the boolean
-    (typep bignum-maybe 'bignum)))
+       (typep bignum-maybe 'bignum)))
 
 (declaim (inline fixnum-0-or-over-p))
 (defun fixnum-0-or-over-p (maybe-fixnum)
   (declare (optimize (speed 3)))
   (the boolean
-    (typep maybe-fixnum 'fixnum-0-or-over)))
+       (typep maybe-fixnum 'fixnum-0-or-over)))
 
 (declaim (inline bignum-0-or-over-p))
 (defun bignum-0-or-over-p (maybe-bignum)
-  (declare 
-   (inline fixnum-0-or-over-p)
-   (optimize (speed 3)))
+  (declare (inline fixnum-0-or-over-p)
+           (optimize (speed 3)))
   (the boolean
-    (when (integerp maybe-bignum)
-      (and (typep (the integer maybe-bignum) '(integer 0 *))
-           (not (fixnum-0-or-over-p (the (integer 0 *) maybe-bignum)))))))
+       (when (integerp maybe-bignum)
+         (and (typep (the integer maybe-bignum) '(integer 0 *))
+              (not (fixnum-0-or-over-p (the (integer 0 *) maybe-bignum)))))))
 
 (declaim (inline fixnum-bit-width-p))
 (defun fixnum-bit-width-p (integer)
   (declare (optimize (speed 3)))
   (the boolean
-    (and (integerp integer)
-         (typep (the integer integer) 'fixnum-bit-width))))
+       (and (integerp integer)
+            (typep (the integer integer) 'fixnum-bit-width))))
 
 ;;; ==============================
 
@@ -1734,17 +1735,17 @@
 ;;; ==============================
 (declaim (inline standard-test-function-p))
 (defun standard-test-function-p (test-fun)
-  (declare 
+  (declare
    ;; (special *standard-test-functions*)
    (optimize (speed 3)))
-  (memq test-fun *standard-test-functions*))
+  (mon:memq test-fun *standard-test-functions*))
 
-;; :SOURCE sbcl/src/code/kernel.lisp 
-#+sbcl 
+;; :SOURCE sbcl/src/code/kernel.lisp
+#+sbcl
 (defun closure-p (object)
   (sb-impl::closurep object))
 
-#+sbcl 
+#+sbcl
 (defun variable-special-p (symbol)
   ;; Alternatively:
   ;; #+sbcl (eq (sb-int:info :variable :kind symbol) :special))
@@ -1759,7 +1760,7 @@
 
 ;;; ==============================
 ;; (defun variablep (symbol)
-;;   (and (symbolp symbol) 
+;;   (and (symbolp symbol)
 ;;        (boundp  symbol)
 ;;        (not (constantp symbol))))
 
@@ -1768,19 +1769,19 @@
 ;;; :NOTE Alexandria has `featurep' in :FILE alexandria/features.lisp
 ;;; SBCL has `sb-int:featurep' in :FILE sbcl/src/code/early-extensions.lisp
 ;;; These are basically the same, but w/ Alexandria's indirecting through more
-;;; macrology around `alexandria:eswitch'. 
+;;; macrology around `alexandria:eswitch'.
 ;;; We normalize SBCL's X argument to reflect alexandria's FEATURE-EXPRESSION.
-#-sbcl 
+#-sbcl
 (defun featurep (feature-expression)
   (etypecase feature-expression
     (symbol (not (null (member feature-expression *features*))))
     (cons (check-type (first feature-expression) symbol)
-	  (alexandria:eswitch ((first feature-expression) :test 'string=)
-	    (:and (every #'featurep (rest feature-expression)))
-	    (:or  (some #'featurep (rest feature-expression)))
-	    (:not (assert (= 2 (length feature-expression)))
-		  (not (featurep (second feature-expression))))))))
-#+sbcl 
+     (alexandria:eswitch ((first feature-expression) :test 'string=)
+       (:and (every #'featurep (rest feature-expression)))
+       (:or  (some #'featurep (rest feature-expression)))
+       (:not (assert (= 2 (length feature-expression)))
+             (not (featurep (second feature-expression))))))))
+#+sbcl
 (defun featurep (feature-expression)
   (sb-int:featurep feature-expression))
 
@@ -1839,8 +1840,8 @@
  \(let \(\(pd-strm \(make-pathname :directory '\(:absolute \"tmp\"\)
                                :name \"pd-strm\"\)\)\)
    \(unwind-protect
-        \(with-open-file \(strm pd-strm 
-                              :direction :output 
+        \(with-open-file \(strm pd-strm
+                              :direction :output
                               :if-exists :supersede
                               :if-does-not-exist :create\)
           \(typep strm 'pathname-designator\)\)
@@ -1865,10 +1866,10 @@ Like `mon:pathname-designator' but does not specifiy `cl:file-stream'.
 (fundoc 'file-stream-designator-p
 "Whether object MAYBE-FILE-STREAM is of type `cl:file-stream'.~%~@
 :EXAMPLE~%
- \(let \(\(pn \(make-pathname :directory '\(:absolute \"tmp\"\) 
+ \(let \(\(pn \(make-pathname :directory '\(:absolute \"tmp\"\)
                           :name \"test-file-stream-designator-p\"\)\)\)
    \(unwind-protect
-        \(with-open-file \(s pn 
+        \(with-open-file \(s pn
                            :direction :output
                            :element-type 'character\)
           \(file-stream-designator-p s\)\)
@@ -1878,7 +1879,7 @@ Like `mon:pathname-designator' but does not specifiy `cl:file-stream'.
 `mon:logical-pathname-designator', `mon:pathname-designator',
 `mon:filename-designator', `mon:pathname-or-namestring'.~%▶▶▶")
 
-(typedoc 'pathname-or-namestring 
+(typedoc 'pathname-or-namestring
 "An object which is either `cl:stringp' and `cl:pathnamep'.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
@@ -1964,7 +1965,7 @@ a symbol evaluating to one it may be useful to declare it
    \(setq *tt--hash-table-symbol* \(make-hash-table\)\)
    \(prog1 \(typep '*tt--hash-table-symbol* 'hash-table-or-symbol-with-hash\)
      \(unintern '*tt--hash-table-symbol*\)\)\)~%~@
-:NOTE When used as a declaration and object may be NULL it is better to declare 
+:NOTE When used as a declaration and object may be NULL it is better to declare
 `mon:hash-table-or-symbol'.~%~@
 :SEE-ALSO `mon:hash-or-symbol-ensured', `mon:hash-or-symbol-p'.~%▶▶▶")
 
@@ -2193,7 +2194,7 @@ Main usefulness as a type designator of the expected type in a TYPE-ERROR.~%~@
  |
  | proper list
  | n. A list terminated by the empty list. \(The empty list is a proper list.\)
- | 
+ |
  | improper list
  | n. A list which is not a proper list: a circular list or a dotted list.
  |
@@ -2241,7 +2242,7 @@ not create circularity.~%~@
  |
  | proper list
  | n. A list terminated by the empty list. \(The empty list is a proper list.\)
- | 
+ |
  | improper list
  | n. A list which is not a proper list: a circular list or a dotted list.
  |
@@ -2258,7 +2259,7 @@ not create circularity.~%~@
  | chain is the cdr of a later cons.
  |
  | circular  adj.
- |  1. \(of a list\) a circular list.  
+ |  1. \(of a list\) a circular list.
  |  2. \(of an arbitrary object\) having a component, element, constituent, or
  |      subexpression \(as appropriate to the context\) that is the object itself.
  `----~%~@
@@ -2286,7 +2287,7 @@ ANSI Glossary defines the following terms with regards to dotted lists:~%
  ,----
  | proper list
  | n. A list terminated by the empty list. \(The empty list is a proper list.\)
- | 
+ |
  | improper list
  | n. A list which is not a proper list: a circular list or a dotted list.
  |
@@ -2307,12 +2308,12 @@ performance intensive use.~%~@
 Main usefullness as the expected-type designator of a TYPE-ERROR.~%~@
 The glossary of the ANSI spec defines a circular list as:~%
  ,----
- | circular list  n. 
+ | circular list  n.
  | A chain of conses that has no termination because some cons in the
  | chain is the cdr of a later cons.
  |
  | circular  adj.
- |  1. \(of a list\) a circular list.  
+ |  1. \(of a list\) a circular list.
  |  2. \(of an arbitrary object\) having a component, element, constituent, or
  |      subexpression \(as appropriate to the context\) that is the object itself.
  `----~%
@@ -2329,7 +2330,7 @@ The glossary of the ANSI spec defines a circular list as:~%
 :SEE info node \(info \"\(ansicl\)simple-bit-vector\"\)~%~@
 :SEE-ALSO `mon:bit-vector-octet', `mon:byte-array'.~%▶▶▶")
 
-(typedoc 'bit-vector-octet 
+(typedoc 'bit-vector-octet
          "An object of type: \(simple-bit-vector 8\).~%~@
 An object of this type is a bit-vector with the following properties:~%
  - it is not displaced to another array
@@ -2465,7 +2466,7 @@ Binary value: #b111111111111111111111111111111111111111111111111~%~@
 (typedoc 'unsigned-byte-32
 "An object of type: \(unsigned-byte 32\)~%~@
 Octets:         3
-Bits:          32 
+Bits:          32
 Hex value:     #xFFFFFFFF
 Decimal value: 4294967295
 Octal value:   #o37777777777
@@ -2481,7 +2482,7 @@ Equivalent to C++'s `uint32'.~%~@
 Octets:         4
 Bits:          29
 Hex value:     #x1FFFFFFF
-Decimal value: 536870911 
+Decimal value: 536870911
 Octal value:   #o3777777777
 Binary value:  #b00011111111111111111111111111111~%~@
 :EXAMPLE~%
@@ -2505,7 +2506,7 @@ Binary value:   #b111111111111111111111111~%~@
 (typedoc 'unsigned-byte-16
 "An object of type: \(unsigned-byte 16\)~%~@
 Octets:          1
-Bits:           16 
+Bits:           16
 Hex value:      #xFFFF
 Decimal value:  65535
 Octal value:    #o177777
@@ -2550,18 +2551,18 @@ Equivalent to C++'s `uint8'.~%~@
 Bits: 4 bits
 Hex value:  #xF
 Decimal Value 16
-Octal value: #o17 
+Octal value: #o17
 Binary value #b1111~%~@
 :EXAMPLE~%
  \(typep 15 'nibble\)~%
  \(not \(typep 16 'nibble\)\)~%~@
-:NOTE word/octet/nibble/bit 
+:NOTE word/octet/nibble/bit
 Equivalent to \(mod 16\)~%
 :SEE-ALSO `octet', `unsigned-byte-128', `unsigned-byte-64', `unsigned-byte-48',
 `unsigned-byte-32', `unsigned-byte-29', `unsigned-byte-16',
 `unsigned-byte-8'.~%▶▶▶")
 
-(typedoc 'signed-byte-64 
+(typedoc 'signed-byte-64
 "A signed 16-bit integer.~%~@
 An integer in the range [-9223372036854775808, 9223372036854775807].~%~@
 Equivalent to C++'s `int64'.~%~@
@@ -2573,7 +2574,7 @@ Equivalent to C++'s `int64'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'signed-byte-32 
+(typedoc 'signed-byte-32
 "A signed 16-bit integer.~%~@
 An integer in the range [-2147483648, 2147483647].
 Equivalent to C++'s `int32'.~%~@
@@ -2585,7 +2586,7 @@ Equivalent to C++'s `int32'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'signed-byte-16 
+(typedoc 'signed-byte-16
 "A signed 16-bit integer.~%~@
 An integer in the range [-32768, 32767].~%~@
 Equivalent to C++'s `int16'.~%~@
@@ -2597,7 +2598,7 @@ Equivalent to C++'s `int16'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'signed-byte-8 
+(typedoc 'signed-byte-8
 "A signed 8-bit integer.~%~@
 ;; An integer in the range [-129, 127].~%~@
 Equivalent to C++'s `int8'.~%~@
@@ -2609,7 +2610,7 @@ Equivalent to C++'s `int8'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'int8 
+(typedoc 'int8
 "A signed 8-bit integer.~%~@
 Equivalent to C++'s `int8'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
@@ -2618,7 +2619,7 @@ Equivalent to C++'s `int8'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'int16 
+(typedoc 'int16
 "A signed 16-bit integer.~%~@
 Equivalent to C++'s `int16'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
@@ -2627,7 +2628,7 @@ Equivalent to C++'s `int16'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'int32 
+(typedoc 'int32
 "A signed 32-bit integer.~%~@
 Equivalent to C++'s `int32'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
@@ -2636,7 +2637,7 @@ Equivalent to C++'s `int32'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'int64 
+(typedoc 'int64
 "A signed 64-bit integer. Equivalent to C++'s `int64'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
 `mon:unsigned-byte-16', `mon:unsigned-byte-8', `mon:signed-byte-64',
@@ -2644,7 +2645,7 @@ Equivalent to C++'s `int32'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'uint8 
+(typedoc 'uint8
          "An unsigned 8-bit integer.~%~@
 Equivalent to C++'s `uint8'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
@@ -2653,7 +2654,7 @@ Equivalent to C++'s `uint8'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'uint16 
+(typedoc 'uint16
 "An unsigned 16-bit integer.~%~@
 Equivalent to C++'s `uint16'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
@@ -2662,7 +2663,7 @@ Equivalent to C++'s `uint16'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'uint32 
+(typedoc 'uint32
 "An unsigned 32-bit integer.~%~@
 Equivalent to C++'s `uint32'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
@@ -2671,7 +2672,7 @@ Equivalent to C++'s `uint32'.~%~@
 `mon:int32', `mon:int16', `mon:int8', `mon:uint64', `mon:uint32',
 `mon:uint16', `mon:uint8'.~%▶▶▶")
 
-(typedoc 'uint64 
+(typedoc 'uint64
 "An unsigned 64-bit integer.~%~@
 Equivalent to C++'s `uint64'.~%~@
 :SEE-ALSO `mon:unsigned-byte-64', `mon:unsigned-byte-32',
@@ -2761,7 +2762,7 @@ Equivalent to C++'s `uint64'.~%~@
 `unsigned-byte-29-integer-length', `unsigned-byte-24-integer-length',
 `unsigned-byte-16-integer-length', `unsigned-byte-8-integer-length'.~%▶▶▶")
 
-(typedoc 'unsigned-byte-8-integer-length  
+(typedoc 'unsigned-byte-8-integer-length
 "The `cl:integer-length' of an object of type `mon:unsigned-byte-8'.~%~@
 :SEE-ALSO `bignum-bit-width', `fixnum-bit-width',
 `unsigned-byte-128-integer-length', `unsigned-byte-96-integer-length',
@@ -2773,7 +2774,7 @@ Equivalent to C++'s `uint64'.~%~@
 (typedoc 'code-point
  "The subtype of integers just big enough to hold all Unicode codepoints.~%~@
 This is specified as \(mod #x110000\), e.g. \(integer 0 1114111\) where the
-upper bounds on the Unicode range is \(mod #x110000\). 
+upper bounds on the Unicode range is \(mod #x110000\).
 On SBCL with UTF enabled character set this \(1- `cl:char-code-limit'\)~%~@
 :EXAMPLE~%
  (typep 1114111 'code-point)
@@ -2862,17 +2863,21 @@ Or, when not sb-unicode an object of type `char-code-integer'.~%~@
 :SEE-ALSO `mon:string-or-char', `mon:string-or-char-or-code-point-integer',
 `mon:string-or-char-or-code-point-integer-if'.~%▶▶▶")
 
-#+sbcl 
+#+sbcl
 (typedoc 'closure-obj
 "Non-nil when object satisfies predicate `sb-impl::closure-p'.~%~@
 :EXAMPLE~%
- \(prog2 
+ \(prog2
      \(progn \(defparameter *my-clsr* nil\)
 	    \(defun mk-clsr \(my-clsr\) \(lambda \(\) \(incf my-clsr\)\)\)
 	    \(setf *my-clsr* \(mk-clsr 10\)\)\)
      \(typep *my-clsr* 'closure-obj\)
    \(unintern '*my-clsr*\)\)~%~@
-:SEE-ALSO `<XREF>'.~%▶▶▶")
+:SEE-ALSO `cl:function', `cl:functionp', `cl:compiled-function',
+`cl:compiled-function-p', `cl:fboundp', `fmakunbound', `cl:fdefinition',
+`cl:function-keywords', `cl:function-lambda-expression',
+`cl:special-operator-p', `cl:generic-function', `cl:ensure-generic-function',
+`cl:standard-generic-function', `cl:undefined-function'.~%▶▶▶")
 
 (typedoc 'array-length
 "Type designator for a dimension of an array of LENGTH.~%~@
@@ -2899,10 +2904,10 @@ This type def is courtesy SBCL, which says:~%
  | that lets the system know it can increment a value of this type
  | without having to worry about using a bignum to represent the
  | result.
- |  
+ |
  | \(It should be safe to use ARRAY-DIMENSION-LIMIT as an exclusive
  |  bound because ANSI specifies it as an exclusive bound.\)
- |  
+ |
  `---- :SEE :FILE sbcl/src/code/early-extensions.lisp~%~@
 :EXAMPLE~%
  \(typep 0 'array-index\)~%
@@ -2944,8 +2949,8 @@ On non-SBCL systems this is the integer range:~%~@
 :SEE-ALSO `mon:index-or-minus-1', `mon:array-index', `mon:fixnump',
 `mon:bignump', `cl:array-dimension-limit' `cl:most-positive-fixnum'.~%▶▶▶")
 
-(typedoc 'index-plus-1 
-"Type for indexing into arrays in cl:loop forms where the stepped quantity may
+(typedoc 'index-plus-1
+"Type for indexing into arrays in `cl:loop' forms where the stepped quantity may
 increment from 0 \(or above\) by 1 to a value one beyond `cl:array-dimension-limit'~%~@
 On SBCL this is the range:~%
  [0,\(1+ array-dimension-limit\)]~%~@
@@ -3066,14 +3071,14 @@ satisfies `mon:digit-char-0-or-1-p'.~%~@
 :SEE-ALSO `mon:proper-list', `mon:proper-list-p', `mon:not-null',
 `cl:simple-string-p', `cl:simple-string', `cl:null'.~%▶▶▶")
 
-(typedoc 'string-with-fill-pointer 
+(typedoc 'string-with-fill-pointer
 "Whether object is of type `cl:vector' with element of type either
 `cl:base-char' or `cl:character' and satisfies `mon:vector-with-fill-pointer-p'.~%~@
 :EXAMPLE~%
  \(typep \"string\" 'string-with-fill-pointer\)~%
- \(typep \(make-array 6 
+ \(typep \(make-array 6
                     :element-type 'base-char
-                    :initial-contents \"string\" 
+                    :initial-contents \"string\"
                     :fill-pointer 6\)
         'string-with-fill-pointer\)~%~@
 :SEE-ALSO `mon:string-with-fill-pointer-p', `mon:vector-with-fill-pointer-p',
@@ -3105,7 +3110,7 @@ satisfies `mon:digit-char-0-or-1-p'.~%~@
  |
  | proper list
  | n. A list terminated by the empty list. \(The empty list is a proper list.\)
- | 
+ |
  | improper list
  | n. A list which is not a proper list: a circular list or a dotted list.
  |
@@ -3122,7 +3127,7 @@ satisfies `mon:digit-char-0-or-1-p'.~%~@
  | chain is the cdr of a later cons.
  |
  | circular  adj.
- |  1. \(of a list\) a circular list.  
+ |  1. \(of a list\) a circular list.
  |  2. \(of an arbitrary object\) having a component, element, constituent, or
  |      subexpression \(as appropriate to the context\) that is the object itself.
  `----~%~@
@@ -3136,9 +3141,9 @@ satisfies `mon:digit-char-0-or-1-p'.~%~@
 :EXAMPLE~%
  \(typep '\(\"a\"\)  'each-a-string-of-length-1\)~%
  \(typep '\(\"a\" \"b\" \"c\" \"d\"\)  'each-a-string-of-length-1\)~%
- \(typep `\(\"a\" ,\(make-array 1 :element-type 'character :adjustable t\)\) 
+ \(typep `\(\"a\" ,\(make-array 1 :element-type 'character :adjustable t\)\)
         'each-a-string-of-length-1\)~%
- \(typep `\(\"a\" ,\(make-array 1 :element-type 'character :fill-pointer 0\)\) 
+ \(typep `\(\"a\" ,\(make-array 1 :element-type 'character :fill-pointer 0\)\)
         'each-a-string-of-length-1\)~%~@
 ;; Following fail successfully:~%~
  \(typep '\(\"\" \"b\" \"c\" \"d\"\)  'each-a-simple-string-of-length-1\)~%
@@ -3158,9 +3163,9 @@ satisfies `mon:digit-char-0-or-1-p'.~%~@
 ;; Following fail successfully:~%
  \(typep '\(\"\" \"b\" \"c\" \"d\"\)  'each-a-simple-string-of-length-1\)~%
  \(typep '\(\" a\" \"b\" \"c\" \"d\"\)  'each-a-simple-string-of-length-1\)~%
- \(typep `\(\"a\" \"b\" \"c\" ,\(make-array 1 :element-type 'character :adjustable t\)\) 
+ \(typep `\(\"a\" \"b\" \"c\" ,\(make-array 1 :element-type 'character :adjustable t\)\)
         'each-a-simple-string-of-length-1\)~%
- \(typep `\(\"a\" \"b\" \"c\" ,\(make-array 1 :element-type 'character :fill-pointer 0\)\) 
+ \(typep `\(\"a\" \"b\" \"c\" ,\(make-array 1 :element-type 'character :fill-pointer 0\)\)
         'each-a-simple-string-of-length-1\)
  \(typep '\(\"a\" \"b\" \"c\" 100\)  'each-a-simple-string-of-length-1\)~%
  \(typep '\(\"a\" \"b\" \"c\" #\\d\)  'each-a-simple-string-of-length-1\)~%
@@ -3216,7 +3221,7 @@ Suitable for use with `cl:deftype' in a satisfies form.~%~@
  ; => each-an-integer~%
  \(typep '\(1 2 3\) 'each-an-integer\)
  ;=> T~%
- \(each-an-integer-p '\(1 2 3\)\) 
+ \(each-an-integer-p '\(1 2 3\)\)
  ;=> T~%
  \(each-an-integer-p '\(1 2 a 3\)\)
  ;=> NIL~%
@@ -3284,7 +3289,7 @@ ANSI Glossary defines \"proper list\" and \"improper list\" as follows:~%
  ,----
  | proper list
  | n. A list terminated by the empty list. \(The empty list is a proper list.\)
- | 
+ |
  | improper list
  | n. A list which is not a proper list: a circular list or a dotted list.
  `----~%~@
@@ -3307,7 +3312,7 @@ When list is none of the above return one value NIL.~%~@
  \(list-dotted-p \(cons 'a nil\)\)~%
  \(list-dotted-p \(cons nil 'a\)\)~%
  \(list-dotted-p nil\)~%
- \(labels \(\(make-circular \(list\) 
+ \(labels \(\(make-circular \(list\)
             \(setf \(cdr \(last list\)\) list\) list\)\)
    \(list-dotted-p \(make-circular '\(a b c\)\)\)\)~%~@
 :NOTE ANSI Glossary defines \"proper list\" and \"improper list\" as follows:~%
@@ -3335,7 +3340,7 @@ When list is none of the above return one value NIL.~%~@
  |
  | proper list
  | n. A list terminated by the empty list. \(The empty list is a proper list.\)
- | 
+ |
  | improper list
  | n. A list which is not a proper list: a circular list or a dotted list.
  |
@@ -3352,7 +3357,7 @@ When list is none of the above return one value NIL.~%~@
  | chain is the cdr of a later cons.
  |
  | circular  adj.
- |  1. \(of a list\) a circular list.  
+ |  1. \(of a list\) a circular list.
  |  2. \(of an arbitrary object\) having a component, element, constituent, or
  |      subexpression \(as appropriate to the context\) that is the object itself.
  `----~%~@
@@ -3392,15 +3397,15 @@ is `cl:evenp'.~%~@
 | Property list
 |  The property list of a symbol provides a mechanism for associating
 |  named attributes with that symbol.
-| 
+|
 |  The operations for adding and removing entries are destructive to the
 |  property list.
-| 
+|
 |  Common Lisp provides operators both for direct manipulation of property
 |  list objects \(e.g., `cl:getf', `cl:remf', and `cl:symbol-plist'\) and
 |  for implicit manipulation of a symbol's property list by reference to
 |  the symbol \(e.g., `cl:get' and `cl:remprop'\).
-| 
+|
 |  The property list associated with a fresh symbol is initially null.
 |
 | property list n.
@@ -3421,7 +3426,7 @@ is `cl:evenp'.~%~@
  |
  | proper list
  | n. A list terminated by the empty list. \(The empty list is a proper list.\)
- | 
+ |
  | improper list
  | n. A list which is not a proper list: a circular list or a dotted list.
  |
@@ -3438,7 +3443,7 @@ is `cl:evenp'.~%~@
  | chain is the cdr of a later cons.
  |
  | circular  adj.
- |  1. \(of a list\) a circular list.  
+ |  1. \(of a list\) a circular list.
  |  2. \(of an arbitrary object\) having a component, element, constituent, or
  |      subexpression \(as appropriate to the context\) that is the object itself.
  `----~%~@
@@ -3446,7 +3451,7 @@ is `cl:evenp'.~%~@
 :SEE-ALSO `mon:proper-plist', `mon:plist-proper-not-null-p',
 `mon:proper-plist-not-null', `mon:plist-error', `cl:get-properties'.~%▶▶▶")
 
-(fundoc 'plist-proper-not-null-p 
+(fundoc 'plist-proper-not-null-p
 "Like `mon:plist-proper-p' but do not consider empty list as of type `mon:proper-list'~%~@
 :EXAMPLE~%~@
  \(plist-proper-p '\(:key \"val\"\)\)
@@ -3477,7 +3482,7 @@ Return value is one of \(string, vector, or list\).~%~@
 :EXAMPLE~%
  \(sequence-type \"string\"\)~%
  \(sequence-type \(make-array 6
-                            :element-type 'character 
+                            :element-type 'character
                             :initial-contents \"string\"\)\)
  \(sequence-type \(make-array 6
                             :element-type 'character
@@ -3503,7 +3508,7 @@ Return value is one of \(string, vector, or list\).~%~@
  \(sequencep \"string\"\)~%~@
 :NOTE ANSI Glossary defines the following terms with regards to sequences:~%
 ,----
-| sequence  n. 
+| sequence  n.
 | 1. An ordered collection of elements.
 | 2. a vector or a list.
 |
@@ -3528,7 +3533,7 @@ Return value is one of \(string, vector, or list\).~%~@
 |  `cl:find'                `cl:position-if'          `cl:substitute-if'
 |  `cl:find-if'             `cl:position-if-not'      `cl:substitute-if-not'
 |  `cl:find-if-not'         `cl:reduce'
-| 
+|
 | Or, an implementation-defined function that operates on one or more
 | sequences.  and that is defined by the implementation to be a
 | sequence function.
@@ -3547,7 +3552,7 @@ Values returned will have one of the following forms:~%
  ;=> NIL, <OBJ>~%~@
 When optional arg AS-LIST is non-nil return three values as if by `cl:values'.~%~@
 - The first value is as a two elt list:~%
-   its car is OBJ; 
+   its car is OBJ;
    its cdr is t if OBJ is a boolean else nil;~%~@
 - The second value value is the `cl:type-of' OBJ.~%~@
 - The third value is OBJ.~%~@
@@ -3641,7 +3646,7 @@ Helper function for the type-definition of `mon::%byte-vector'
  \(%byte-vector-each-an-unsigned-byte-8 #\(255 255 255 256\)\)~%~@
 :SEE-ALSO `mon:byte-array'.~%▶▶▶")
 
-(fundoc  'string-or-null-p 
+(fundoc  'string-or-null-p
   "Return non-nil if object is `cl:stringp' or null.~%~@
 :EXAMPLE~%
  \(simple-string-or-null-p nil\)~%
@@ -3650,7 +3655,7 @@ Helper function for the type-definition of `mon::%byte-vector'
 :SEE-ALSO `mon:string-or-null', `mon:simple-string-or-null',
 `mon:simple-string-or-null-p', `mon:string-null-or-empty-p'.~%▶▶▶")
 
-(fundoc  'simple-string-or-null-p 
+(fundoc  'simple-string-or-null-p
   "Return non-nil if object is null or `cl:simple-string-p'.~%~@
 :EXAMPLE~%
  \(simple-string-or-null-p nil\)~%
@@ -3782,9 +3787,9 @@ includes adjustable arrays and those with fill-pointers.~%~@
 "Whether OBJECT is satisfies both `cl:vectorp' and `cl:array-has-fill-pointer-p'.~%~@
 :EXAMPLE~%
  \(vector-with-fill-pointer-p \"string\"\)~%
- \(vector-with-fill-pointer-p \(make-array 6 
+ \(vector-with-fill-pointer-p \(make-array 6
                                         :element-type 'base-char
-                                        :initial-contents \"string\" 
+                                        :initial-contents \"string\"
                                         :fill-pointer 6\)\)~%~@
 :SEE-ALSO `mon:string-with-fill-pointer', `mon:string-with-fill-pointer-p'.~%▶▶▶")
 
@@ -3793,28 +3798,28 @@ includes adjustable arrays and those with fill-pointers.~%~@
 :EXAMPLE~%
  \(string-with-fill-pointer-p \"I got no fill boss\"\)~%
  \(let \(\(has-fp \(make-array 11
-                           :element-type 'character 
+                           :element-type 'character
                            :initial-contents \"I got fill!\"
                            :fill-pointer 11\)\)\)
-   \(format has-fp \" Cuz, is a string-with-fill-pointer-p: ~~S\" 
+   \(format has-fp \" Cuz, is a string-with-fill-pointer-p: ~~S\"
            \(string-with-fill-pointer-p has-fp\)\)
    has-fp\) ~%~@
 :NOTE The purpose of this prediciate is b/c the DESTINATION argument to
 `cl:format's may be a string so long as that string has a fill-pointer, e.g.:~%
  ,----
  | `cl:format' sends the output to DESTINATION.
- | 
+ |
  |  - If DESTINATION is NIL, `cl:format' creates and returns a string
  |    containing the output from CONTROL-STRING.
- | 
+ |
  |  - If DESTINATION is non-nil, it must be a string with a fill
  |    pointer, a stream, or the symbol T.
- | 
+ |
  |  - If DESTINATION is a string with a fill pointer, the output is
  |    added to the end of the string.
- | 
+ |
  |  - If DESTINATION is a stream, the output is sent to that stream.
- | 
+ |
  |  - If DESTINATION is T, the output is sent to standard output.
  `----
 :SEE \(info \"\(ansicl\)Formatted Output\"\)~%~@
@@ -3823,7 +3828,7 @@ includes adjustable arrays and those with fill-pointers.~%~@
  | If DESTINATION is a string with a fill pointer, the consequences are
  | undefined if destructive modifications are performed directly on the
  | string during the dynamic extent of the call.
- `---- 
+ `----
 :SEE \(info \"\(ansicl\)format\"\)~%~@
 :SEE-ALSO `mon:vector-with-fill-pointer-p', `mon:stream-or-boolean',
 `mon:open-stream-output-stream-p', `cl:array-has-fill-pointer-p',
@@ -3875,16 +3880,16 @@ Return non-nil when the first two predicates are true and third is false:~%
  `cl:stringp' `mon:string-not-empty-p' `mon:string-all-whitespace-p'~%~@
 :EXAMPLE~%
  \(string-not-empty-or-all-whitespace-p \"\"\)~%
- \(string-not-empty-or-all-whitespace-p 
+ \(string-not-empty-or-all-whitespace-p
   \(format nil \"~~{~~C~~}\" mon:*whitespace-chars*\)\)~%
- (string-not-empty-or-all-whitespace-p 
+ (string-not-empty-or-all-whitespace-p
   (format nil \"~~{~~C~~}good-string\" mon:*whitespace-chars*))~%
  \(string-not-empty-or-all-whitespace-p nil\)~%
  \(string-not-empty-or-all-whitespace-p 42\)~%~@
 :SEE-ALSO `mon:string-contains-whitespace-p', `mon:string-no-whitespace-p',
 `mon:*whitespace-chars*'.~%▶▶▶")
 
-(fundoc 'string-contains-whitespace-p 
+(fundoc 'string-contains-whitespace-p
 "Whether there is a char in STRING which is `mon:whitespace-char-p'.
 Return value is as if by `cl:values'.~%~@
 First value is boolean.~%~@
@@ -3985,7 +3990,7 @@ CHAR-OR-CHAR-CODE-LIST should satisfy `mon:list-proper-not-null-p'.'
 (fundoc 'each-a-sequence-p
         "Whether each elt of SEQ is `cl:sequencep'.~%~@
 Return a boolean.~%~@
-When SEQ is `cl:null', `cl:stringp', `cl:bit-vector-p', `arrayp', `listp,  return multiple values:~%~@
+When SEQ is `cl:null', `cl:stringp', `cl:bit-vector-p', `arrayp', or `listp' return multiple values:~%~@
  NIL, { string | bit-vector }~%
  T,  { null | simple-array | array | list }~%~@
 :EXAMPLE~%
@@ -3996,9 +4001,9 @@ When SEQ is `cl:null', `cl:stringp', `cl:bit-vector-p', `arrayp', `listp,  retur
  \(each-a-sequence #*00000\)~%
  \(each-a-sequence \"string\"\)~%
  \(each-a-sequence #\(\(a\) \(b\) \(c\)\)\)~%
- \(each-a-sequence \(make-array 3 
-                              :fill-pointer 3 
-                              :adjustable t 
+ \(each-a-sequence \(make-array 3
+                              :fill-pointer 3
+                              :adjustable t
                               :initial-contents '\(\(a\) \(b\) \(c\)\)\)\)~%~@
 :SEE-ALSO `mon:each-a-sequence-proper-p',
 `mon:each-a-sequence-proper-or-character-p', `mon:each-a-sequence',
@@ -4018,9 +4023,9 @@ When SEQ is `cl:null', `cl:stringp', `cl:bit-vector-p', `arrayp', `listp,  retur
  \(each-a-sequence-proper-p #*00000\)~%
  \(each-a-sequence-proper-p \"string\"\)~%~@
  \(each-a-sequence-proper-p #\(\(a\) \(b\) \(c\)\)\)
- \(each-a-sequence-proper-p \(make-array 3 
-                                       :fill-pointer 3 
-                                       :adjustable t 
+ \(each-a-sequence-proper-p \(make-array 3
+                                       :fill-pointer 3
+                                       :adjustable t
                                        :initial-contents '\(\(a\) \(b\) \(c\)\)\)\)~%~@
 :SEE-ALSO `mon:each-a-sequence-p', `mon:each-a-sequence-proper-or-character-p',
 `mon:each-a-sequence', `mon:each-a-sequence-proper',
@@ -4058,7 +4063,7 @@ STRING-LIST is a proper-list.~%~@
 "Return non-nil if every character in 1-AND-0-STRING is `mon:digit-char-0-or-1-p'.~%~@
 1-AND-0-STRING should be of type `mon:standard-char-or-null'.
 Signal an error if not.
-:EXAMPLE~%~@
+:EXAMPLE~%
  \(string-all-digit-char-0-or-1-p \"000001\"\)
  \(string-all-digit-char-0-or-1-p  nil\)
  \(string-all-digit-char-0-or-1-p  \"\"\)
@@ -4087,7 +4092,7 @@ spec says that the `cl:fixnum' type is required to be a supertype of
  \(bignum-0-or-over-p \(1+ most-positive-fixnum\)\)~%~@
 :SEE-ALSO `cl:fixnum' `cl:bignum'.~%▶▶▶")
 
-(fundoc 'fixnum-bit-width-p 
+(fundoc 'fixnum-bit-width-p
 "Whether INTEGER is of type `mon:fixnum-bit-width'.~%~@
 :EXAMPLE~%
  \(fixnum-bit-width-p 29\)~%
@@ -4102,7 +4107,7 @@ spec says that the `cl:fixnum' type is required to be a supertype of
 
 (fundoc 'standard-test-function-p
  "Return non-nil when TEST-FUN is one of the standard equality test-funcions.~%~@
-These include:~% 
+These include:~%
  `eq', `eql', `equal', `equalp'~%~@
 :EXAMPLE~%
  \(standard-test-function-p 'eq\)~%
@@ -4163,11 +4168,11 @@ An empty pathname is one with all components nil, it is equivalent to return val
  \(singleton-p '(a))~%~@
 :SEE-ALSO `list-proper-p', `cl:atom' ,`cl:null', `cl:consp'.~%▶▶▶")
 
-#+sbcl 
+#+sbcl
 (fundoc 'closure-p
 "Return non-nil if OBJECT is a closure.~%~@
 :EXAMPLE~%
- \(prog2 
+ \(prog2
      \(progn \(defparameter *my-clsr* nil\)
 	    \(defun mk-clsr \(my-clsr\) \(lambda \(\) \(incf my-clsr\)\)\)
 	    \(setf *my-clsr* \(mk-clsr 10\)\)\)
@@ -4176,20 +4181,20 @@ An empty pathname is one with all components nil, it is equivalent to return val
 :SEE-ALSO `closure-obj', `sb-impl::closurep', `functionp',
 `standard-test-function-p', `symbol-function', `fdefinition'.~%▶▶▶")
 
-#+sbcl 
+#+sbcl
 (fundoc 'variable-special-p
         "Return non-nil if the symbol names a global special variable.~%~@
 :EXAMPLE~%
  \(variable-special-p 'mon:*error-table*\)~%
  \(variable-special-p 'bubba\)~%~@
-:SEE-ALSO `mon:boundp', `symbol-value', `mon:bound-and-true-p' 
+:SEE-ALSO `mon:boundp', `symbol-value', `mon:bound-and-true-p'
 `sb-walker:var-globally-special-p'.~%▶▶▶")
 
 (fundoc 'declared-special-p
         "Return T if SYMBOL is declared special.~%~@
 :EXAMPLE~%
  \(unwind-protect
-      \(progn 
+      \(progn
         \(defparameter *tt--bubb* nil\)
         \(declared-special-p '*tt--bubb*\)\)
    \(unintern '*tt--bubb*\)\)
@@ -4199,7 +4204,7 @@ An empty pathname is one with all components nil, it is equivalent to return val
 
 #+sbcl
 (setf (documentation 'featurep 'function)
-      #.(format nil 
+      #.(format nil
  "Returns T when argument FEATURE-EXPRESSION matches state of the `*features*' list.~%~@
 If FEATURE-EXPRESSION is a symbol, test whether it is present in `*features*'.~%~@
 FEATURE-EXPRESSION may be any atom or list acceptable to the reader macros `#+' and `#-'.~%~@

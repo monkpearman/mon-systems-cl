@@ -25,6 +25,7 @@
 # "(pkg:def*" at BOL. This Includes stuff like "(sb-rt:deftest".
 #
 ###  ==============================
+
 etags ./alist.lisp \
 ./arrays.lisp \
 ./bit-twiddle.lisp \
@@ -34,34 +35,25 @@ etags ./alist.lisp \
 ./chronos.lisp \
 ./class-doc.lisp \
 ./class-utils.lisp \
-./completion.lisp \
 ./compose.lisp \
 ./conditions.lisp \
+./deprecated.lisp \
+./docs.lisp
 ./environ.lisp \
-./docs.lisp \
 ./file-dir.lisp \
 ./file-io.lisp \
 ./format.lisp \
 ./hash.lisp \
-./image-rotate.lisp \
 ./introspect.lisp \
 ./io.lisp \
-./loadtime-bind.lisp \
 ./macros.lisp \
 ./numbers.lisp \
-./package.lisp \
 ./plist.lisp \
 ./regexp.lisp \
 ./seqs.lisp \
 ./specials.lisp \
 ./strings.lisp \
 ./types.lisp \
-./tests/test.lisp \
-./tests/timings.lisp \
-./tests/testing.lisp \
-./tests/usec-tests.lisp \
-./tests/timing.lisp \
-./tests/package.lisp \
 --language=lisp
 
 ###  ==============================

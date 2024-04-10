@@ -457,9 +457,13 @@
                (t (push sft-itm ,sft-last))))
        (values ,@collect-sftd ,sft-last))))
 
-(define-modify-macro sortf (place &rest args) sort args)
+;; :WAS (define-modify-macro sortf (place &rest args) sort args)
+(define-modify-macro sortf (place &rest args) sort 
+  "Modify macro for CL:SORT. Destructively sort SEQUENCE. PREDICATE should return non-NIL if ARG1 is to precede ARG2.")
 
-(define-modify-macro stable-sortf (place &rest args) stable-sort args)
+;; (define-modify-macro stable-sortf (place &rest args) stable-sort args)
+(define-modify-macro stable-sortf (place &rest args) stable-sort 
+  "Destructively sort SEQUENCE. PREDICATE should return non-NIL if ARG1 is to precede ARG2.")
 
 
 ;;; ==============================

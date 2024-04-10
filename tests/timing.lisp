@@ -71,12 +71,14 @@
          (declare (type double-float min sum max))
          (loop repeat ,iters
             do (multiple-value-bind (_ begin/sec begin/us)
-                   (sb-unix:unix-fast-getrusage sb-unix:rusage_self)
+                   ;; (sb-unix:unix-fast-getrusage sb-unix:rusage_self)
+                   (sb-unix:unix-getrusage sb-unix:rusage_self)
                  (declare (ignore _))
                  (loop repeat ,subiters
                     do (,_thunk))
                  (multiple-value-bind (_ end/sec end/us)
-                     (sb-unix:unix-fast-getrusage sb-unix:rusage_self)
+                     ;; (sb-unix:unix-fast-getrusage sb-unix:rusage_self)
+                     (sb-unix:unix-getrusage sb-unix:rusage_self)
                    (declare (ignore _))
                    (let ((time (+ (float  (- end/sec begin/sec) 0d0)
                                   (* 1d-6 (- end/us begin/us)))))

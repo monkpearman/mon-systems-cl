@@ -10,7 +10,7 @@
                                                   skip-terminal)
   (declare
    (type string string)
-   (type character separator)) 
+   (type character separator))
   (do* ((len (length string))
         (output '())
         (pos 0)
@@ -41,7 +41,7 @@
 
 (defun string-explode (str)
   (declare (type string str))
-  (loop 
+  (loop
     for i across str ;(the string str)
     collect (format nil "~A" i)))
 
@@ -49,29 +49,29 @@
 ;; (defun symbol-name-explode-string (explode-sym)
 ;;   (declare (type symbol explode-sym))
 ;;   (map 'list #'(lambda (c)
-;;                  ;;(intern 
+;;                  ;;(intern
 ;; 		  (make-string 1 :initial-element c));))
 ;;        (symbol-name explode-sym)))
 
 (defun symbol-name-explode (explode-sym &optional as-chars)
   (declare (type symbol explode-sym))
-  (or 
+  (or
    (and (booleanp explode-sym) explode-sym)
    (loop
      with expld-sym = (symbol-name explode-sym)
      for expld across (the string expld-sym)
      if as-chars
      collect expld
-     else 
+     else
      collect (make-string 1 :initial-element expld))))
 
 ;;; :COURTESY Drew Mcdermott's ytools/nilscompat.lisp
-(defun string-elt (str idx) 
+(defun string-elt (str idx)
   ;; (string-elt "bubba" 2)
   (elt (the string str) (the index idx)))
 
 ;;; :COURTESY Drew Mcdermott's ytools/base.lisp
-(defun string-length (str) 
+(defun string-length (str)
   (declare (string str))
   (the array-length (length str)))
 
@@ -98,7 +98,7 @@
   ;;        ((symbolp x)
   ;;         (symbol-name x))
   ;;        (t (format nil "~a" x)))
-  (typecase x 
+  (typecase x
     (string x)
     (character (string x))
     (number (princ-to-string x))
@@ -118,17 +118,17 @@
 	      (string-empty-p (the string string)))
     (char string 0)))
 
-(defun string-replace-all (string from-string to-string &key (test #'char=) ) ;(w-case 'preserve)) 
+(defun string-replace-all (string from-string to-string &key (test #'char=)) ;(w-case 'preserve))
   ;; (declare (optimize (speed 0) (safety 3) (compilation-speed 0) (debug 3)))
-  (with-output-to-string (out) 
-    (loop 
-      with part-length = (length from-string) 
-      for old-pos = 0 then (+ pos part-length) 
-      for pos = (search from-string string  :start2 old-pos :test test) 
-      do (write-string string out :start old-pos :end (or pos (length string))) 
-      when pos 
+  (with-output-to-string (out)
+    (loop
+      with part-length = (length from-string)
+      for old-pos = 0 then (+ pos part-length)
+      for pos = (search from-string string  :start2 old-pos :test test)
+      do (write-string string out :start old-pos :end (or pos (length string)))
+      when pos
       do  ;; (break "POS was ~S" pos)
-         (write-string to-string out) 
+         (write-string to-string out)
       while pos)))
 
 ;;; ==============================
@@ -144,12 +144,12 @@
     (null (make-string 0))
     (string string-sequence)
     ((or vector cons)
-     (if (not (or (vectorp string-sequence) 
+     (if (not (or (vectorp string-sequence)
                   (listp (cdr string-sequence))))
          (error ":FUNCTION `string-cat' ~
                 -- arg STRING-SEQUENCE is `cl:consp' with cdr not `listp'~% got: ~S" string-sequence)
-         (let* ((maybe-coerce-string-sequence 
-                  (locally 
+         (let* ((maybe-coerce-string-sequence
+                  (locally
                       (declare (type (or list vector) string-sequence))
                     (if (some #'characterp string-sequence)
                         (flet ((%reduce-chars (string-or-char)
@@ -207,7 +207,7 @@
          (dolist (part string-or-list)
            (cond ((stringp part)
                   (setf span (concatenate 'string span part)))
-                 (t 
+                 (t
                   (when (%cmpring-str span)
                     (push span accum)
                     (setf span (make-string 0)))
@@ -234,7 +234,7 @@
     (labels ((finish ()
                (setf pos (length line))
                (save)
-               (return-from string-split-spaces 
+               (return-from string-split-spaces
 		 (or (and w-last-wspc
 			  (nreverse words))
 		     (and words (or (pop words) t)
@@ -245,16 +245,16 @@
              (mark ()
 	       (setf mark pos))
              (in-word (char)
-	       (or (and (whitespace-char-p char) 
-			(progn 
-			  (save) 
+	       (or (and (whitespace-char-p char)
+			(progn
+			  (save)
 			  #'in-space))
 		   #'in-word))
              (in-space (char)
-	       (or (and (whitespace-char-p char) #'in-space) 
-		   (progn 
-		   (mark) 
-		   #'in-word))))
+	       (or (and (whitespace-char-p char) #'in-space)
+		   (progn
+                     (mark)
+                     #'in-word))))
       (let ((state #'in-word))
         (dotimes (i (length line) (finish))
           (setf pos i)
@@ -270,27 +270,27 @@
 ;;;     (make-string* 2 " foo " 2 " foo") ;=> " foo 2 foo foo 2 foo"
 ;;;  - Now accepts characters and numbers (integers, floats, etc.)
 ;;;  - Elides null elements occuring in other than the car position.
-;;;  - Defaults to 1x multiplier if car is null 
+;;;  - Defaults to 1x multiplier if car is null
 ;;;  - Bails with return value "" when:
-;;;    -- arg is null; 
+;;;    -- arg is null;
 ;;;    -- cdr is null
 ;;;    -- car of args is 0
-;;;    -- args is length 2 and: 
+;;;    -- args is length 2 and:
 ;;;    ---  car is null and cadr is null
 ;;;    ---  cadr is null or empty string
-;;;     
+;;;
 ;;; :SOURCE (URL `http://groups.google.com/group/comp.lang.lisp/msg/2f64b48bcb0a0519')
 ;;; :NEWSGROUP comp.lang.lisp
 ;;; :FROM Szymon "tichy" delme.ssbm2@o2.pl
 ;;; :DATE 2006-06-05 23:08:50 +0200
 ;;; :SUBJECT Re: With format, how to print a variable number of spaces
 (defun make-string* (&rest args)
-  (or 
-   (and (or 
+  (or
+   (and (or
 	 ;; (make-string*) ;=> ""
 	 (null args)
-	 ;; On second thought following form should be valid: 
-	 ;;  (make-string* nil "x" #\x 3) ;=> "xx3" 
+	 ;; On second thought following form should be valid:
+	 ;;  (make-string* nil "x" #\x 3) ;=> "xx3"
 	 ;; (null (car args))
 	 ;;
 	 ;; (make-string*) ;=> ""
@@ -301,17 +301,17 @@
 	 ;; Also, check for empty string for good measure.
 	 ;; (make-string* 8 "") ;=> ""
 	 (and (eql (length args) 2)
-	      (or 
-	       (string-null-or-empty-p (cadr args)) 
+	      (or
+	       (string-null-or-empty-p (cadr args))
 	       (every #'null args)))
 	 ;; (make-string* 0 "x" "y" "z") ;=> ""
 	 (and (typep (car args) '(integer 0 0))))
         (make-string 0))
    (let ((num (or (and (typep (car args) '(integer 1))
-		       (or 
+		       (or
 			;; Its irrelevant how many times we multiply
-			(and (null (cdr args)) 
-			     (return-from make-string* ""))
+			(and (null (cdr args))
+			     (return-from make-string* (make-string 0)))
 			(prog1 (car args)
 			  (setf args (cdr args)))))
 		  1))
@@ -328,7 +328,7 @@
      (let* ((string (get-output-stream-string stream))
 	    (result-length (* (length string) num))
 	    (result (make-string result-length)))
-       (loop 
+       (loop
          for index by (length string) below result-length
 	 do (replace result string :start1 index))
        result))))
@@ -364,9 +364,9 @@
              (index-plus-1 position nextpos)
              (array-index strlen)
              (array chunks))
-    (loop 
+    (loop
       while (< position strlen)
-      do (loop 
+      do (loop
            while (and (< nextpos strlen)
                       (not (position (char string nextpos) separators)))
            ;; :NOTE Don't change this to:  :do (incf nextpos))
@@ -379,7 +379,7 @@
       finally (return (map 'list #'identity (the array chunks))))))
 
 ;; mon:string-trim-whitespace
-;; (map 'list #'identity #(a b c)) 
+;; (map 'list #'identity #(a b c))
 ;;; :SOURCE chunga-1.1.1/read.lisp :WAS `trim-whitespace'
 (defun string-trim-whitespace (string &key (start 0) (end (length string)))
   ;; optimized version to replace STRING-TRIM, suggested by Jason Kantz
@@ -393,53 +393,52 @@
                   got: ~S ~% ~
                   type-of: ~S~%"
                  arg (type-of arg))
-  (if (or (string-empty-p string) 
+  (if (or (string-empty-p string)
           (and (= (the array-length (length string)) 1)
                (whitespace-char-p (char (the string-not-null-or-empty string) 0))))
       ;; :NOTE Are the consequences/benefits to doing this instead:
       ;; (make-string 0 :element-type 'standard-char)
       (make-string 0 :element-type 'character)
-      (locally 
+      (locally
           (declare (type string-not-null-or-empty string)
                    (array-index start)
                    (index-or-minus-1 end)
                    (optimize (speed 3)))
         (let* ((str-ghost (copy-seq string)) ;; copy-seq returns a simple-string.
-               (start% (loop 
-                          ;; :WAS :with str = (the string string)
-                          :with str = (the simple-string str-ghost)
-                          :for i :of-type index-or-minus-1 :from start :below end :by 1
-                          ;; :WAS :while (whitespace-char-p (char str i))
-                          :while  (whitespace-char-p (schar str i))
-                          :finally (return i)))
+               (start% (loop
+                         ;; :WAS :with str = (the string string)
+                         :with str = (the simple-string str-ghost)
+                         :for i :of-type index-or-minus-1 :from start :below end :by 1
+                         ;; :WAS :while (whitespace-char-p (char str i))
+                         :while  (whitespace-char-p (schar str i))
+                         :finally (return i)))
                (end% (loop
-                        ;; :WAS :with str = ;; :WAS (the string string)
-                        :with str = (the simple-string str-ghost)
-                        :for i :of-type index-or-minus-1 :downfrom (1- end) :downto start :by 1
-                        ;; :WAS :while (whitespace-char-p (char str i))
-                        :while (whitespace-char-p (schar str i))
-                        :finally (return (1+ i))))
-               )
+                       ;; :WAS :with str = ;; :WAS (the string string)
+                       :with str = (the simple-string str-ghost)
+                       :for i :of-type index-or-minus-1 :downfrom (1- end) :downto start :by 1
+                       ;; :WAS :while (whitespace-char-p (char str i))
+                       :while (whitespace-char-p (schar str i))
+                       :finally (return (1+ i)))))
           (declare (index-or-minus-1 start% end%))
           (cond ((and (zerop start%) (= end% (the array-length (length string))))
                  ;; (break "with string: ~S start was: 0 end% was: ~d" string end%)
                  (make-array end% :element-type (array-element-type string) :initial-contents string))
-                ((> start% end%) 
+                ((> start% end%)
                  (make-string 0 :element-type 'character))
                 (t ;; (break "with string: ~S start was: ~d end% was: ~d" string start% end%)
-                 (loop 
-                    with new-str = (make-array (- end% start%) :element-type (array-element-type string))
-                    ;; :WAS with str = (the string string)
-                    with str = (the simple-string string)
-                    for idx-new upfrom 0 to end% by 1
-                    for idx-old from start% below end% by 1
-                    ;; :WAS do  (setf (char new-str idx-new) (char str idx-old))
-                    do  (setf (char new-str idx-new) (schar str idx-old))
-                    finally (return new-str)) ))))))
+                 (loop
+                   with new-str = (make-array (- end% start%) :element-type (array-element-type string))
+                   ;; :WAS with str = (the string string)
+                   with str = (the simple-string string)
+                   for idx-new upfrom 0 to end% by 1
+                   for idx-old from start% below end% by 1
+                   ;; :WAS do  (setf (char new-str idx-new) (char str idx-old))
+                   do  (setf (char new-str idx-new) (schar str idx-old))
+                   finally (return new-str)) ))))))
 
 (defun string-split-newline (string)
   (declare (type string string))
-  (loop 
+  (loop
     for i = 0 then (1+ j)
     as j = (position #\newline string start i)
     collect (subseq string i j)
@@ -463,9 +462,9 @@
 (defun string-split-multi (str chars &rest opts)
   (declare (type string str)
 	   (type sequence chars))
-  ;; (apply #'mon::split-seq str #'(lambda (ch) 
-  (apply #'split-seq str #'(lambda (ch) 
-			     (declare (character ch)) 
+  ;; (apply #'mon::split-seq str #'(lambda (ch)
+  (apply #'split-seq str #'(lambda (ch)
+			     (declare (character ch))
 			     (find ch chars))
          opts))
 
@@ -496,17 +495,17 @@
 ;;            for y upfrom (if (zerop index) 1 0) below (if (zerop index) newlen oldlen)
 ;;            do (setf (char result y) x)
 ;;            finally (return result))
-;;         (loop 
+;;         (loop
 ;;            for n from 0 below index
 ;;            do (setf (char result n) (char string n))
-;;            finally (return 
-;;                      (loop 
+;;            finally (return
+;;                      (loop
 ;;                         initially (setf (char result (1- index)) char)
 ;;                         for o upfrom index below newlen
 ;;                         do (setf (char result o) (char string (1- o)))
 ;;                         finally (return result)))))))
 ;;
-;; 
+;;
 (defun string-insert-char (string insert-char index)
   (declare (type string string)
            (type character insert-char)
@@ -531,11 +530,11 @@
                    for y upfrom (if (zerop idx) 1 0) below (if (zerop idx) new old)
                    do (setf (char rslt y) x)
                    finally (return rslt))
-                 (loop 
+                 (loop
                    for n from 0 below idx
                    do (setf (char rslt n) (char str n))
-                   finally (return 
-                             (loop 
+                   finally (return
+                             (loop
                                initially (setf (char rslt (1- idx)) chr)
                                for o upfrom idx below new
                                do (setf (char rslt o) (char string (1- o)))
@@ -548,12 +547,12 @@
          (funcall #'copy string insert-char index  oldlen newlen result))
         (t (funcall #'copy string insert-char index  oldlen newlen result))))))
 
-;; 3b's version 
-;; :PASTE-URL (URL `http://paste.lisp.org/+2LC4/5') 
+;; 3b's version
+;; :PASTE-URL (URL `http://paste.lisp.org/+2LC4/5')
 ;; :WAS `push-in-place2'
 (defun string-insert-char-3b (string insert-char index)
-  (declare (string string) 
-           (character insert-char) 
+  (declare (string string)
+           (character insert-char)
            ;; (fixnum index)
            (index index)
            (optimize speed))
@@ -616,13 +615,13 @@
       (progn
         (incf (fill-pointer string))
         (replace string string :start1 (1+ index) :start2 index
-                 :end2 (fill-pointer string))
+                               :end2 (fill-pointer string))
         (setf (aref string index) insert-char)
         string)
       (let ((string (adjust-array string (1+ (length string))
                                   :element-type (array-element-type string))))
         (replace string string :start1 (1+ index) :start2 index
-                 :end2 (length string))
+                               :end2 (length string))
         (setf (aref string index) insert-char)
         string)))
 
@@ -644,7 +643,7 @@
 (defun concat (&rest strings)
   (declare (each-a-sequence-proper-or-character strings)
            (optimize (speed 3)))
-  (let* ((strings-cln   
+  (let* ((strings-cln
            (if (or (null strings) (every #'null strings))
                (return-from concat (make-string 0))
                (string-seqs-convert-chars-if
@@ -670,10 +669,10 @@
 ;;   (declare (list string-seq))
 ;;   (if (notany #'characterp string-seq)
 ;;       string-seq
-;;       (loop 
+;;       (loop
 ;;          for char-psn in string-seq
 ;;          for cnt from 0
-;;          when (characterp char-psn) 
+;;          when (characterp char-psn)
 ;;          do (setf (elt string-seq cnt) (string char-psn))
 ;;          finally (return string-seq))))
 ;;
@@ -682,27 +681,27 @@
            (optimize (speed 3)))
   (if (notany #'characterp string-seq)
       string-seq
-      (loop 
+      (loop
         for char-psn = (position-if #'characterp string-seq)
         then (position-if #'characterp string-seq :start char-psn)
-        for char = (and char-psn (string (elt string-seq char-psn)))   
+        for char = (and char-psn (string (elt string-seq char-psn)))
         while char
         do (setf (elt string-seq char-psn) char)
         finally (return string-seq))))
 
 ;;; ==============================
-;;; :COURTESY PJB 
+;;; :COURTESY PJB
 ;;; :SEE (URL `http://groups.google.com/group/comp.lang.lisp/browse_frm/thread/2d71b553b62e20b5#')
 ;;; :SEE :FILE com/informatigo/tools/script.lisp
 ;;; :SOURCE comp.lang.lisp :DATE 2009-06-13 :SUBJECT Re: Emacs Lisp's "mapconcat" in Common Lisp?
-;; (defun mapconcat-old (map-fun sequence separator)  ;; :WAS (function sequence separator) 
+;; (defun mapconcat-old (map-fun sequence separator)  ;; :WAS (function sequence separator)
 ;;   (etypecase sequence
-;;     (list 
+;;     (list
 ;;      (if sequence
 ;; 	 (let* ((items (mapcar (lambda (item)
 ;; 				 (let ((sitem (funcall map-fun item)))
 ;;                                    ;; I've found an implementation issue where the function differs from
-;;                                    ;; the emacs lisp equivalent: 
+;;                                    ;; the emacs lisp equivalent:
 ;;                                    ;; elisp>   (mapconcat #'identity (list "a" nil "b" nil "c") "") => "abc"
 ;;                                    ;; cl-user> (mapconcat #'identity (list "a" nil "b" nil "c") "") => "aNILbNILc"
 ;; 				   ;; Following `and' form fixes a bug in PJB's implementation and omits nulls
@@ -719,8 +718,8 @@
 ;; 	   (replace result  (car items) :start1 start)
 ;; 	   ;; :WAS (incf start (length (first items)))
 ;; 	   (incf start (length (car items)))
-;; 	   ;; :WAS (dolist (item (rest items))) 
-;; 	   (dolist (item (cdr items) result) 
+;; 	   ;; :WAS (dolist (item (rest items)))
+;; 	   (dolist (item (cdr items) result)
 ;; 	     (replace result ssepa :start1 start) (incf start (length ssepa))
 ;; 	     (replace result item  :start1 start) (incf start (length item)))
 ;; 	   ) ;;result)
@@ -747,7 +746,7 @@
 ;; 	      for i from 1 below (length items)
 ;; 	      do (replace result ssepa :start1 start)
 ;; 		 (incf start (length ssepa))
-;;  		 (replace result (aref items i) :start1 start) 
+;;  		 (replace result (aref items i) :start1 start)
 ;; 		 (incf start (length (aref items i))))
 ;; 	   result)
 ;; 	 ""))))
@@ -779,7 +778,7 @@
 ;; (test/mapconcat-old)
 
 ;;; ==============================
-;;; :COURTESY PJB 
+;;; :COURTESY PJB
 ;;; :SEE (URL `http://groups.google.com/group/comp.lang.lisp/browse_frm/thread/2d71b553b62e20b5#')
 ;;; :SEE :FILE com/informatigo/tools/script.lisp
 ;;; :SOURCE comp.lang.lisp :DATE 2009-06-13 :SUBJECT Re: Emacs Lisp's "mapconcat" in Common Lisp?
@@ -805,7 +804,7 @@
                     sep-or-item)
                    (character
                     (string sep-or-item))
-                   (char-code-integer 
+                   (char-code-integer
                     (if char-code-as-integer
                         (string (code-char sep-or-item))
                         (princ-to-string sep-or-item)))
@@ -814,11 +813,11 @@
                         (error ":function `mapconcat' -- arg SEPARATOR not a reasoanble delimeter~% got: ~S~%"
                                sep-or-item)
                         (princ-to-string sep-or-item)))))
-               
+
                (process-item (item)
                  (let ((sitem (funcall function item)))
                    (convert-sep-or-item sitem nil)))
-               
+
                (joiner (items sep sep-len)
                  (declare (string sep)
                           (mon:array-index sep-len))
@@ -831,11 +830,11 @@
                    (replace result  (first items) :start1 start)
                    (incf start (length (first items)))
                    (dolist (item (rest items) result)
-                     (replace result sep :start1 start) 
+                     (replace result sep :start1 start)
                      (incf start sep-len)
                      (replace result item :start1 start)
                      (incf start (length item)))))
-               
+
                (join (items)
                  (let* ((ssepa (convert-sep-or-item separator t))
                         (ssepa-len (length ssepa)))
@@ -869,39 +868,45 @@
              strings)))))
 
 ;;; :COURTESY mcclim/Tools/gilbert/clim-doc-convert.lis p:WAS `map-over-string'
-;;; :NOTE `+ucs-escape+' (defconstant +ucs-escape+ (code-char 21)) 
-(defun string-map (fun str)
-  (assert (typep str 'string))
+;;; :NOTE `+ucs-escape+' (defconstant +ucs-escape+ (code-char 21))
+;;
+;; :EXAMPLE
+;; (string-map #'(lambda (x) (princ (identity x))) "foo")
+;; (let ((lvar ()))
+;;   (string-map #'(lambda (x) (push (char-code x) lvar)) "foo")
+;;   (map 'list #'code-char (nreverse lvar)))
+(defun string-map (function string)
+  (assert (typep string 'string))
   (locally
-      (declare (type string str)
-               (type function fun) ;; :ADDED
+      (declare (type string string)
+               (type function function) ;; :ADDED
                (optimize (speed 3) (safety 1)))
-    (let ((n (length str)))
-      (declare (type fixnum-exclusive n))
+    (let ((str-len (length string)))
+      (declare (type fixnum-exclusive str-len))
       (do ((i 0 (the fixnum-exclusive (+ i 1))))
-	  ((>= i n))
+	  ((>= i str-len))
 	(declare (type fixnum-exclusive i))
-        (let ((c (schar str i)))
-          (cond ((char= c #\Nak) ;; (char= c +ucs-escape+)
-                 (let ((c (parse-integer str 
-					 :start (+ i 1) 
-					 :end (+ i 5) 
-					 :junk-allowed nil 
-					 ;; Is this the radix we want? It is if we want HEX.
-					 :radix 16))) 
+        (let ((idx-char (schar string i)))
+          (cond ((char= idx-char #\Nak) ;; (char= c +ucs-escape+)
+                 (let ((idx-char (parse-integer string
+                                                :start (+ i 1)
+                                                :end (+ i 5)
+                                                :junk-allowed nil
+                                                ;; Is this the radix we want? It is if we want HEX.
+                                                :radix 16)))
                    (incf i 4)
-                   (funcall fun c)))
+                   (funcall function idx-char)))
                 (t
-                 (funcall fun c))))))))
+                 (funcall function idx-char))))))))
 
 (defun string-or-char-or-code-point-integer-if (obj)
   (if (typep obj 'string-or-char-or-code-point-integer)
-      (typecase obj 
+      (typecase obj
         (string    (copy-seq obj))
         (character obj)
         (char-code-integer   (char-code-integer-to-char obj)))
-      (simple-error-mon :w-sym     'string-or-char-or-code-point-integer-if 
-                        :w-type    'function 
+      (simple-error-mon :w-sym     'string-or-char-or-code-point-integer-if
+                        :w-type    'function
                         :w-spec    "Arg OBJ not of type `string-or-char-or-code-point-integer'"
                         :w-got     obj
                         :w-type-of t
@@ -909,13 +914,13 @@
 
 (defun string-symbol-or-char-or-code-point-integer-if (obj)
   (if (typep obj 'string-symbol-or-char-or-code-point-integer)
-      (typecase obj 
+      (typecase obj
         (string    (copy-seq obj))
         (symbol    (string obj))
         (character obj)
         (char-code-integer   (char-code-integer-to-char obj)))
-      (simple-error-mon :w-sym     'string-symbol-or-char-or-code-point-integer-if 
-                        :w-type    'function 
+      (simple-error-mon :w-sym     'string-symbol-or-char-or-code-point-integer-if
+                        :w-type    'function
                         :w-spec    "Arg OBJ not of type `mon:string-symbol-or-char-or-code-point-integer'"
                         :w-got     obj
                         :w-type-of t
@@ -929,7 +934,7 @@
         (string (copy-seq obj))
         (character obj))
       (simple-error-mon :w-sym     'string-symbol-or-char-if
-                        :w-type    'function 
+                        :w-type    'function
                         :w-spec    "Arg OBJ not of type `mon:string-symbol-or-char'"
                         :w-got     obj
                         :w-type-of t
@@ -964,10 +969,10 @@
   (let ((cptlz-if (string-symbol-or-char-or-code-point-integer-if obj)))
     (declare (string-or-char-or-code-point-integer cptlz-if))
     (typecase cptlz-if
-      (string 
+      (string
        ;; `nstring-capitalize' is fine b/c `%capitalize-if' `cl:copy-seq'd CPTLZ-IF
        (nstring-capitalize cptlz-if))
-      (character 
+      (character
        (char-code (if (upper-case-p cptlz-if)
                       (char-downcase cptlz-if)
                       (char-upcase cptlz-if)))))))
@@ -976,21 +981,23 @@
   (let ((dwncs-if (string-symbol-or-char-or-code-point-integer-if obj)))
     (declare (type string-or-char-or-code-point-integer dwncs-if))
     (typecase dwncs-if
-      (string 
+      (string
        ;; `nstring-capitalize' is fine b/c `string-symbol-or-char-or-code-point-integer-if'
        ;; has `cl:copy-seq'd DWNCS-IF
        (nstring-downcase dwncs-if))
-      (character  (char-code (char-downcase dwncs-if))))))
+      (character
+       (char-code (char-downcase dwncs-if))))))
 
 (defun upcase-loosely (obj)
   (let ((upcs-if (string-symbol-or-char-or-code-point-integer-if obj)))
     (declare (string-or-char-or-code-point-integer upcs-if))
     (typecase upcs-if
-      (string 
+      (string
        ;; `nstring-capitalize' is fine b/c `string-symbol-or-char-or-code-point-integer-if'
        ;; has `cl:copy-seq'd UPCS-IF
        (nstring-upcase upcs-if))
-      (character  (char-code (char-downcase upcs-if))))))
+      (character
+       (char-code (char-downcase upcs-if))))))
 
 (defun string-invert-case (string-to-invert &key (case :preserve))
   (declare (type string string-to-invert))
@@ -999,32 +1006,33 @@
   (if (string-empty-p string-to-invert)
       (make-string 0)
       (case case
-        (:preserve string-to-invert)
-        (:upcase  
+        (:preserve
+         string-to-invert)
+        (:upcase
          (if (some #'lower-case-p  string-to-invert)
-             (string-upcase string-to-invert) 
+             (string-upcase string-to-invert)
              string-to-invert))
-        (:downcase 
+        (:downcase
          (if (some #'upper-case-p string-to-invert)
              (string-downcase string-to-invert)
              string-to-invert))
-        (:invert 
-         (loop 
-            :with sym-str = (copy-seq string-to-invert)
-            :for idx :upfrom 0 :below (length sym-str)
-            :for charat :across sym-str
-            :do (if (lower-case-p charat)
-                    (setf (char sym-str idx) (char-upcase charat))
-                    (setf (char sym-str idx) (char-downcase charat)))
-            :finally (return sym-str))))))
+        (:invert
+         (loop
+           with sym-str = (copy-seq string-to-invert)
+           for idx upfrom 0 below (length sym-str)
+           for charat across sym-str
+           do (if (lower-case-p charat)
+                  (setf (char sym-str idx) (char-upcase charat))
+                  (setf (char sym-str idx) (char-downcase charat)))
+           finally (return sym-str))))))
 
 (defun string-for-readtable-case (case-frob-string &optional readtable)
   (declare (type string case-frob-string)
            ((or null readtable) readtable))
-  (string-invert-case case-frob-string 
-                      :case (or 
-                             (and readtable 
-                                  (or 
+  (string-invert-case case-frob-string
+                      :case (or
+                             (and readtable
+                                  (or
                                    (and (readtablep readtable)
                                         (readtable-case readtable))
                                    (simple-error-mon :w-sym  'string-for-readtable-case
@@ -1041,49 +1049,49 @@
   (notany #'upper-case-p string))
 
 ;; sbcl/src/code/early-extensions.lisp
-#+sbcl
-(defun string-remove-backslashes (string &key (start 0) (end (length string)))
-  (declare (type string string))
-  (etypecase string
-    (simple-string (sb-impl::remove-backslashes string start end))
-    (string (copy-seq (substring start end)))))
+;; #+sbcl
+;; (defun string-remove-backslashes (string &key (start 0) (end (length string)))
+;;   (declare (type string string))
+;;   (etypecase string
+;;     (simple-string (sb-impl::remove-backslashes string start end))
+;;     (string (copy-seq (substring start end)))))
 
-;;; :NOTE Had comment; 
+;;; :NOTE Had comment;
 ;;;  "FIXME: This is a *very* big kludge, waiting for babel to be fixed."
 ;; :COURTESY osicat.lisp :WAS `to-simple-string'
 ;; (defun string-simple-string (thing)
 ;;   (let ((s (string thing)))
 ;;     (make-array (length s)
 ;;                 :element-type 'character
-;;                 :initial-contents s)))	 
+;;                 :initial-contents s)))
 
 
 ;;; :SOURCE xit/utilities/file-browser.lisp :WAS `str-upto-char'
-(defun string-upto-char (str chr)
-  (declare (type character chr)
-           (type string str))
-  (let ((l (coerce str 'list)))
-    (coerce (subseq l 0 (1+ (or (position chr l) (length l))))
+(defun string-upto-char (string character)
+  (declare (type character character)
+           (type string string))
+  (let ((coerced-string (coerce string 'list)))
+    (coerce (subseq coerced-string 0 (1+ (or (position character coerced-string) (length coerced-string))))
 	    'string)))
 
 ;;; :SOURCE texinfo-docstrings/colorize.lisp
-(defun string-starts-with (starts-w str)
-  (declare (type string str starts-w)
+(defun string-starts-with (starts-with string)
+  (declare (type string string starts-with)
            (optimize (speed 3)))
-  (let ((stw-len (length starts-w)))
+  (let ((stw-len (length starts-with)))
     (declare (array-length stw-len))
-    (and (>= (the array-length (length str)) stw-len)
-         (string-equal starts-w str :end2 stw-len))))
+    (and (>= (the array-length (length string)) stw-len)
+         (string-equal starts-with string :end2 stw-len))))
 
 ;;; :SOURCE mcclim/Drei/lisp-syntax-swine.lisp
 (defun string-longest-common-prefix (strings &optional null-as-nil)
   (declare (each-a-string-or-null strings)
            (optimize (speed 3)))
-  (when (null strings) 
-    (return-from string-longest-common-prefix 
-      (if null-as-nil 
-          nil 
-          (make-string 0))))  
+  (when (null strings)
+    (return-from string-longest-common-prefix
+      (if null-as-nil
+          nil
+          (make-string 0))))
   (locally (declare (each-a-string strings))
     (flet ((common-prefix (s1 s2)
              (declare (string s1 s2))
@@ -1099,7 +1107,7 @@
 
 ;;; :SOURCE texinfo-docstrings/docstrings.lisp :WAS `string-lines'
 (defun string-lines-to-array (string)
-  (declare (type simple-string string))  
+  (declare (type simple-string string))
   (coerce (with-input-from-string (s string)
             (loop
               for line = (read-line s nil nil)
@@ -1112,12 +1120,12 @@
   (assert (> (length substring) 0))
   (let ((substring-length (length substring))
         (last-end 0)
-        (new-string ""))
+        (new-string (make-string 0))) ; ""
     (do ((next-start (search substring string) (search substring string :start2 last-end)))
-	((null next-start)
-	 (concatenate 'string new-string (subseq string last-end)))
+        ((null next-start)
+         (concatenate 'string new-string (subseq string last-end)))
       (setq new-string
-	    (concatenate 'string new-string (subseq string last-end next-start) replacement-string))
+            (concatenate 'string new-string (subseq string last-end next-start) replacement-string))
       (setq last-end (+ next-start substring-length)))))
 
 (defun string-last-word (string)
@@ -1128,16 +1136,16 @@
 	string)))
 
 ;;; :SOURCE sbcl/contrib/sb-cover/cover.lisp
-(defun string-convert-tabs (tabby-str &optional omit-last-newline)
-  (declare (type string-or-null tabby-str))
-  (unless (null tabby-str)
+(defun string-convert-tabs (tabby-string &optional omit-last-newline)
+  (declare (type string-or-null tabby-string))
+  (unless (null tabby-string)
     (with-output-to-string (stream)
-      (loop 
-        for char across (the string tabby-str)
+      (loop
+        for char across (the string tabby-string)
         for col from 0
         for i from 0
         do (if (eql char #\Tab)
-               (loop 
+               (loop
                  repeat (- 8 (mod col 8))
                  do (write-char #\Space stream)
                  do      (incf (the fixnum-exclusive col))  ;;fixnum col))
@@ -1145,8 +1153,8 @@
                (progn
                  (when (eql char #\Newline)
                    ;; Filter out empty last line
-                   (when (and omit-last-newline 
-                              (eql (the index i) (1- (length (the string tabby-str)))))
+                   (when (and omit-last-newline
+                              (eql (the index i) (1- (length (the string tabby-string)))))
                      (return))
                    (setf col -1))
                  (write-char char stream)))))))
@@ -1155,7 +1163,8 @@
   (declare (type string-or-null string))
   (or (null string)
       (string-empty-p string)
-      (string-equal (string-trim-whitespace (the string string)) "NIL")
+      (string-equal (string-trim-whitespace (the string string))
+                    (make-array 3 :element-type 'character :initial-contents (list #\N #\I #\L)))
       (not (position-if-not #'mon:whitespace-char-p (the string string)))))
 
 (defun string-or-symbol-first-char (string-or-symbol)
@@ -1164,11 +1173,14 @@
     (typecase  string-or-symbol
       ;; ((simple-array character (*)) (string-first-char string-or-symbol))
       (boolean        string-or-symbol)
-      (string  (or (string-equal string-or-symbol "t")
-                   (and (string-not-equal string-or-symbol "nil")
+      (string  (or (string-equal string-or-symbol
+                                 (make-string 1 :initial-element #\T))
+                   (and (string-not-equal string-or-symbol
+                                          (make-array 3 :element-type 'character :initial-contents (list #\N #\I #\L)))
                         (string-first-char string-or-symbol))))
       (symbol         (string-first-char (symbol-name string-or-symbol))))))
 
+;; (make-array 1 :element-type 'character :initial-element #\t)
 ;; :PASTE-TITLE call-with-substrigns
 ;; :PASTED-BY stassats
 ;; :PASTE-DATE 2012-02-25
@@ -1184,12 +1196,12 @@
     (declare (array-length str-len))
     (unless (<= chunk-size str-len)
       (error ":FUNCTION `string-call-with-substrings' -- arg CHUNK-SIZE is greater than length of STRING.~% ~
-              string-length: ~D~% chunk-size: ~D" str-len chunk-size)) 
+              string-length: ~D~% chunk-size: ~D" str-len chunk-size))
     (if (= str-len chunk-size)
-        (progn 
+        (progn
           (funcall function string)
           nil)
-        (loop 
+        (loop
           for i below str-len by chunk-size
           do (funcall function (substring string i (min (+ chunk-size i) str-len)))))))
 
@@ -1214,13 +1226,38 @@
              (declare (string target-string)
                       (ignore start end reg-starts reg-ends)
                       (optimize (speed 3)))
-             (format nil "~{%~2,'0x~}" 
+             (format nil "~{%~2,'0x~}"
                      ;; (char-code (char target-string match-start)))))
                      #+sbcl
                      (coerce (sb-ext:string-to-octets target-string :external-format :utf-8 :start match-start :end match-end) 'list)
                      #-sbcl
                      (coerce (flexi-streams:string-to-octets target-string :external-format :utf-8 :start match-start :end match-end) 'list))))
       (cl-ppcre:regex-replace-all url-regex string  #'convert))))
+
+
+;; Courtesy Bert Burgemeister's phoros.lisp :WAS `increment-numeric-string'
+(defun string-increment-numeric (string &key (default-numeric-part-width 4))
+  (declare (string string)
+           ((integer 1 16) default-numeric-part-width))
+  (let* ((end-of-number
+           (1+ (or (position-if #'digit-char-p string :from-end t)
+                   (1- (length string)))))
+         (start-of-number
+           (1+ (or (position-if-not #'digit-char-p string :from-end t :end end-of-number)
+                   -1)))
+         (width-of-number (- end-of-number start-of-number))
+         (prefix-string (subseq string 0 start-of-number))
+         (suffix-string (subseq string end-of-number)))
+    (when (zerop width-of-number)
+      (setf width-of-number default-numeric-part-width))
+    (format nil "~A~V,'0D~A"
+            prefix-string
+            width-of-number
+            (1+ (or (ignore-errors
+                     ;; :NOTE why not use :junk-allowed t instead of `ignore-errors' ???
+                     (parse-integer string :start start-of-number :end end-of-number))
+                    0))
+            suffix-string)))
 
 
 
@@ -1544,18 +1581,18 @@ Signal an error when SUBSTRING is length 0.~%~@
 `mon:string-substitute', `mon:string-split-multi', `mon:string-split-spaces',
 `mon:string-upto-char', `mon:string-split-on-chars'.~%▶▶▶")
 
-#+sbcl 
-(fundoc 'string-remove-backslashes
-  "Remove any occurrences of #\\ from STRING.~%~@
-Keyword START is an index into STRING, default is 0.~%~@
-Keyword END is an index into STRING, default is length of STRING.~%~@
-:EXAMPLE~%
- \(string-remove-backslashes \"bubba\\bubba\\bubba\\\\\")~%
- \(string-remove-backslashes \"bubba\\bubba\\bubba\" :start 3 :end 8\)~%~@
-:SEE-ALSO `sb-impl::remove-backslashes', `substring',
-`string-remove-backslashes', `string-trim-whitespace', `string-split-newline',
-`string-substitute', `string-split-multi', `string-split-spaces', `string-upto-char',
-`string-split-on-chars'.~%▶▶▶")
+;; #+sbcl
+;; (fundoc 'string-remove-backslashes
+;;   "Remove any occurrences of #\\ from STRING.~%~@
+;; Keyword START is an index into STRING, default is 0.~%~@
+;; Keyword END is an index into STRING, default is length of STRING.~%~@
+;; :EXAMPLE~%
+;;  \(string-remove-backslashes \"bubba\\bubba\\bubba\\\\\")~%
+;;  \(string-remove-backslashes \"bubba\\bubba\\bubba\" :start 3 :end 8\)~%~@
+;; :SEE-ALSO `sb-impl::remove-backslashes', `substring',
+;; `string-remove-backslashes', `string-trim-whitespace', `string-split-newline',
+;; `string-substitute', `string-split-multi', `string-split-spaces', `string-upto-char',
+;; `string-split-on-chars'.~%▶▶▶")
 
 (fundoc 'string-split-newline
   "Return STRING as a list of substrings of split on #\\newline.~%~@
@@ -1821,7 +1858,7 @@ adjustable vector rather than returning a string (e.g. as per cl:copy-seq).~%~@
  \(let* \(\(target-string1 \(make-array 8 :element-type 'character :adjustable t :fill-pointer 8 :initial-contents \"ABCD1234\"\)\)
         \(target-string2 \"ABCD1234\"\)
        ;; :NOTE Illustrating differences we don't use cl:copy-seq we must be explicit
-        \(target-string1b 
+        \(target-string1b
          \(make-array 8 :element-type 'character :adjustable t :fill-pointer 8 :initial-contents \"ABCD1234\"\)\)
         \(target-string2b \"ABCD1234\"\)
         \(mutated-types `\(\(target-string1 \(,\(type-of target-string1\)\)\)
@@ -1871,11 +1908,25 @@ Following signals an error:
  \(string-call-with-substrings #'identity \"34328248350527230592375\" 24\)~%~@
 :SEE-ALSO `string-subdivide'.~%▶▶▶")
 
-
 (fundoc 'string-percent-encode
         "percent-encode a STRING.~%
 :EXAMPLE~%
  \(string-percent-encode \"A la poupée prints\"\)~%
+:SEE-ALSO `<XREF>'.~%▶▶▶")
+
+(fundoc 'string-increment-numeric
+        "Increment right-most numeric part of STRING if any; otherwise append a numeric
+part to STRING with DEFAULT-NUMERIC-PART-WIDTH.~%~@
+DEFAULT-NUMERIC-PART-WIDTH is a positive integer value greater than in the range [1,16].~%~@
+:EXAMPLE~%~
+ \(string-increment-numeric \"018002-WEAR-04\"\)~%
+ \(string-increment-numeric \"\" :default-numeric-part-width 8\)~%
+ \(string-increment-numeric \"foo\" :default-numeric-part-width 1\)~%
+ \(string-increment-numeric \"foo\" :default-numeric-part-width 4\)~%~@
+Following error successfully on SBCL with standard optimization settings:~%
+ \(string-increment-numeric nil :default-numeric-part-width 4\)~%
+ \(string-increment-numeric nil :default-numeric-part-width 17\)~%
+ \(string-increment-numeric \"FOO\" :default-numeric-part-width nil\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 ;;; ==============================
@@ -1883,7 +1934,7 @@ Following signals an error:
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; show-trailing-whitespace: t
+;; show-trailing-whitespace: nil
 ;; mode: lisp-interaction
 ;; package: mon
 ;; End:

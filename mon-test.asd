@@ -20,10 +20,12 @@
   :version "1.0.0"
   :pathname  "tests/"
   :serial t
-  :depends-on (:mon #+sbcl :sb-rt
-                    ;; :NOTE Need to add a package-nickname for :sb-rt for following:
-                    #-sbcl :rt)
-  :components 
+  :depends-on
+  ;; :DARWIN this seems to have been causing circular dependencies WAS (:mon #+sbcl :sb-rt
+  ( #+sbcl :sb-rt
+    ;; :NOTE Need to add a package-nickname for :sb-rt for following:
+    #-sbcl :rt)
+  :components
   ((:file "package")
    (:file "test")
    (:file "timing")
@@ -37,7 +39,7 @@
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; show-trailing-whitespace: t
+;; show-trailing-whitespace: nil
 ;; mode: lisp-interaction
 ;; End:
 

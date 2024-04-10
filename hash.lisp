@@ -46,7 +46,7 @@
   (declare (fixnum x))
   (if (<= x 5)
       (and (>= x 2) (/= x 4))
-      (and (not (evenp x))
+    (and (not (evenp x))
            (not (zerop (rem x 3)))
            (do ((q 6)
                 (r 1)
@@ -57,21 +57,21 @@
              (multiple-value-setq (q r) (truncate x d))))))
 
 ;; :SOURCE sbcl/src/compiler/globaldb.lisp:WAS  `primify'
-#+sbcl 
+;; #+sbcl
+;; (defun prime-or-next-greatest (fixnum)
+;;   (declare (type unsigned-byte-29  fixnum))
+;;   (sb-c::primify fixnum))
+;; (prime-or-next-greatest 74)
+;; (fixnump 74)
 (defun prime-or-next-greatest (fixnum)
-  (declare (type unsigned-byte-29  fixnum))
-  (sb-c::primify fixnum))
-
-#-sbcl
-(defun prime-or-next-greatest (fixnum)
-  (declare (type unsigned-byte-29 fixnum))
-  (unless (fixnump 'fixnum)
+  (declare (type fixnum))
+  (unless (fixnump fixnum)
     (simple-error-mon :w-sym 'prime-or-next-greatest
                       :w-type 'function
                       :w-spec "Arg fixnum must be `fixnump'"
                       :w-got fixnum
                       :w-type-of t))
-  (do ((n (logior x 1) (+ n 2)))
+  (do ((n (logior fixnum 1) (+ n 2)))
       ((prime-plusp n) n)))
 
 (defun hash-get-keys (hash-table)
@@ -339,27 +339,28 @@
 (defun hash-found-p (key hash-table &optional default)
   (declare (hash-table hash-table))
   (multiple-value-bind (value foundp) (gethash key hash-table default)
-    (values 
-     (if foundp (lambda () value) 
+    (values
+     (if foundp (lambda () value)
          default)
      foundp)))
 
-;; :COURTESY Zach Beane's usenet-legend/utils.lisp 
+;; :COURTESY Zach Beane's usenet-legend/utils.lisp
 ;; :WAS `make-string-table'
-(defun make-hash-table-keyed-by-string (&key case-sensitive 
+(defun make-hash-table-keyed-by-string (&key case-sensitive
                                         #-:sbcl size
-                                        #+:sbcl (size sb-impl::+min-hash-table-size+)
+                                        ;; #+:sbcl (size sb-impl::+min-hash-table-size+)
+                                        #+:sbcl(size 7)
                                         (rehash-size 1.5)
                                         (rehash-threshold 1)
                                         ;; hash-function
                                         (weakness nil)
                                         synchronized)
   (let ((test (if case-sensitive 'equal 'equalp)))
-    (make-hash-table :test test 
-                     :size size 
-                     :rehash-size rehash-size 
+    (make-hash-table :test test
+                     :size size
+                     :rehash-size rehash-size
                      :rehash-threshold rehash-threshold
-                     :weakness weakness 
+                     :weakness weakness
                      :synchronized synchronized)))
 
 
@@ -603,7 +604,7 @@ If MAYBE-HASH-TABLE is NULL or T return a newly generated hash-table object.~%~@
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; show-trailing-whitespace: t
+;; show-trailing-whitespace: nil
 ;; mode: lisp-interaction
 ;; package: mon
 ;; End:

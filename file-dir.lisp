@@ -47,7 +47,7 @@
 ;; `namestring-directory' and `namestring-file' are convenience functions for slime completion
 (defun namestring-directory (pathname)
   (directory-namestring  pathname))
-;; 
+;;
 (defun namestring-file (pathname)
   (file-namestring  pathname))
 
@@ -68,12 +68,16 @@
     (setf new-dir (reverse new-dir))
     (make-pathname :name as-fname :directory new-dir)))
 
-(defun file-write-date-timestring (pathname-or-namestring)
+(defun file-write-date-timestring (pathname-or-namestring
+                                   &key (timestring-format
+                                         "~4,'0d-~2,'0d-~2,'0dT~2,'0d:~2,'0d:~2,'0d"
+                                         ;;   yr  mon   day     hr    min    sec
+                                         ))
+  (declare (type string timestring-format))
+  #-sbcl (check-type timestring-format string)
   (multiple-value-bind (sec min hr day mon yr wd dp zn) (decode-universal-time (file-write-date pathname-or-namestring))
     (declare (ignore wd dp zn))
-    (format nil "~4,'0d-~2,'0d-~2,'0dT~2,'0d:~2,'0d:~2,'0d" 
-            ;;       yr     mon    day     hr    min   sec
-            yr mon day hr min sec)))
+    (format nil timestring-format yr mon day hr min sec)))
 
 ;; set-file-write-date
 ;; (+ SB-IMPL::UNIX-TO-UNIVERSAL-TIME
@@ -92,7 +96,7 @@
   (declare (pathname-or-namestring pathname-or-namestring)
            (unsigned-byte access-time modification-time))
   (unless (probe-file pathname-or-namestring)
-    (error ":FUNCTION `set-file-write-date' -- arg PATHNAME-OR-NAMESTRING did not satisfy `cl:probe-file'~% got: ~S" 
+    (error ":FUNCTION `set-file-write-date' -- arg PATHNAME-OR-NAMESTRING did not satisfy `cl:probe-file'~% got: ~S"
            pathname-or-namestring))
   (values
    (zerop (sb-posix:utime (sb-ext:native-namestring pathname-or-namestring) access-time modification-time))
@@ -102,17 +106,16 @@
 (defun set-file-write-date-using-file (target-pathname-or-namestring source-pathname-or-namestring)
   (declare (pathname-or-namestring target-pathname-or-namestring source-pathname-or-namestring))
   (unless (probe-file source-pathname-or-namestring)
-    (error ":FUNCTION `set-file-write-date' -- arg SOURCE-PATHNAME-OR-NAMESTRING did not satisfy `cl:probe-file'~% got: ~S" 
+    (error ":FUNCTION `set-file-write-date' -- arg SOURCE-PATHNAME-OR-NAMESTRING did not satisfy `cl:probe-file'~% got: ~S"
            source-pathname-or-namestring))
   (let* ((source-stat  (sb-posix:stat (sb-ext:native-namestring source-pathname-or-namestring)))
          (source-atime (sb-posix:stat-atime source-stat))
          (source-mtime (sb-posix:stat-mtime source-stat)))
     (set-file-write-date (sb-ext:native-namestring target-pathname-or-namestring) source-atime source-mtime)))
 
-(defun timestamp-for-file-with (&key 
-                                (prefix  (make-string 0))
-                                (suffix  (make-string 0))
-                                (universal-time nil))
+(defun timestamp-for-file-with (&key (prefix  (make-string 0))
+                                     (suffix  (make-string 0))
+                                     (universal-time nil))
   (declare (string prefix suffix)
            (boolean universal-time)
            (optimize (speed 3)))
@@ -134,12 +137,12 @@
            (null maybe-sfx)
            (error ":FUNCTION `timestamp-for-file-with' -- keys PREFIX and SUFFIX were or became null~% ~
                  prefix: ~S became: ~S ~% suffix: ~S became: ~S~%" prefix maybe-pfx suffix maybe-sfx))
-      (and prefix 
-           (null maybe-pfx) 
+      (and prefix
+           (null maybe-pfx)
            (zerop (length maybe-sfx))
            (error ":FUNCTION `timestamp-for-file-with' -- key PREFIX became null~% ~
                  prefix: ~S became: ~S ~%" prefix maybe-pfx))
-      (and suffix 
+      (and suffix
            (null maybe-sfx)
            (zerop (length maybe-pfx))
            (error ":FUNCTION `timestamp-for-file-with' -- key SUFFIX became null~% ~
@@ -237,9 +240,9 @@
   (let ((non-path-string-things (list "" "." ".." " "))) ; the empty string is required for namestrings.
     (declare (pathname-or-namestring maybe-sane-pathname)
              (list non-path-string-things))
-    (when no-relatives 
+    (when no-relatives
       (setf non-path-string-things (nconc (list "../" "./") non-path-string-things)))
-    #-sbcl (and 
+    #-sbcl (and
             (not (pathname-or-namestring-empty-p maybe-sane-pathname))
             (not (member maybe-sane-pathname non-path-string-things))
             (not (wild-pathname-p (pathname maybe-sane-pathname)))
@@ -1034,7 +1037,7 @@
                        j (1+ p))
                  (let* ((var-name (if (char= ch #\{)
                                       (let ((pc (position #\} filename :start (1+ p))))
-                                        (unless pc 
+                                        (unless pc
                                           (error "SUBSTITUTE-IN-FILE-NAME: Missing \"}\" in ~a" filename))
                                         (setq jnext (1+ pc))
                                         (subseq filename (1+ p) pc))
@@ -1044,7 +1047,7 @@
                                                 (alpha-char-p ch)
                                                 (digit-char-p ch) ;; radix??
                                                 (char= ch #\_))
-                                         finally 
+                                         finally
                                          ;;(setq jnext (min i (the fixnum (1- n))))
                                          (setq jnext i)
                                          (return (subseq filename p i)))))
@@ -1115,7 +1118,7 @@
   (let* ((comp-plist (pathname-components pathname-or-namestring :list-or-plist :plist))
          (comp-tail (nthcdr 2 comp-plist))
          (comp-head (nbutlast comp-plist 12)))
-    ;; pop the tail off the value of the :pathname-host property 
+    ;; pop the tail off the value of the :pathname-host property
     ;;  ( { <STRING> | NIL } . <LOGICAL-HOST-OBJECT> ) => { <STRING> | NIL }
     (setf (cadr comp-tail) (caadr comp-tail)
           comp-head (cadr comp-head)
@@ -1143,10 +1146,11 @@
 (defun remove-directory (pathname-or-namestring)
   (declare (pathname-or-namestring pathname-or-namestring)
            (optimize (speed 3)))
-  ;; (defsyscall "rmdir" :int (path filename-designator))
-  #-sbcl (osicat-posix:rmdir pathname-or-namestring)
   ;; (define-call "rename" int minusp (oldpath filename) (newpath filename))
-  #+sbcl (sb-posix:rmdir (pathname pathname-or-namestring)))
+  #+sbcl (sb-posix:rmdir (pathname pathname-or-namestring))
+  ;; (defsyscall "rmdir" :int (path filename-designator))
+  #-sbcl (osicat-posix:rmdir pathname-or-namestring))
+
 
 
 ;;; ==============================
@@ -1159,16 +1163,17 @@
 ;;
 ;; (equal (gethash "mon" asdf::*defined-systems*) 'equal)
 ;;
+;; (hash-table-test asdf/source-registry:*source-registry*)
 #+asdf
 (defun pathname-directory-system (system &optional preserve-case)
-  ;; b/c asdf:find-system is way too overloaded and "finds" the system by
-  ;; loading it.
+  ;; b/c asdf:find-system is way too overloaded and "finds" the system by loading it.
   ;; :EXAMPLE (pathname-directory-system :mon)
   (declare (string-or-symbol system))
   (when (or (string-empty-p system)
             (booleanp system))
     (return-from pathname-directory-system))
   (let* ((frob-w
+          ;;; FIXME `asdf::*defined-systems*' is no longer a valid variable for holding systems.
           (ecase (hash-table-test (the hash-table asdf::*defined-systems*))
             (equal  (or (and preserve-case (function string)) (function string-downcase)))
             (equalp (function string))))
@@ -1177,7 +1182,8 @@
                    (etypecase system
                      (string system)
                      (symbol (string system))))))
-    (setf sys-str (asdf:system-registered-p sys-str))
+    ;; :WAS (setf sys-str (asdf:system-registered-p sys-str))
+    (setf sys-str (asdf/backward-interface:system-registered-p sys-str))
     (and sys-str
          (setf sys-str (cdr sys-str))
          ;; The class asdf:component doesn't initialize the absolute-pathname
@@ -1193,7 +1199,7 @@
   (and (setf system (asdf:find-system system nil))
        (pathname-directory
         (truename (asdf:system-definition-pathname system)))))
-;;
+
 #+asdf
 (defun pathname-system (system)
   (and (setf system (pathname-directory-system system))
@@ -1205,9 +1211,10 @@
   (and (setf system (pathname-system system))
        (namestring system)))
 
+;;; :NOTE this frobs value of *default-pathname-defaults* which should probably be done differently
 #+asdf
 (defun default-directory ()
-  (asdf:truenamize (asdf:pathname-directory-pathname *default-pathname-defaults*)))
+  (asdf::truenamize (uiop:pathname-directory-pathname *default-pathname-defaults*)))
 
 ;; :SOURCE asdf.lisp :WAS `absolute-pathname-p'
 (defun pathname-absolute-p (pathspec)
@@ -1783,14 +1790,14 @@ Return value is a pathname designator if it is `asdf:system-registered-p' and
 its asdf:system object has an effective slot-value for
 `asdf::absolute-pathname', else nil.~%~@
 :NOTE Unlike `mon:pathname-directory-system-ensure' and `asdf:find-system'
-evaluation of thes function does not load an unloaded SYSTEM rather it looks for
+evaluation of this function does not load an unloaded SYSTEM, rather it looks for
 SYSTEM's string-name in the hash-table `asdf::*defined-systems*' and then
 inspects the asdf:system class object in behind the key.~%~@
 :EXAMPLE~%
  \(pathname-directory-system \"cl-ppcre\"\)~%
  \(pathname-directory-system :cl-ppcre\)~%
  \(pathname-directory-system 'cl-ppcre\)~%
- \(pathname-directory-system \"CL-PPCRE\"\)~%
+ \(Pathname-directory-system \"CL-PPCRE\"\)~%
  \(pathname-directory-system \"CL-PPCRE\" t\)~%
  \(pathname-directory-system :CL-PPCRE t\)~%
  \(pathname-directory-system \"not-a-system\"\)~%
@@ -1921,12 +1928,21 @@ merged with DIRECTORY.~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'file-write-date-timestring
-        "Return the file-write-date of PATHNAME-OR-NAMESTRING as a string.~%~@
-Return value has the form:~%
- \"yyyy-mm-ddThh:mm:ss\"~%~@
+        "Return the `cl:file-write-date' of PATHNAME-OR-NAMESTRING as a string.~%
+Keyword TIMESTRING-FORMAT is a `cl:format' control string. The default is:
+ \"~~4,'0d-~~2,'0d-~~2,'0dT~~2,'0d:~~2,'0d:~~2,'0d\"
+    year   month  day   hour   minute  second~%
+When TIMESTRING-FORMAT is provided it should be of a form suitable for
+processing all but the day of week, daylight savings time,
+and timezone values as returned by `cl:decode-universal-time'.
+Default return value has the form:~%
+ \"yyyy-mm-ddThh:mm:ss\"~%
 :EXAMPLE~%
- \(file-write-date-timestring *default-pathname-defaults*\)~%~@
+ \(file-write-date-timestring *default-pathname-defaults*\)~%
+ \(file-write-date-timestring *default-pathname-defaults*
+                             :timestring-format \"~~4,'0d-~~2,'0d-~~2,'0dT~~2,'0d-~~2,'0d-~~2,'0d\"\)~%
 :SEE-ALSO `set-file-write-date', `set-file-write-date-using-file', `timestamp-for-file'.~%▶▶▶")
+
 
 (fundoc 'timestamp-for-file-with
 "Return a string containing a timestamp suitable for use as argument to name
@@ -2293,7 +2309,7 @@ Following error successfully:~%
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; show-trailing-whitespace: t
+;; show-trailing-whitespace: nil
 ;; mode: lisp-interaction
 ;; package: mon
 ;; End:

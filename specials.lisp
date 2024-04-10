@@ -11,7 +11,7 @@
      ,@(when doc (list doc))))
 
 (defmacro defconst* (name type init &optional doc)
-  `(progn 
+  `(progn
      (declaim (type ,type ,name))
      (,(if (subtypep type '(or symbol number character))
 	   'defconst
@@ -20,23 +20,22 @@
 
 ;;; :NOTE the `fundoc-*' stuff should come early. All other files evaluate it.
 ;; :SOURCE SICL/Code/Docstrings/docstrings-en.lisp :WAS `fmt'
-
 (defun doc-set (name object-type string args) ;&rest args)
   (declare (type (or standard-method standard-generic-function (and symbol (not null)))  name)
            (type (member variable type function generic method) object-type)
            ((or null string) string))
-  (let ((doc-or-null 
+  (let ((doc-or-null
          (if (null string)
              string
              (apply #'format nil `(,string ,@args)))))
     (ecase object-type
       (function
-       (setf (documentation (fdefinition name) object-type) 
+       (setf (documentation (fdefinition name) object-type)
              (setf (documentation name object-type) doc-or-null)))
-      (variable 
+      (variable
        (locally (declare (special name))
          (setf (documentation name object-type) doc-or-null)))
-      (type 
+      (type
        (setf (documentation name object-type) doc-or-null))
       (method
        (setf (documentation name t) doc-or-null))
@@ -60,7 +59,7 @@
 
 (defun vardoc (name &optional string &rest args)
   (declare (type symbol name)
-           (special name) 
+           (special name)
            ((or null string) string))
   (doc-set name 'variable string args))
 
@@ -72,12 +71,12 @@
       (multiple-value-bind (v errorp) (ignore-errors (funcall test object))
 	(declare (ignore v))
 	(not errorp)))))
-  
+
 ;; :NOTE Using mon:type-specifier-p to verify NAME is valid type but that
 ;; function is not yet in the environment when compiling a fresh system
 ;; Make sure not calls to this function occur before :FILE types.lisp is present.
 (defun typedoc (name &optional string &rest args)
-  (declare (type symbol name) 
+  (declare (type symbol name)
            ((or null string) string))
   (when (type-specifier-p name)
     (doc-set name 'type string args)))
@@ -87,7 +86,7 @@
 ;;; :VARIABLES-CONSTANTS
 ;;; ==============================
 
-;; 
+;;
 (defvar *user-name*  ())
 
 (defvar *search-path* ())
@@ -110,7 +109,7 @@
         'equalp #'equalp))
 
 (defconst* *error-table* list
-  (loop 
+  (loop
      :for sym :in '(function macro  variable method class condition)
      :collect (cons sym (concatenate 'string ":" (string sym))) into rslt
      :finally (return (append rslt (list (cons nil ":LOCUS"))))))
@@ -120,25 +119,25 @@
   '(compiler-macro function method-combination
     setf structure type variable
     ;; :NOTE t is a valid <DOC-TYPE> for any docstring method specialized
-    ;; on <THING> itself e.g. 
+    ;; on <THING> itself e.g.
     ;;  (defmethod documentation ((x <THING>) (doc-type (eql 't)))
     ;; But, this prob. isn't particularly useful when using this variable as a
     ;; lookup table for verifying validity...
     ;;
-    ;; t 
+    ;; t
     ;;
     ;; SBCL specific?
     ;; package-doc-string
     ))
 
 ;;; :NOTE multi-byte char functions defined in:
-;;; :SEE :FILE sbcl/src/code/external-formats/mb-util.lisp 
+;;; :SEE :FILE sbcl/src/code/external-formats/mb-util.lisp
 ;; (eval-when (:compile-toplevel :
 (defconst* *whitespace-chars* list
-  '(#\SPACE 
+  '(#\SPACE
     #\NEWLINE
-    #\TAB 
-    #\RETURN  
+    #\TAB
+    #\RETURN
     ;; #\LINEFEED == #\NEWLINE ???
     #\NO-BREAK_SPACE
     #\PAGE
@@ -147,9 +146,9 @@
     ;; #\NUL ;; ASCII (char-name #\NULL) (char-code #\NULL) (code-char 0) (princ #\NULL)
     ))
 
-(defconst* *hexadecimal-chars* list 
+(defconst* *hexadecimal-chars* list
  '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9
-   #\A #\B #\C #\D #\E #\F #\a #\b #\c #\d #\e #\f)) 
+   #\A #\B #\C #\D #\E #\F #\a #\b #\c #\d #\e #\f))
 
 (defconst* *vowel-chars* list
   '(#\a #\e #\i #\o #\u #\A #\E #\I #\O #\U))
@@ -182,12 +181,12 @@
 ;; *user-name* doesn't have a value until after the system is loaded so we set
 ;; *value of variable below from loadtime-bind.lisp with:
 ;; (rplacd (last *timestamp-for-file-header-format*) (list (cdr *user-name*)))
-;; (setf   *timestamp-for-file-header-format* 
-(defvar *timestamp-for-file-header-format* '("<Timestamp: #{" 
-                                             (:year 4) #\- (:month 2) #\- (:day 2) 
-                                             #\T 
-                                             (:hour 2) #\: (:min 2) #\: (:sec 2) 
-                                             :gmt-offset 
+;; (setf   *timestamp-for-file-header-format*
+(defvar *timestamp-for-file-header-format* '("<Timestamp: #{"
+                                             (:year 4) #\- (:month 2) #\- (:day 2)
+                                             #\T
+                                             (:hour 2) #\: (:min 2) #\: (:sec 2)
+                                             :gmt-offset
                                              "} - by " ))
 
 (defvar *timestamp-for-file-format*
@@ -201,7 +200,7 @@
   '((:year 4) #\- (:month 2) #\- (:day 2)))
 
 ;; :SOURCE cl-docutils-20101006-git/utilities.lisp :WAS `*length-units*'
-(defconst* *length-unit* list 
+(defconst* *length-unit* list
   '((:in . 1)
     (nil . 75)
     (:cm . 254/100)
@@ -221,12 +220,12 @@
                           (:pathname-type      . :type)
                           (:pathname-version   . :version)))
         (hash-pairs (make-hash-table)))
-    (dolist (pairs inverted-pairs 
-             (progn 
+    (dolist (pairs inverted-pairs
+             (progn
                (maphash #'(lambda (dest-key src-key)
                             (setf (gethash src-key hash-pairs) dest-key))
                         hash-pairs)
-               hash-pairs))    
+               hash-pairs))
       (setf (gethash (car pairs) hash-pairs) (cdr pairs)))))
 
 
@@ -237,8 +236,8 @@
 
 ;;; :NOTE Many of these are used as defaults for `write-to-string's keywords
 ;; :READ
-;; *read-base* 	
-;; *read-eval* 	
+;; *read-base*
+;; *read-eval*
 ;; *read-suppress*
 ;; *read-default-float-format*
 ;; *read-base*
@@ -276,7 +275,7 @@
 ;; --- *print-right-margin*
 ;; --- *print-miser-width*
 ;; --- *print-pprint-dispatch*
-;; 
+;;
 
 ;; *gensym-counter*
 ;; *random-state*
@@ -440,7 +439,7 @@ When evaluated NAME is `declaim'ed as being of TYPE, if TYPE is not `subtypep'
 of {symbol|number|character} the variable is defined as if by `defvar', else
 name is defined as if by `defconstant'.~%~@
 :EXAMPLE~%
- \(macroexpand 
+ \(macroexpand
   '\(defconst* +week-days+ \(simple-array simple-string \(7\)\)
     \(make-array 7 :initial-contents '\(\"Mon\" \"Tue\" \"Wed\" \"Thu\" \"Fri\" \"Sat\" \"Sun\"\)\)\)\)~%~@
 :NOTE Since constant redefinition must be the same under EQL, there
@@ -494,7 +493,7 @@ Called by `mon:find-file-search-path'.~%~@
 
 (vardoc '*default-pathname-directory-ignorables*
 "List of directory names which should not be searched.~%~@
-When the return value of: 
+When the return value of:
  (file-namestring (cl-fad:pathname-as-file <PATHNAME>))
 is a member of this list it will not \"satisfy the test\" for functions which
 rely on the value of this variable to filter.~%~@
@@ -577,7 +576,7 @@ Alphabetic characters of list are case-insensitive.~%~@
 :SEE-ALSO `mon:*month-names*', `mon:*week-days*', ``mon:*time-zones*',
 `mon:current-time'.~%▶▶▶")
 
-(vardoc '*month-names* 
+(vardoc '*month-names*
 "A simple-array of the names of the months.~%~@
 :EXAMPLE~%
  \(aref mon:*month-names* 11\)~%~@
@@ -648,7 +647,7 @@ of symbols that are acceptable as <DOC-TYPE>.~%~@
 :EXAMPLE~%
  \(gethash :name *keyword-hash-inverted*\)~%
  \(gethash :pathname-name *keyword-hash-inverted*\)~%~@
-:SEE-ALSO `mon:keyword-property-to-function', 
+:SEE-ALSO `mon:keyword-property-to-function',
 `mon:pathname-components-funcallable-pairs'.~%▶▶▶")
 
 ;;; ==============================

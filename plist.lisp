@@ -155,12 +155,12 @@
 ;;   (defparameter *item-template* '())
 ;;   (setf (getf (symbol-plist '*item-template*) 'bubba) "value")
 ;;   (setf (getf (symbol-plist '*item-template*) :bubba) "valueb")
-;;   (prog1 
+;;   (prog1
 ;;       (equal (mon::%plist-keys-fast (symbol-plist '*item-template*))
 ;;              '(:BUBBA BUBBA))
 ;;     (unintern '*item-template*)))
 ;;
-;; (ignore-errors 
+;; (ignore-errors
 ;;   (mon::%plist-keys-fast (cons nil nil)))
 (defun %plist-keys-fast (plist)
   (declare ((or null proper-plist) plist))
@@ -179,9 +179,9 @@
           ()
           ":FUNCTION `plist-keys' -- expected an object of type `mon:proper-plist'~%~
            got: ~S~%" plist)
-  (if test 
+  (if test
       (loop
-         for (key . more) on plist by #'cddr
+        for (key . more) on plist by #'cddr
          if (funcall test key)
           collect key)
       (%plist-keys-fast plist)))
@@ -208,12 +208,12 @@
 ;; :WAS `hide-in-plist'
 ;;
 (defun plist-hide (plist secret-indicators obfuscate-with)
-  (loop 
+  (loop
      with secrets = (alexandria:ensure-list secret-indicators)
      for (key value) on plist by #'cddr collect key
      if (member key secrets)
      collect obfuscate-with
-     else 
+     else
      collect value))
 
 

@@ -8,25 +8,25 @@
 ;; :NOTE Don't forget that the DESTINATION argument to `cl:format's may be a
 ;; string so long as that string has a fill-pointer, e.g.:
 ;;
-;;  (let ((dest-string (make-array 16 :element-type 'character :fill-pointer 0))) 
+;;  (let ((dest-string (make-array 16 :element-type 'character :fill-pointer 0)))
 ;;    (format dest-string "~a" "my example- to string") dest-string)
 ;;
 ;; ,----
 ;; | `cl:format' sends the output to DESTINATION.
-;; | 
+;; |
 ;; |  - If DESTINATION is NIL, `cl:format' creates and returns a string
 ;; |    containing the output from CONTROL-STRING.
-;; | 
+;; |
 ;; |  - If DESTINATION is non-nil, it must be a string with a fill
 ;; |    pointer, a stream, or the symbol T.
-;; | 
+;; |
 ;; |  - If DESTINATION is a string with a fill pointer, the output is
 ;; |    added to the end of the string.
-;; | 
+;; |
 ;; |  - If DESTINATION is a stream, the output is sent to that stream.
-;; | 
+;; |
 ;; | - If DESTINATION is T, the output is sent to standard output.
-;; `---- 
+;; `----
 ;; :SEE (info "(ansicl)Formatted Output")
 ;;
 ;; However, there is the proviso in "exceptional situations" of the spec:
@@ -35,23 +35,23 @@
 ;; | If DESTINATION is a string with a fill pointer, the consequences are
 ;; | undefined if destructive modifications are performed directly on the
 ;; | string during the dynamic extent of the call.
-;; `---- 
+;; `----
 ;; :SEE (info "(ansicl)format")
 ;;
 ;; Also, note that:
 ;;
 ;; (let ((dest-string (make-array 16 :element-type 'character :fill-pointer 0)))
-;;   (list (typep dest-string 'string-stream) (typep dest-string 'stream)) 
+;;   (list (typep dest-string 'string-stream) (typep dest-string 'stream))
 ;;  => = (nil nil)
 ;;
 ;; And that:
-;; (read string-with-fill-pointer) 
+;; (read string-with-fill-pointer)
 ;; => error
-;; 
-;; And that: 
+;;
+;; And that:
 ;; (write 'x string-with-fill-pointer)
 ;; => error
-;; 
+;;
 ;; (let ((fstr (make-array '(0) :element-type 'character :fill-pointer 0 :adjustable t)))
 ;;  (with-output-to-string (s fstr)
 ;;    (format s "Is S string-streamp: ~S~%" (typep s 'string-stream))
@@ -64,7 +64,7 @@
 ;; | Fill pointer STRING-OUTPUT-STREAMs are not explicitly mentioned in the CLM,
 ;; | but they are required for the implementation of WITH-OUTPUT-TO-STRING.
 ;; |
-;; | :SOURCE SBCL's "fill-pointer streams" section of 
+;; | :SOURCE SBCL's "fill-pointer streams" section of
 ;; | :FILE sbcl/src/code/stream.lisp
 ;; `----
 ;;
@@ -85,7 +85,7 @@
                  (string
                   (case (length delimiter)
                     (0 ",")
-                    ((1 2)  (or 
+                    ((1 2)  (or
                              (and (= (length delimiter) 1)
                                   (and (char= (char delimiter 0) #\~)
                                        (concatenate 'string "~" delimiter)))
@@ -96,14 +96,14 @@
                     (t  (string-right-trim '(#\SPACE) delimiter))))))
         (conj (case (length conjunction)
                 (0 " ")
-                (1 (or 
+                (1 (or
                     (and (char= (char conjunction 0) #\~) "~~")
                     conjunction))
-                (t (or 
+                (t (or
                     (and (every #'(lambda (dlm) (char= dlm #\SPACE)) conjunction) conjunction)
                     (string-right-trim '(#\SPACE) conjunction))))))
-    (concatenate 'string 
-                 "~" (if no-list "@" "") 
+    (concatenate 'string
+                 "~" (if no-list "@" "")
                  "{~#[~;" directive "~;" directive " " conj " " directive
                  "~:;~@{" directive "~#[~;" delim " " conj " ~:;" delim " ~]~}~]~}")))
 
@@ -124,21 +124,21 @@
             (~A-or-w-list     "~A"  "or"  nil nil)
             (~A-and-no-list   "~A"  "and" nil t)
             (~A-or-no-list    "~A"  "or"  nil t)
-            (~S-and-w-list    "~S"  "and" nil nil) 
+            (~S-and-w-list    "~S"  "and" nil nil)
             (~S-or-w-list     "~S"  "or"  nil nil)
             (~S-and-no-list   "~S"  "and" nil t)
             (~S-or-no-list    "~S"  "or"  nil t)
             (~W-and-w-list    "~W"  "and" nil nil)
             (~W-or-w-list     "~W"  "or"  nil nil)
             (~W-and-no-list   "~W"  "and" nil t)
-            (~W-or-no-list    "~W"  "or"  nil t)  
+            (~W-or-no-list    "~W"  "or"  nil t)
             (~@W-and-w-list   "~@W" "and" nil nil)
             (~@W-or-w-list    "~@W" "or"  nil nil)
-            (~@W-and-no-list  "~@W" "and" nil t)  
+            (~@W-and-no-list  "~@W" "and" nil t)
             (~@W-or-no-list   "~@W" "or"  nil t)
             (~\:W-and-w-list  "~:W" "and" nil nil)
             (~\:W-or-w-list   "~:W" "or"  nil nil)
-            (~\:W-and-no-list "~:W" "and" nil t)  
+            (~\:W-and-no-list "~:W" "and" nil t)
             (~\:W-or-no-list  "~:W" "or"  nil t)
             (~2f-and-w-list   "~,2f" "and" nil nil)
             (~2f-or-w-list    "~,2f" "or"  nil nil)
@@ -161,7 +161,7 @@
 ;; :WAS `format-n-items'
 (defun %format-list-items (n directive)
   (with-output-to-string (s)
-    (loop 
+    (loop
        repeat n
        as separator = "" then "~^, "
        do (write-string separator s)
@@ -173,7 +173,7 @@
   (declare (type string prefix-str)
            (type list list)
            ((integer 0 *) by-n))
-  (format stream  "~A ~D:~%~{~:}" prefix-str by-n 
+  (format stream  "~A ~D:~%~{~:}" prefix-str by-n
           (%format-list-items by-n format-directive) list))
 
 ;;; ==============================
@@ -217,7 +217,7 @@ CONJUNCTION is a coordinating conjunctive, a string of one or more words, e.g.:~
   \"and\" \"or\" \"nor\" \"as well as\" \"and also\"~%~@
 If CONJUNCTION is suffixed by trailing whitespace it is removed as if by
 `cl:string-right-trim'.~%~@
-Keyword arg :DELIMITER is a character or string to delimit by. 
+Keyword arg :DELIMITER is a character or string to delimit by.
 If it is a string suffixed by trailing whitespace it is removed as if by
 `cl:string-right-trim'~%~@
 Keyword arg :NO-LIST when non-nil returned control-string is prefixed by \"~~@{\"
@@ -246,7 +246,7 @@ Default is \"~~{\".~%~@
 :SEE (URL `http://www.gigamonkeys.com/book/a-few-format-recipes.html')~%
 :SEE-ALSO `mon:*format-delimited-english-list-templates*'.~%▶▶▶")
 
-(fundoc 'format-emit-tab 
+(fundoc 'format-emit-tab
 "Emit a tab to COLUMN as if by \(formatter \"~~V,0t\"\).~%~@
 Column is a positivie integer value 0,80.~%~@
 :EXAMPLE~%

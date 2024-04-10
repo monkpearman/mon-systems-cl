@@ -38,15 +38,15 @@
                                           (:conditions file-error))))
            (,abort-on-close? 't))
        (unwind-protect
-            (multiple-value-prog1 
+            (multiple-value-prog1
                 (progn ,@body)
               (setq ,abort-on-close? nil))
-         (when (streamp ,stream) 
+         (when (streamp ,stream)
            (close ,stream :abort ,abort-on-close?))))))
 
 (defmacro with-temp-file ((stream-name file-name) &body body)
-  `(alexandria:with-output-to-file  (,stream-name ,file-name 
-                                                  :if-exists :supersede 
+  `(alexandria:with-output-to-file  (,stream-name ,file-name
+                                                  :if-exists :supersede
                                                   ;; :ADDED
                                                   :if-does-not-exist :create)
      ,@body))
@@ -84,13 +84,13 @@
 ;;        (IF ,VAR
 ;;            (,SHARED ,VAR)
 ;;            (WITH-OUTPUT-TO-STRING (,VAR) (,SHARED ,VAR))))))
-;; 
+;;
 ;; (with-output-to-string-or-stream (i) (princ "bubba" i))
 ;; (with-output-to-string-or-stream (i) (princ "bubba" i) (princ "bubba2" i))
 (defmacro with-output-to-string-or-stream ((var &optional (string-or-stream var)) &body body)
   ;; (macroexpand-1 '(with-output-to-string-or-stream (i) "bubba"))
   (#-sbcl alexandria:with-unique-names
-   #+sbcl sb-int:with-unique-names 
+   #+sbcl sb-int:with-unique-names
    (shared)
    `(flet ((,shared (,var)
              ,@body))
@@ -101,21 +101,21 @@
               (,shared ,var)))))))
 
 ;;; ==============================
-;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git') 
+;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git')
 ;; :FILE i4-diet-utils.lisp :WAS `with-input-file'
 ;; :NOTE Requires flexi-streams `make-flexi-stream'
 ;; (defmacro with-input-file ((file-var file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
-(defmacro with-input-file ((file-var file 
-                                     &key (external-format :utf-8) ;; (element-type '(unsigned-byte 8))
-                                     ) &body body) 
+(defmacro with-input-file ((file-var file
+                            &key (external-format :utf-8) ;; (element-type '(unsigned-byte 8))
+                                 ) &body body)
   (alexandria:once-only (file external-format) ; keep order of evaluation
     (let ((in (gensym)))
-      `(with-open-file (,in ,file 
+      `(with-open-file (,in ,file
 			    :direction :input
 			    :element-type '(unsigned-byte 8))
-         (let ((,file-var 
-		(flexi-streams:make-flexi-stream ,in
-						 :external-format ,external-format)))
+         (let ((,file-var
+                 (flexi-streams:make-flexi-stream ,in
+                                                  :external-format ,external-format)))
            ,@body)))))
 
 ;; (sb-impl::default-external-format)
@@ -149,63 +149,72 @@
 ;; :NOTE Requires flexi-streams `make-flexi-stream'
 ;; (defmacro with-file-overwritten ((file-var file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default)) &body body) 
 (defmacro with-file-overwritten ((file-var file
-                                           ;; (element-type '(unsigned-byte 8))
-                                           
-                                           &key (external-format :utf-8))
+                                  ;; (element-type '(unsigned-byte 8))
+
+                                  &key (external-format :utf-8))
                                  &body body)
   (alexandria:once-only (file external-format) ; keep order of evaluation
     (let ((out (gensym)))
       `(with-open-file (,out ,file :direction :output
-                             :if-does-not-exist :create
-                             :if-exists :supersede
-                             :element-type '(unsigned-byte 8))
+                                   :if-does-not-exist :create
+                                   :if-exists :supersede
+                                   :element-type '(unsigned-byte 8))
          (let ((,file-var (flexi-streams:make-flexi-stream ,out :external-format ,external-format)))
            ,@body)))))
 ;;
-;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git') 
+;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git')
 ;; :FILE i4-diet-utils.lisp :WAS `write-file'
 ;; (defun write-file (string file &key  #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
 (defun write-file (string file &key (external-format :utf-8))
   (with-file-overwritten (out file :external-format external-format)
     (write-string string out)))
+
+
+(defun write-file-header (file-stream)
+  ;; does not perform any error checking to ensure that file-stream is an open output stream.
+  (format file-stream ";;; :FILE-CREATED ")
+  (mon:timestamp file-stream)
+  (fresh-line file-stream)
+  (format file-stream ";;; :FILE ~S~&;;; ~,,v,v:A~&" (pathname file-stream) 64 #\= ""))
+
 ;;
-;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git') 
+;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git')
 ;; :FILE i4-diet-utils.lisp :WAS `snarf-file'
 ;; (defun read-file-to-string (file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
 (defun read-file-to-string (file &key (external-format :utf-8))
   (with-output-to-string (out)
     (with-input-file (in file :external-format external-format)
       (loop
-	 :for read = (read-line in nil nil)
-	 :while read
-	 :do (princ read out)
-	 :do (terpri out)))))
+        for read = (read-line in nil nil)
+        while read
+        do (princ read out)
+        do (terpri out)))))
 
 ;; (defun read-file-list-from-fprint0-file (pathname-or-namestring &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
-(defun read-file-list-from-fprint0-file (pathname-or-namestring &key (external-format :default)) ;;(element-type 'character))                                         
+(defun read-file-list-from-fprint0-file (pathname-or-namestring &key (external-format :default)) ;; (element-type 'character))
   (declare (pathname-or-namestring pathname-or-namestring))
-  (with-open-file (fprint0-img-file  pathname-or-namestring 
-                                     :direction         :input 
+  (with-open-file (fprint0-img-file  pathname-or-namestring
+                                     :direction         :input
                                      :if-does-not-exist :error
                                      :external-format   external-format
                                      :element-type      'character)
-    (loop for gthr = (loop 
+    (loop for gthr = (loop
                         named loop-reading-stream
-                        with string-vec = (if (open-stream-p fprint0-img-file) 
+                        with string-vec = (if (open-stream-p fprint0-img-file)
                                               (make-array 0 :element-type 'character :fill-pointer 0)
                                               (return-from loop-reading-stream))
                         for char-read = (read-char fprint0-img-file nil 'EOF)
-                        until (or (eql char-read 'EOF) 
+                        until (or (eql char-read 'EOF)
                                   (char= char-read #\Nul))
                         do (case (peek-char  nil fprint0-img-file nil 'EOF)
-                             (EOF  
+                             (EOF
                               (close fprint0-img-file)
                               (loop-finish))
                              ;; :NOTE not currently trying to detect #\nul character that don't occur at end of line:
                              ;; (#\Nul
-                             ;;  (loop 
+                             ;;  (loop
                              ;;     for maybe-null = (peek-char  nil fprint0-img-file nil); 'EOF)
-                             ;;     while (if eql (and (characterp maybe-null) 
+                             ;;     while (if eql (and (characterp maybe-null)
                              ;;                (char= maybe-null #\Nul))
                              ;;     do (read-char fprint0-img-file nil))); 'EOF)))
                              ((#\Newline #\Return)
@@ -222,11 +231,11 @@
 ;; :SOURCE asdf.lisp :WAS `read-file-forms'
 (defun read-file-forms (file)
   (with-open-file (in file)
-    (loop 
-       :with eof = (list nil)
-       :for form = (read in nil eof)
-       :until (eq form eof)
-       :collect form)))
+    (loop
+      with eof = (list nil)
+      for form = (read in nil eof)
+      until (eq form eof)
+      collect form)))
 
 ;; :SORUCE git://git.feelingofgreen.ru/executor :FILE executor/portable-spawn.lisp
 (defun make-pipe-stream (&key (element-type 'base-char) (external-format :default) (buffering :full))
@@ -272,7 +281,7 @@
 (defun write-string-to-file-gzip (string gzip-output-pathname &optional if-exists-rename)
   (declare (type string string))
   ;; (type pathname path))
-  (let ((rtn-path gzip-output-pathname) 
+  (let ((rtn-path gzip-output-pathname)
         (cnt-byte 'nil))
     (setf cnt-byte
           (with-open-file (ostream
@@ -297,12 +306,12 @@
 ;; :NOTE Rudiments of a $> tar cvzf file.tgz file
 ;; (defun gzip-file-tgz (tar-pathname file &key (if-tar-does-not-exist :create)
 ;;                                              (tarball-extension { tgz | tar.gz }
-;; (archive::create-tar-file 
+;; (archive::create-tar-file
 ;; (let ((archiving (make-pathname <TAR-PATHNAME> (...) ))
 ;;       (file-to-compress <FILE>))
 ;; (progn
 ;;   (archive::create-tar-file archiving '(<FILE>))
-;;   (salza2:gzip-file  archiving   ... 
+;;   (salza2:gzip-file  archiving   ...
 ;;    (merge-pathnames arhiving ... tarball-extension))
 
 (defun gzip-file-and-delete-source (file)
@@ -315,7 +324,7 @@
 
 ;;; ==============================
 ;; :NOTE `mon:pathname-file-list-if' doesn't catch symlinks when non-SBCL!
-#+sbcl 
+#+sbcl
 (defun gzip-files-and-delete-source (files-list) 
   (let ((cln-dirs-syms (pathname-file-list-if files-list :as-pathnames nil)))
     (flet  ((gzip-file-and-delete (in-file)
@@ -325,7 +334,7 @@
                 (setf file-gz (salza2:gzip-file in-file file-gz))
                 (setf delete-rtn (and (delete-file in-file) (pathname in-file)))
                 (list file-gz delete-rtn))))
-      (loop 
+      (loop
          for file in cln-dirs-syms collect (gzip-file-and-delete file)))))
 
 ;;; ==============================
@@ -369,7 +378,7 @@
 The value returned is the value of the last form in body.~%~@
 If FILE-NAME exists its contents are overwritten as if by :if-exists :supersede
 :EXAMPLE~%
- \(let \(\(mp \(make-pathname :name \"bubba\" 
+ \(let \(\(mp \(make-pathname :name \"bubba\"
 			  :defaults *default-pathname-defaults*\)\)\)
    \(with-temp-file \(tf mp\)
      \(princ \"bubba\" tf\)\)\)~%~@
@@ -391,7 +400,7 @@ If FILE-NAME exists its contents are overwritten as if by :if-exists :supersede
 :SEE-ALSO `mon:with-temp-file', `mon:with-opened-file', 
 `alexandria:write-string-into-file', `alexandria:read-file-into-string',
 `alexandria:with-input-from-file', `alexandria:with-output-to-file'.~%▶▶▶")
- 
+
 (fundoc 'with-output-to-string-or-stream
 "Like `cl:with-output-to-string' but optional arg may be a string or stream.~%~@
 :EXAMPLE~%~@
@@ -407,7 +416,7 @@ not exist it is created.~%~@
 :EXTERNAL-FORMAT is a format for writing file it defaluts to :utf-8 as per
 `flexi-streams:make-flexi-stream'~%~@
 :EXAMPLE~%
- \(let \(\(fl \(merge-pathnames 
+ \(let \(\(fl \(merge-pathnames
 	   \(make-pathname :directory '\(:relative \"notes\"\)
 			  :name \"test\"\)
 	   \(pathname-system \"mon\"\)\)\)\)
@@ -438,19 +447,19 @@ FILE is a filespec pathname designator as per `with-open-file'.~%
 "Return contents of FILE as if by `with-output-to-string'.~%~@
 Snarfage occurs linewise with `cl:read-line'ing.~%~@
 FILE is a pathname as per `mon:with-input-file'.~%~@
-Keyword EXTERNAL-FORMAT is as per `flexi-streams:make-flexi-stream'. 
+Keyword EXTERNAL-FORMAT is as per `flexi-streams:make-flexi-stream'.
 Default is :utf-8.~%~@
 :EXAMPLE~%
  \(let \(\(fl \(merge-pathnames 
-	    \(make-pathname :directory '\(:relative \"notes\"\) 
+	    \(make-pathname :directory '\(:relative \"notes\"\)
 			   :name \"test\"\)
 	    \(pathname-system \"mon\"\)\)\)
        \(snarfed nil\)\)
    \(with-file-overwritten \(v fl\)
-     \(format v \(mapconcat #'identity 
-			  '\(\"a\" \"b\" \"c\" \"d\" \"e\" \"f\"\) 
+     \(format v \(mapconcat #'identity
+			  '\(\"a\" \"b\" \"c\" \"d\" \"e\" \"f\"\)
 			  \"~~%\"\)\)\)
-   \(prog1 
+   \(prog1
        \(setf snarfed \(read-file-to-string fl\)\)
      \(delete-file-if-exists fl\)\)\)~%~@
 :SEE-ALSO `mon:delete-file-if-exists', `mon:with-file-overwritten',
@@ -469,7 +478,7 @@ command `find` when it used invoked the -frint0 arg.~%~@
 :EXAMPLE~%
  \(let* \(\(arg-path  \(namestring \(user-homedir-pathname\)\)\)
         \(find-out  \(namestring \(make-pathname :directory '\(:absolute \"tmp\"\) :name \"find-eg\"\)\)\)\)
-   \(sb-ext:run-program \"/usr/bin/find\" 
+   \(sb-ext:run-program \"/usr/bin/find\"
                        \(list arg-path \"-maxdepth\" \"1\" \"-type\" \"f\" \"-fprint0\" find-out\)\)
    \(prog1
        \(read-file-list-from-fprint0-file find-out\)
@@ -478,19 +487,19 @@ command `find` when it used invoked the -frint0 arg.~%~@
 
 (fundoc 'write-file
 "Write STRING to FILE as if by `cl:write-string'.~%~@
-Output is as if by `mon:with-file-overwritten'. 
+Output is as if by `mon:with-file-overwritten'.
 FILE is overwritten if it exists and created if not.~%~@
 Keyword EXTERNAL-FORMAT is as per `flexi-streams:make-flexi-stream'.
 Default is :utf-8.~%~@
 :EXAMPLE~%
- \(let \(\(fl \(merge-pathnames 
-	   \(make-pathname :directory '\(:relative \"notes\"\) 
+ \(let \(\(fl \(merge-pathnames
+	   \(make-pathname :directory '\(:relative \"notes\"\)
 			  :name \"test\"\)
 	   \(pathname-system \"mon\"\)\)\)
-      \(snarfed 
+      \(snarfed
        \(format nil \(mapconcat #'identity '\(\"a\" \"b\" \"c\" \"d~~%\"\) \"~~%\"\)\)\)\)
   \(setf snarfed \(write-file snarfed fl\)\)
-  \(prog1 
+  \(prog1
       \(setf snarfed \(concat snarfed \(read-file-to-string fl\)\)\)
     \(delete-file-if-exists fl\)\)\)~%~@
 :EMACS-LISP-COMPAT~%~@
@@ -515,17 +524,17 @@ GZIP-OUTPUT-PATHNAME is a pathname designator to write the compressed string to.
 When optional arg IF-EXISTS-RENAME is non-nil and GZIP-OUTPUT-PATHNAME
 already exists the existent file will be rewritten.~%~@
 :EXAMPLE~%
- \(write-string-to-file-gzip 
-  \(mon-test:make-random-string 300\) 
-  \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\) 
-                                  :name \"test\" 
+ \(write-string-to-file-gzip
+  \(mon-test:make-random-string 300\)
+  \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\)
+                                  :name \"test\"
                                   :type \"gz\"\)\)\)~%~@
- \(write-string-to-file-gzip 
-  \(mon-test:make-random-string 300\) 
-  \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\) 
-                                  :name \"test\" 
+ \(write-string-to-file-gzip
+  \(mon-test:make-random-string 300\)
+  \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\)
+                                  :name \"test\"
                                   :type \"gz\"\)\) t\)~%~@
-:NOTE SBCL renames this file <FILE>.gz to <FILE>.gz.bak such the following will 
+:NOTE SBCL renames this file <FILE>.gz to <FILE>.gz.bak such the following will
 will error when attempt to read backup of existing GZIP-OUTPUT-PATHNAME:
  shell> gunzip
 If this is a problem kludgy workarounds include the following:
@@ -543,10 +552,10 @@ Returns a string formatted as UTF-8.~%~@
 GZIP-PATHNAME is a pathname-designator for a gzip'd file to decompress to string.~%~@
 :EXAMPLE~%
  \(read-file-gunzip-to-string
-  \(write-string-to-file-gzip  
+  \(write-string-to-file-gzip
    \(mon-test:make-random-string 300\)
-   \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\) 
-                                   :name \"test\" 
+   \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\)
+                                   :name \"test\"
                                    :type \"gz\"\)\)\)\)~%~@
 :SEE-ALSO `write-string-to-file-gzip', `read-file-gunzip-to-string',
 `read-file-gzip-to-gunzip-file', `salza2:with-compressor',
@@ -559,12 +568,12 @@ GZIP-PATHNAME is a pathname-designator for a gzip'd file to decompress to string
 GZIP-INPUT-PATHNAME is a pathname-designator for a gzip'd file to gunzip.
 GZIP-OUTPUT-PATHNAME is a pathname-designator to output the decompressed file contents to.
 :EXAMPLE
- \(read-file-gzip-to-gunzip-to-file 
+ \(read-file-gzip-to-gunzip-to-file
   \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\) :name \"test\" :type \"gz\"\)\)
    \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\) :name \"test-unzip\"\)\)\)~%
-\(read-file-gzip-to-gunzip-file 
- \(write-string-to-file-gzip 
-  \(mon-test:make-random-string 300\) 
+\(read-file-gzip-to-gunzip-file
+ \(write-string-to-file-gzip
+  \(mon-test:make-random-string 300\)
   \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\) :name \"gz-rand\" :type \"gz\"\) t\)\)
  \(merge-pathnames \(make-pathname :directory '\(:relative \"tests\"\) :name \"gz-rand-unzip\"\)\)\)~%~@
 :SEE-ALSO `write-string-to-file-gzip', `read-file-gunzip-to-string',
@@ -586,6 +595,14 @@ For example, if a file name has `cl:file-namestring' \"file.bmp\", its
 compressed `cl:file-namestring' is \"file.bmp.gz\".~%~@
 If an existing file with a \".gz\" extension exists for a given
 `cl:file-namestring' the existing file superseded.~%~@
+:EXAMPLE~%~@
+ { ... <EXAMPLE> ... } ~%~@
+:SEE-ALSO `<XREF>'.~%▶▶▶")
+
+(fundoc 'write-file-header
+"Write a standard file header to FILE-STREAM.~%~@
+:NOTE Does not currenlty perform any error checking to ensure that file-stream
+is an open output stream.
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
