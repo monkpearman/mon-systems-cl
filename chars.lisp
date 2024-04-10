@@ -442,18 +442,18 @@
          collect (cons ly (char-code-integer-to-string lx)) into gthr
          finally (return (append rtn gthr))))))
 
-#+sbcl 
-(defun char-length (mb-char)
-  ;; :NOTE what about `char-or-char-code-integer'?
-  (declare 
-   ((or character code-point) mb-char)
-   (optimize (speed 3)))
-  (sb-impl::char-len-as-utf8
-   (etypecase mb-char 
-     (code-point mb-char)
-     (character (char-code mb-char)))))
+;; #+sbcl 
+;; (defun char-length (mb-char)
+;;   ;; :NOTE what about `char-or-char-code-integer'?
+;;   (declare 
+;;    ((or character code-point) mb-char)
+;;    (optimize (speed 3)))
+;;   (sb-impl::char-len-as-utf8 ;; (sb-ext:
+;;    (etypecase mb-char 
+;;      (code-point mb-char)
+;;      (character (char-code mb-char)))))
 
-;; (sb-impl::string->utf8 "►" 0 1 0)
+;; (sb-impl::string->utf8 "►" 0 1 0) ;; (code-char"►") (char-code "►"))
 ;; => #(226 150 186)
 ;; (char-length 
 ;;
@@ -799,21 +799,21 @@ defaults to :preserve.~%~@
 `mon:read-symbol-name-preserving-case-if', `cl:char-downcase', `cl:char-upcase',
 `cl:upper-case-p', `cl:lower-case-p''.~%▶▶▶")
 
-#+sbcl 
-(setf (documentation 'char-length 'function)
-      #.(format nil
-"Return the number of bytes required to represent MB-CHAR.~%~@
-:EXAMPLE~%
- \(char-length #\\►\)~%
- \(char-length #\\a\)~%
- \(char-length #\\FF\)~%~@
-:NOTE UTF-8 centric.~%~@
-:SEE-ALSO `char-code-limit' `char-code', `code-char', `char-name', `name-char',
-`char-upcase', `char-downcase', `char-int', `schar', `digit-char', `character',
-`base-char', `standard-char', `extended-char', `standard-char-p',
-`graphic-char-p', `alpha-char-p',`digit-char-p', `alphanumericp',
-`upper-case-p', `lower-case-p', `both-case-p', `char=', `char/=', `char<',
-`char>', `char<=', `char>=', `char-equal', `char-not-equal+'.~%▶▶▶"))
+;; #+sbcl 
+;; (setf (documentation 'char-length 'function)
+;;       #.(format nil
+;; "Return the number of bytes required to represent MB-CHAR.~%~@
+;; :EXAMPLE~%
+;;  \(char-length #\\►\)~%
+;;  \(char-length #\\a\)~%
+;;  \(char-length #\\FF\)~%~@
+;; :NOTE UTF-8 centric.~%~@
+;; :SEE-ALSO `char-code-limit' `char-code', `code-char', `char-name', `name-char',
+;; `char-upcase', `char-downcase', `char-int', `schar', `digit-char', `character',
+;; `base-char', `standard-char', `extended-char', `standard-char-p',
+;; `graphic-char-p', `alpha-char-p',`digit-char-p', `alphanumericp',
+;; `upper-case-p', `lower-case-p', `both-case-p', `char=', `char/=', `char<',
+;; `char>', `char<=', `char>=', `char-equal', `char-not-equal+'.~%▶▶▶"))
 
 (fundoc 'char-escape-as-unicode-octochar-string
         "Convert CHAR-TO-ESCAPE to a string in Unicode octal rerpesentation.~%~@
@@ -837,7 +837,6 @@ defaults to :preserve.~%~@
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; show-trailing-whitespace: t
 ;; mode: lisp-interaction
 ;; package: mon
 ;; End:
