@@ -96,7 +96,6 @@ Optional arg SORT-PRED is a predicate to sort keys by, default is `cl:string<'.~
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; show-trailing-whitespace: t
 ;; mode: lisp-interaction
 ;; End:
 
