@@ -16,7 +16,7 @@
 ;;; functions that get called with the constructed environment
 ;;; argument. sb-int:eval-in-lexenv punts to sb-int:simple-eval-in-lexenv unless
 ;;; sb-ext:*evaluator-mode* is :interpret (the default is :compile)
-;;; 
+;;;
 ;;; (where-is "eval-in-lexenv")        ;=> sb-int:eval-in-lexenv
 ;;; (where-is "*evaluator-mode*")      ;=> sb-ext:*evaluator-mode*
 ;;; (where-is "simple-eval-in-lexenv") ;=> sb-int:simple-eval-in-lexenv
@@ -80,15 +80,15 @@
 ;;; :WITH-STYLE-MACROS
 ;;; ==============================
 
-;;; Now imports `alexandria/with-gensyms' from alexandria/macros.lisp 
-;; #-sbcl 
+;;; Now imports `alexandria/with-gensyms' from alexandria/macros.lisp
+;; #-sbcl
 ;; (defmacro with-gensyms (syms &body body)
 ;;   `(let ,(mapcar #'(lambda (s)
 ;;                      `(,s (gensym)))
 ;;                  syms)
 ;;      ,@body))
 
-#-sbcl 
+#-sbcl
 (defmacro with-gensyms (syms &body body)
   `(alexandria:with-gensyms ,syms ,@body))
 
@@ -107,14 +107,14 @@
 
 ;;; :SOURCE GBBopen/source/tools/tools.lisp
 (defmacro multiple-value-setf (places form)
-  (loop 
+  (loop
       for place in places
       for name = (gensym)
       collect name into bindings
       if (eql 'nil place)
         unless (eq place (first places))
           collect `(declare (ignore ,name)) into ignores
-        end                                         
+        end
       else
         collect `(setf ,place ,name) into body
       finally (return `(multiple-value-bind ,bindings ,form
@@ -124,7 +124,7 @@
                          ,(first bindings)))))
 
 ;; :NOTE The `with-gensyms' provided in mon-macros uses `with-unique-names'
-;;  which differs from the with-gensyms version provided in 
+;;  which differs from the with-gensyms version provided in
 ;; :FILE CLOCC/cllib/port/ext.lisp
 ;; :SOURCE CLOCC/cllib/port/ext.lisp
 (defmacro %compose (&rest functions)
@@ -141,8 +141,8 @@
 
 ;;; ==============================
 (defmacro if-not (test-form then &optional else)
-  `(if (not ,test-form) 
-       ,then 
+  `(if (not ,test-form)
+       ,then
        ,else))
 
 
@@ -153,8 +153,8 @@
 ;; :SOURCE alexandria/flow-control.lisp :WAS `if-bind'
 (defmacro ref-bind (var test &body then/else)
   (unless (car then/else)
-    (simple-error-mon :w-sym 'ref-bind 
-                      :w-type 'macro 
+    (simple-error-mon :w-sym 'ref-bind
+                      :w-type 'macro
                       :w-spec "arg then/else missing THEN clause."))
   (destructuring-bind (then &optional else)
       then/else
@@ -172,8 +172,8 @@
 
 (defmacro bound-and-true-p (var)
   `(and (boundp (quote ,var)) ,var))
-;; 
-;;; :SOURCE lice/src/global.lisp 
+;;
+;;; :SOURCE lice/src/global.lisp
 ;;; :NOTE Probably sourced from CLOCC\cllib/port/ext.lisp
 (defmacro defsubst (name lambda-list &body body)
   `(progn
@@ -190,13 +190,13 @@
 ;;; :NOTE This looses when TO-SYMBOL is redefined.
 ;;; (defmacro defalias (from-symbol to-symbol); &optional docstring)
 ;;;   `(declare (function ,to-symbol))
-;;;   `(progn 
+;;;   `(progn
 ;;;      (intern (symbol-name ,from-symbol) (sb-ext::sane-package))
 ;;;      (setf (fdefinition ,from-symbol) (fdefinition ,to-symbol))))
 ;;;
 ;;;-------------------------------------------
 ;;; This is how clocc/src/cllib approaches it:
-;;; "defalias is a function in Emacs, cannot use defmacro a simple 
+;;; "defalias is a function in Emacs, cannot use defmacro a simple
 ;;;  (setf fdefinition) is no good since Emacs defalias works on macros too"
 ;;;  (defun defalias (symbol def)
 ;;;    (eval `(defmacro ,symbol (&body body) (list* ',def body))))
@@ -226,13 +226,13 @@
         (cl-pkg (find-package '#:common-lisp)))
     `(let ;;((dest-ftype ,dest-ftype))
          ((,dest-ftype nil))
-       (block nil  
-         (if (or 
-              (and 
+       (block nil
+         (if (or
+              (and
                (not (symbolp ,source-fun-symbol))
                (setf ,dest-ftype '(not symbol)))
-              (and (or 
-                    (typep ,dest-fun-symbol   'boolean) 
+              (and (or
+                    (typep ,dest-fun-symbol   'boolean)
                     (typep ,source-fun-symbol 'boolean))
                    (setf ,dest-ftype 'boolean))
               (and (special-operator-p ,dest-fun-symbol)
@@ -243,24 +243,24 @@
                    (setf ,dest-ftype '(symbol-package ,cl-pkg)))
               (and (not (fboundp ,source-fun-symbol))
                    (setf ,dest-ftype '(not fbound))))
-             (return 
+             (return
                (values
                 (warn "~%~3T:MACRO defalias ~
                     -- failed to satisfy one or more constraints~%~22T~
-                    declining to set fdefinition of: ~S with: ~S~%" 
+                    declining to set fdefinition of: ~S with: ~S~%"
                       ,dest-fun-symbol ,source-fun-symbol)
                 ,dest-ftype))
              (and
-              (cond 
+              (cond
                 ((macro-function ,source-fun-symbol)
                  (setf (macro-function ,dest-fun-symbol) (macro-function ,source-fun-symbol))
                  (setf ,dest-ftype 'macro-function))
                 ((functionp (,'function ,(dequote source-fun-symbol)))
                  (setf (symbol-function ,dest-fun-symbol) (symbol-function ,source-fun-symbol))
                  (setf ,dest-ftype 'symbol-function))
-                (t 
-                 (return 
-                   (values 
+                (t
+                 (return
+                   (values
                     (warn "~%~3T:MACRO defalias ~
                               -- failed to satisfy one or more constraints~%~22T~
                               declining to set fdefinition of: ~S with ~S~%"
@@ -275,7 +275,7 @@
                   (or (fundoc ,dest-fun-symbol ,docstring) t)
                   t)
               (return
-                (if (atom ,dest-ftype) 
+                (if (atom ,dest-ftype)
                     (values ,source-fun-symbol ,dest-ftype)
                     (values-list (adjoin ,source-fun-symbol ,dest-ftype))))))))))
 
@@ -309,14 +309,14 @@
   (let ((key (gensym "KEY")))
     ;; Don't bother mapping when keyform is T|NIL
     (when (typep keyform 'boolean) (return-from string-case nil))
-    (labels ((chk-keys (keys-seq ky) 
+    (labels ((chk-keys (keys-seq ky)
                (or (or (and (every #'stringp keys-seq)
                             `(find ,ky ',keys-seq :test 'string=))
                        (and (some #'booleanp keys-seq)
                             (let ((cpy (delete-if #'booleanp (copy-seq keys-seq))))
                               (every #'stringp cpy)
                               `(find ,ky ',cpy :test 'string=))))
-                   (error 'type-error  
+                   (error 'type-error
                           :datum (elt keys-seq (position-if-not #'stringp keys-seq))
                           :expected-type 'string))))
       `(let ((,key ,keyform))
@@ -356,10 +356,10 @@
 (defmacro byte-octets-for-integer (unsigned-integer)
   (declare (optimize (speed 3)))
   `(etypecase (integer-length ,unsigned-integer)
-     ,@(loop 
-        for cnt upfrom 1 below 17  
+     ,@(loop
+        for cnt upfrom 1 below 17
         for x upfrom 0 below 128 by 8
-        for low = 0 then (+ x 1) 
+        for low = 0 then (+ x 1)
         for high = 8 then (+ x 8)
         collect (list (list 'integer low high) cnt))))
 
@@ -371,22 +371,22 @@
   ;; address space)
   ;;
   ;; N-BYTE-BITS the number of bits per byte, where a byte is the smallest addressable object
-   ;; 
-  ;; :WAS 
+  ;;
+  ;; :WAS
   ;; (let ((bytes-per-word (/ sb-vm:n-machine-word-bits sb-vm:n-byte-bits)))
   ;;   `(logandc2 (the fixnum (+ (the fixnum ,n-bytes)
   ;;                             (1- ,bytes-per-word))) (1- ,bytes-per-word))))
   (with-gensyms (bytes-per-word per-word-less-1)
     `(let* ((,bytes-per-word (/ sb-vm:n-machine-word-bits sb-vm:n-byte-bits)) ;; => (/ 32 8) on x86-32
-            (,per-word-less-1 (the fixnum (1- ,bytes-per-word)))) 
+            (,per-word-less-1 (the fixnum (1- ,bytes-per-word))))
        (declare (fixnum ,per-word-less-1))
-       (logandc2 (the fixnum 
-                   (+ 
+       (logandc2 (the fixnum
+                   (+
                     ;; This declaration is faulty b/c N-BYTES could be a value
                     ;; somewhere greater than (- most-positive-fixnum
                     ;; per-word-less-1) Although the likelihood of this occuring
                     ;; is less than realistic...
-                    (the (integer 0 ,most-positive-fixnum) ,n-bytes) 
+                    (the (integer 0 ,most-positive-fixnum) ,n-bytes)
                     ,per-word-less-1)) ,per-word-less-1))))
 
 
@@ -400,9 +400,8 @@
 
 ;; :COURTESY babel-20100901-darcs/src/strings.lisp
 (defmacro string-set (code string index)
-  `(setf (char ,string ,index) 
-	 (code-char ,code)
-	 ))
+  `(setf (char ,string ,index)
+	 (code-char ,code)))
 
 ;;; :SOURCE texinfo-docstrings/colorize.lisp
 (defmacro string-append-into (output-sym &rest args)
@@ -413,25 +412,25 @@
 
 ;; :SOURCE Sonya Keene p 183 :WAS `standardize-output-stream-var'
 ;; :WAS (defmacro standardize-output-stream-var (stream)
-;;        `(setf ,stream (cond 
+;;        `(setf ,stream (cond
 ;;                         ((eq ,stream t) *terminal-io*)
 ;;                         ((null ,stream) *standard-output*)
 ;;                         (t ,stream))))
-;; 
+;;
 (defmacro output-stream-normalize (stream)
   (let ((nrmlz (gensym)))
     `(let ((,nrmlz ,stream))
-       (setf ,nrmlz (cond 
+       (setf ,nrmlz (cond
                       ((eql ,nrmlz t) *terminal-io*)
                       ((null ,nrmlz)  *standard-output*)
                       (t ,nrmlz))))))
-  
+
 ;;; ==============================
 ;;; :CREATED <Timestamp: #{2010-09-20T17:45:16-04:00Z}#{10381} - by MON>
 ;;; :COURTESY Geoff Summerhayes comp.lang.lisp :WAS `sift-list'
 ;;; :DATE Tue, 21 May 2002 18:41:19 GMT
 ;;; :SUBJECT Re: Stumped (basic LISP question)
-;;; 
+;;;
 ;;; :ELISP-VERSION
 ;;; (defmacro list-sift (sift-list &rest sift-tests)
 ;;; (let ((collectors (mon-mapcar #'(lambda (genx) (edebug-gensym "--mon-sift-cllct--")) sift-tests))
@@ -458,11 +457,11 @@
        (values ,@collect-sftd ,sft-last))))
 
 ;; :WAS (define-modify-macro sortf (place &rest args) sort args)
-(define-modify-macro sortf (place &rest args) sort 
+(define-modify-macro sortf (place &rest args) sort
   "Modify macro for CL:SORT. Destructively sort SEQUENCE. PREDICATE should return non-NIL if ARG1 is to precede ARG2.")
 
 ;; (define-modify-macro stable-sortf (place &rest args) stable-sort args)
-(define-modify-macro stable-sortf (place &rest args) stable-sort 
+(define-modify-macro stable-sortf (place &rest args) stable-sort
   "Destructively sort SEQUENCE. PREDICATE should return non-NIL if ARG1 is to precede ARG2.")
 
 
@@ -485,12 +484,12 @@
 
 ;;; :SOURCE /mcclimExtensions/conditional-commands/creating-assoc.lisp :WAS `creating-assoc'
 (defmacro assoc-create (item alist &environment env)
-  ;; :NOTE `get-setf-expansion' place &optional environment 
+  ;; :NOTE `get-setf-expansion' place &optional environment
   ;;  => vars, vals, store-vars, writer-form, reader-form
-  ;; Any compound form is a valid place, since any compound form whose 
+  ;; Any compound form is a valid place, since any compound form whose
   ;; operator F has no setf expander are expanded into a call to `(setf F)'.
   (multiple-value-bind (dummies vals new setter getter)
-      (get-setf-expansion alist env)     
+      (get-setf-expansion alist env)
     (let ((object (gensym "object-"))) ;;(gensym)))
       `(let* ((,object ,item)
 	      ,@(mapcar #'list dummies vals)
@@ -590,7 +589,7 @@
          (flet ((fn (element) (,fun element nil)))
            (declare (dynamic-extent #'fn))
            (map nil #'fn ,sequence))
-         ,@(when result `((,fun nil t))))))) 
+         ,@(when result `((,fun nil t)))))))
 
 ;;; :SOURCE GBBopen/source/tools/tools.lisp
 (defmacro dosublists ((var listform &optional result) &body body)
@@ -657,10 +656,10 @@
 	      ;; Blt the new buggers into place leaving a space for
 	      ;; the new element
 	      (replace new ,vector :end1 ,pos :end2 ,pos)
-	      (replace new ,vector 
-		       :start1 (1+ ,pos) 
+	      (replace new ,vector
+		       :start1 (1+ ,pos)
 		       :end1 new-num
-		       :start2 ,pos 
+		       :start2 ,pos
 		       :end2 ,num)
 	      (fill ,vector nil)
 	      (setf (svref new ,pos) ,element)
@@ -763,7 +762,7 @@ BODY is wrapped inside a form of the type:~%~@
 
 (fundoc 'defsubst
 "Define NAME as an inline function.  The syntax is just like that of `defun'.~%~@
-A `defsubst'd function is one which is `declaim'd as:~% 
+A `defsubst'd function is one which is `declaim'd as:~%
  \(declaim \(inline <NAME>\)\)~%~@
 :EXAMPLE~%~%~@
  { ... <EXAMPLE> ... } ~%~@
@@ -797,7 +796,7 @@ Return the primary value of evaluating FORM.~%~@
 ;;; :WITH-SYTLE-MACROS
 ;;; ==============================
 
-(fundoc 'with-gensyms 
+(fundoc 'with-gensyms
   "Create gensyms with SYMS around BODY.~%~@
 Automates the oft found macro idiom:~%
  \(let \(\(foo \(gensym \"foo\"\)\)
@@ -805,7 +804,7 @@ Automates the oft found macro idiom:~%
    { ... } \)~%~@
 \"Good notation eliminates thought.\" -- Eric Siggia~%~@
 :EXAMPLE~%
- \(macroexpand 
+ \(macroexpand
   '\(with-gensyms \(a-sym b-sym\) \(list \(identity a-sym\) \(identity b-sym\)\)\)\)~%
  \(with-gensyms \(a-sym b-sym\) \(list \(identity a-sym\) \(identity b-sym\)\)\)~%~@
 :NOTE When #+sbcl This is `sb-int:with-unique-names' and returns with slightly
@@ -880,7 +879,7 @@ Utility macro for type predicates.~%~@
 
 
 ;;; ==============================
-;;; :EMACS-COMPAT-MACROS 
+;;; :EMACS-COMPAT-MACROS
 ;;; ==============================
 
 (fundoc 'condition-case
@@ -911,11 +910,11 @@ Then value of last BODY form is returned from the `condition-case' expression.~%
 ;;; :NUMBERS-MACROS
 ;;; ==============================
 
-(fundoc 'to-percent 
+(fundoc 'to-percent
 "Return percentage value of VV.~%~@
 :EXAMPLE~%
  \(to-percent 1.234\)~%~@
-:SEE-ALSO .~%▶▶▶")
+:SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc   'number-to-double-float
   "Coerce NUM to double float.~%~@
@@ -940,7 +939,7 @@ On a Common Lisp return is as if by values.~%~@
   ;=> \(3 2 1\) \(-3 -1\) \(-2\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'popn 
+(fundoc 'popn
    "Pop N-ELTS off PLACE.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... }~%~@
@@ -979,13 +978,13 @@ until test returns nil.~%~@
 :EMACS-LISP-COMPAT~%~@
 :SEE-ALSO `mon:until'.~%▶▶▶")
 
-(fundoc 'for 
+(fundoc 'for
    "A curly-braced `for` style function.~%~@
 :EXAMPLE~%
  \(for \(i 0 8\) \(princ i\)\)~%~@
 :SEE-ALSO `dohash', `collect', `mon:dosublists', `mon:dosequence', `mon:for'.~%▶▶▶")
 
-(fundoc 'until 
+(fundoc 'until
  "Until TEST is non-nil do BODY.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... }~%~@
@@ -1016,7 +1015,7 @@ Optional arg RESULT-FORM is as `cl:dotimes'.~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 ;; (var start-form end-form &optional result-form) &body body)
-(fundoc 'dorange  
+(fundoc 'dorange
 "Iterate VAR through the range of integers in [START-FORM,END-FORM].~%~@
 Return the value of END-FORM (at the time END-FORM is evaluated.~%~@
 VAR is bound to the value of END-FORM.~%~@
@@ -1046,7 +1045,7 @@ INDEX begins from 0.~%~@
 :EMACS-LISP-COMPAT~%~@
 :SEE-ALSO `mk-array'.~%▶▶▶")
 
-(fundoc 'mk-array      
+(fundoc 'mk-array
 "Macrofied `make-array' with :element-type as TYPE.~%~@
 When LEN is non-nil make-array of specified length with :initial-element as INIT.~%~@
 When LEN is ommitted make-array of length INIT with :initial-contents as INIT.~%~@
@@ -1075,7 +1074,7 @@ element into a simple vector.
 more than once.
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'vector-map 
+(fundoc 'vector-map
 "MAP into a simple-array with elements of TYPE and length LEN.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
@@ -1094,7 +1093,7 @@ VAL is an object of type `cl:symbol' or `cl:cons'.~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'string-append-into     
+(fundoc 'string-append-into
 "Concatenate ARGS to a string setting return value to symbol OUTPUT-SYM.~%~@
 Rest arg ARGS is a list of `concatenate'able objects, either strings, or
 sequences of characters \(lists or vectors\).~%~@
@@ -1107,20 +1106,20 @@ sequences of characters \(lists or vectors\).~%~@
  \(unintern '*tt--sym*\)~%~@
 :SEE-ALSO `mon:string-get', `mon:string-set', `mon:string-append'.~%▶▶▶")
 
-(fundoc 'string-set      
+(fundoc 'string-set
 "Set INDEX in STRING to character with `cl:char-code' CODE.~%~@
 :EXAMPLE~%
  \(string-set #\\q \"string\" 4\)~%~@
 :SEE-ALSO `mon:string-get', `mon:string-set', `mon:string-append'.~%▶▶▶")
 
 (fundoc 'string-get
-" <DOCSTR> ~%~@
+"<DOCSTR> ~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `mon:string-get', `mon:string-set', `mon:string-append'.~%▶▶▶")
 
 (fundoc 'string-case
-        "Like `cl:case' but matches value of KEYFORM as if by `cl:string='.~%~@
+  "Like `cl:case' but matches value of KEYFORM as if by `cl:string='.~%~@
 Select a CASE-CLAUSES clause for conditional execution by matching a test-key
 produced by evaluating KEYFORM, the return value of which when `cl:string=' is a
 key at the head of a clause in CASE-CLAUSES. When matching test-key in
@@ -1130,7 +1129,7 @@ if any elt at head of case-clauses is not a string or sequence contained of
 strings.~%~@
 :EXAMPLE~%
  \(mapcar #'\(lambda \(x\)
-             \(string-case x 
+             \(string-case x
                           \(\"EqUaLs\"    \(string-invert-case x :case :invert\)\)
                           \(\"NOTEQUALS\" \(string-downcase x\)\)
                           \(\"notequals\" \(string-upcase x\)\)
@@ -1169,7 +1168,7 @@ whereas `mon:string-case' does not default.~%~@
 The difference in convention is as follows:~%
  \(string-case-fast {\(\"<KEYFORM>\"\) | \(\"<KEYFORM>\" :default <DEFAULT>\)}
    \(\(\"<KEYFORM-A>\" <RESULT>\)
-    \(\"<KEYFORM-B>\" <RESULT>\) 
+    \(\"<KEYFORM-B>\" <RESULT>\)
     \(...\)*\)\)~%
  \(string-case \"<KEYFORM>\"
   \(\(\"<KEYFORM-A>\" <RESULT>\)
@@ -1191,7 +1190,7 @@ The difference in convention is as follows:~%
                  \(\"fob\" 'fob\)
                  \(\"foobar\" 'hit\)
                  \(t \"default\"\)\)\)~%
-\(macroexpand-1 
+\(macroexpand-1
  \(macroexpand-1 '\(string-case:string-case \(\"no-find-me\" :DEFAULT \"bubba\"\)
                   \(\"\" 'EMPTY\)
                   \(\"foo\" 'FOO\)
@@ -1255,10 +1254,10 @@ values have one of the following forms:~%
  \(output-stream-normalize t\)~%
  \(let \(\(bubba \(make-string-output-stream\)\)\)
    \(with-output-to-string \(os\)
-     \(format os \"~~S ~~S\" 
+     \(format os \"~~S ~~S\"
              \(output-stream-normalize bubba\)
-             \(progn 
-               \(close bubba\) 
+             \(progn
+               \(close bubba\)
                \(setf bubba nil\)
                \(output-stream-normalize bubba\)\)\)\)\)~%~@
 :SEE Sonya Keene p. 183~%~@
@@ -1294,7 +1293,7 @@ producing a symbol in the current package.~%~@
 :SEE-ALSO `sb-int:symbolicate', `sb-int:keywordicate', `sb-int:sane-package'.~%▶▶▶")
 
 ;;; sbcl/src/code/early-extensions.lisp
-#+sbcl 
+#+sbcl
 (setf (documentation 'collect 'function)
       #.(format nil
 		"Collect some values somehow.~%~@
@@ -1332,9 +1331,9 @@ if the table is a synchronized table.~%~@
 ;;; ==============================
 ;; (find-all-symbols "ONCE-ONLY")
 ;; (once-only alexandria.0.dev:once-only common-lisp-user::once-only sb-int:once-only)
-;;  
-;; :SOURCE Docstring as commented in :FILE sbcl/src/code/early-extensions.lisp 
-;;  With additions and formatting added. 
+;;
+;; :SOURCE Docstring as commented in :FILE sbcl/src/code/early-extensions.lisp
+;;  With additions and formatting added.
 (setf (documentation 'once-only 'function)
       #.(format nil
 "Evaluates FORMS with symbols specified in SPECS rebound to temporary
@@ -1345,7 +1344,7 @@ the form:
 Bare symbols in SPECS are equivalent to:~%
   \(symbol symbol\)~%
 :EXAMPLE~%
-  \(defmacro cons1 \(x\) 
+  \(defmacro cons1 \(x\)
     \(once-only \(x\) `\(cons ,x ,x\)\)\)~%
   \(let \(\(y 0\)\) \(cons1 \(incf y\)\)\)
   ;=> (1 . 1)~%
@@ -1365,7 +1364,7 @@ Within the body, each spec in SPECS is bound to a corresponding temporary variab
            Case Studies in Common Lisp_, p. 853~%~@
 :NOTE Docstring from comments in SBCL sources.
 :SEE :FILE sbcl/src/code/early-extensions.lisp~%~@
-:NOTE There are generally at least two easily accesible once-only macros in 
+:NOTE There are generally at least two easily accesible once-only macros in
 both SBCL and Alexandria as `sb-int:once-only' and `alexandria:once-only'.
 We import Alexandria's b/c SBCL's has a fixme note which basically says,~%
  \"make me use destructuring-bind like the `alexandria:once-only'\"~%~@
@@ -1426,7 +1425,7 @@ Comparatively when N-BYTES is in the range [11,17] it can be represented in 12,
 :SEE-ALSO `byte-octets-for-integer', `mon:bytes-to-int', `cl:byte-size',
 `cl:byte-position'.~%▶▶▶")
 
-(fundoc 'multiple-value-nth-p 
+(fundoc 'multiple-value-nth-p
 "Whether first two values returned by EXPR are `cl:equal' NTH-LIST.~%~@
 When keyword TEST is non-nil it is an unquoted symbol naming a two valued
 predicate, e.g.:~%~% :test equalp~%~@
@@ -1442,7 +1441,7 @@ predicate, e.g.:~%~% :test equalp~%~@
 
 (fundoc 'multiple-value-nil-nil-p
 "Whether first two values returned by EXPR are both null.~%~@
-Test that both \(nth-value 0 <EXPR>\) and \(nth-value 1 <EXPR>\) are nil e.g. 
+Test that both \(nth-value 0 <EXPR>\) and \(nth-value 1 <EXPR>\) are nil e.g.
  \(equal '\(nil nil\) \(\(nth-value 0 <EXPR>\) \(nth-value 1 <EXPR>\)\)\)
 If expr does not return at least two values, return nil.
 :EXAMPLE~%

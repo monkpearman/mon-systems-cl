@@ -151,9 +151,9 @@
 ;;;
 ;;; ,---- #lisp 2011-01-07
 ;;; |
-;;; | <stassats> the most juicy part from ansi-tests is that: 
+;;; | <stassats> the most juicy part from ansi-tests is that:
 ;;; |              (stringp (make-array 0 :element-type 'nil)) => T
-;;; | <stassats> (subtypep '(array nil (*)) 'string) => T 
+;;; | <stassats> (subtypep '(array nil (*)) 'string) => T
 ;;; | <stassats> strings are clearly not arrays with element-type NIL, since
 ;;; | 	        nothing can be a subtype of NIL
 ;;; | <stassats> while nil is a SUBTYPEP of everything
@@ -498,7 +498,7 @@
 ;; ,----
 ;; | #lisp 2011-07-26
 ;; | <mon_key> Anyone know what the upperbounds is on SBCL's x86-32 for bignums.
-;; | Specifically, is it possible for a bignum to have a type signature which extends beyond 
+;; | Specifically, is it possible for a bignum to have a type signature which extends beyond
 ;; | (unsigned-byte #.most-positive-fixnum)
 ;; | <pkhuong> mon_key: max length for a bignum on 32 bit sbcl is (2^24 - 2) words.
 ;; |
@@ -513,8 +513,8 @@
   ;; I'm assuming this is correct for other procs/architectures... :SEE :FILE sbcl/src/code/bignum.lisp
   #+sbcl '(integer #.sb-vm:n-positive-fixnum-bits #.(1- sb-bignum::maximum-bignum-length)))
 
-;; clisp-2.49/src/array.d for LISPFUN make_array around this comment 
-;; /* table for assignment  ATYPE-byte -> vector type info */ 
+;; clisp-2.49/src/array.d for LISPFUN make_array around this comment
+;; /* table for assignment  ATYPE-byte -> vector type info */
 ;; suggests maybe more room could be had?
 (deftype fixnum-exclusive ()
   ;; :WAS #-sbcl `(integer ,(+ most-negative-fixnum 2) ,(- most-positive-fixnum 2))
@@ -529,7 +529,7 @@
   #+sbcl '(unsigned-byte #.sb-vm:n-positive-fixnum-bits))
 ;;
 ;; (type-specifier-p 'fixnum-0-or-over)
-;; (typep most-positive-fixnum `(integer 0 ,most-positive-fixnum)) 
+;; (typep most-positive-fixnum `(integer 0 ,most-positive-fixnum))
 ;; (typep 536870912 `(integer 0 ,most-positive-fixnum))
 
 (deftype bignum-0-or-over ()
@@ -822,9 +822,8 @@
                  (satisfies %hash-or-symbol-p-no-error)))))
 
 ;; :SOURCE sbcl/src/code/kernel.lisp
-#+sbcl
-(deftype closure-obj ()
-  '(satisfies closure-p))
+#+sbcl(deftype closure-obj ()
+        '(satisfies closure-p))
 
 
 ;;; ==============================

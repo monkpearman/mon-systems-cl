@@ -1371,21 +1371,21 @@ The argument object is not altered--the value is a copy.~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'string-symbol-or-char-if
-" <DOCSTR> ~%~@
+"<DOCSTR> ~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `string-symbol-or-char-if', `string-or-char-or-code-point-integer-if',
 `string-symbol-or-char-or-code-point-integer-if'.~%▶▶▶")
 
 (fundoc 'string-or-char-or-code-point-integer-if
-" <DOCSTR> ~%~@
+"<DOCSTR> ~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `string-symbol-or-char-if', `string-or-char-or-code-point-integer-if',
 `string-symbol-or-char-or-code-point-integer-if'.~%▶▶▶")
 
 (fundoc 'string-symbol-or-char-or-code-point-integer-if
-" <DOCSTR> ~%~@
+"<DOCSTR> ~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `string-symbol-or-char-if', `string-or-char-or-code-point-integer-if',
@@ -1468,9 +1468,12 @@ separating each string with a SEPARATOR character or string
 :SEE-ALSO `mon:concat', `mon:mapconcat', `mon:string-map', `cl:concatenate'.~%▶▶▶")
 
 (fundoc 'string-delimited-to-list
-  "Split a string with delimiter.~%~@
+  "Split a STRING with DELIMITER. When SKIP-TERMINAL is non-nil don't parse the terminally delimiter for STRING.~%~@
 :EXAMPLE~%~@
- { ... EXAMPLE ... }~%~@
+ \(string-delimited-to-list \"foo bar qux \" #\\space \)~%~@
+ \(string-delimited-to-list \"foo bar qux \" #\\space t\)~%~@
+ \(string-delimited-to-list \"foo|bar|qux|\" #\\|\)~%~@
+ \(string-delimited-to-list \"foo|bar|qux|\" #\\| t\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'string-cat
@@ -1718,7 +1721,7 @@ the trailing whitespace-chars trimmed.~%~@
 `mon:whitespace-char-p', `mon:string-substitute'.~%▶▶▶")
 
 (fundoc 'string-coerce-from
-" <DOCSTR> ~%~@
+"<DOCSTR> ~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")

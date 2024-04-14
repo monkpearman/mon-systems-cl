@@ -118,6 +118,7 @@
    ;;
    (:file "buffer"    )
    (:file "deprecated")
+   ;;
    (:file "docs")
    ;; (:file "emacs-compat")
    ;; (:file "sldb-specials-deprecated")

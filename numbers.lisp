@@ -6,7 +6,7 @@
 ;;; :TODO CLHS notes that these were in MacLisp and (for me) it makes more
 ;;;  conceptual sense:
 ;;;
-;;; `lessp'    <- `<'  
+;;; `lessp'    <- `<'
 ;;; `greaterp' <- `>'
 ;;;
 ;;; ==============================
@@ -33,28 +33,28 @@
 
 (defun number-sequence-loop (from-n &optional to-n (inc-by 1))
   (declare ;;(optimize (speed 0) (space 1) (compilation-speed 0) (debug 3))
-   (type real from-n) 
+   (type real from-n)
    (type (or real null) to-n)
    (type real inc-by))
   (assert (not (zerop inc-by))
 	  nil ":FUNCTION `number-sequence-loop' -- arg INC can not be zerop")
   ;; The `minusp' check keeps a similiar semantics as Emacs' `number-sequence'
-  (unless (minusp inc-by) 
+  (unless (minusp inc-by)
     (cond ((eql to-n from-n) (list from-n))
 	  ((and to-n inc-by
 		(or
 		 (and (plusp inc-by) (> from-n to-n) nil)
-		 (loop 
-		    :for i :upfrom from-n :upto to-n :by inc-by 
+		 (loop
+		    :for i :upfrom from-n :upto to-n :by inc-by
 		    :collect i))))
-	  (to-n (loop 
-		   :for i :upfrom from-n :upto to-n :by 1 
+	  (to-n (loop
+		   :for i :upfrom from-n :upto to-n :by 1
 		   :collect i))
-	  (t (loop :for i :upfrom from-n :upto from-n 
+	  (t (loop :for i :upfrom from-n :upto from-n
 		:collect i)))))
 
 ;;; ==============================
-;; :NOTE Following unaltered from :FILE lisp/subr.el 
+;; :NOTE Following unaltered from :FILE lisp/subr.el
 ;; (if (or (not to) (= from to))
 ;;     (list from)
 ;;     (or inc (setq inc 1))
@@ -77,7 +77,7 @@
   (assert (not (zerop inc))
 	  nil
 	  ":FUNCTION `number-sequence' -- arg INC can not be zerop")
-  (cond ((or (null to) (eql to from)) 
+  (cond ((or (null to) (eql to from))
 	 (list from))
         (t (let ((n 0)
 		 (next from)
@@ -95,7 +95,7 @@
 
 ;;; :SOURCE mcclim-/Tools/gilbert/clim-doc-convert.lisp :WAS `mk-random-list-from-string'
 (defun random-number-pairs (n-times random-bounds)
-  ;;  (declare (type n-times 
+  ;;  (declare (type n-times
   (let (gthr)
     (dotimes (i n-times (setq gthr (nreverse gthr)))
       (let ((rnd-str (format nil "~a" (random random-bounds))))
@@ -104,7 +104,7 @@
 ;;; :SOURCE mcclim-/Tools/gilbert/clim-doc-convert.lisp
 (defun parse-integer-list (string &key (start 0) (end (the fixnum-exclusive (length string))))
   (declare (type simple-string string))
-  (multiple-value-bind (value start) 
+  (multiple-value-bind (value start)
       (parse-integer string :start start :end end :junk-allowed t)
     (cond ((null value)
            nil)
@@ -135,10 +135,10 @@
   (make-array radix
   	      :displaced-to "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   	      :displaced-index-offset 0
-  	      :element-type 
+  	      :element-type
   	      #+lispworks 'base-char
   	      #-lispworks 'character))
-  
+
 ;; :SOURCE arnesi/src/numbers.lisp
 (defun parse-float (float-string
                     &key (start 0) (end nil) (radix 10)
@@ -187,11 +187,11 @@
                    ((char= decimal-character (peek))
                     ;; the decimal seperator
                     (next)
-                    (return-from integer-part (mantissa)))                   
+                    (return-from integer-part (mantissa)))
                    ;; junk
                    (junk-allowed (done))
                    (t (bad-string))))
-               (mantissa ()                 
+               (mantissa ()
                  (cond
                    ((position (peek) radix-array)
                     (setf mantissa (+ (* mantissa radix)
@@ -226,15 +226,15 @@
     (if (and (stringp do-coercion) (not (null do-coercion)))
 	(values
 	 (if (position decimal-character convert-string)
-	     ;;(arnesi:parse-float convert-string 
-	     (parse-float convert-string 
+	     ;;(arnesi:parse-float convert-string
+	     (parse-float convert-string
 			  :start start :end end :radix radix
-			  :junk-allowed junk-allowed  
+			  :junk-allowed junk-allowed
 			  :decimal-character decimal-character)
-	     (parse-integer convert-string 
+	     (parse-integer convert-string
 			    :start start :end end :radix radix :junk-allowed junk-allowed)))
 	(or do-coercion
-	    (error "Arg does not satisfy predicate `stringp' CONVERT-STRING was of type: ~S " 
+	    (error "Arg does not satisfy predicate `stringp' CONVERT-STRING was of type: ~S "
 		   (type-of convert-string))))))
 
 ;;; ==============================
@@ -274,7 +274,7 @@
                      error-string 'integer value high)))
 	((and (consp high) (numberp (first high)) (<= (first high) value))
 	 (and error-string
-	      (error 
+	      (error
                "~A ~A ~D is not less than ~D"
                error-string 'integer value (first high))))
 	(T T)))
@@ -293,10 +293,10 @@
 
 ;; :SOURCE cl-docutils-20101006-git/utilities.lisp :WAS `convert-length-unit'
 (defun length-unit-convert (size unit)
-  (unless (consp size) 
+  (unless (consp size)
     (setf size (cons size :px)))
   (cons
-   (* (/ (car size) (length-unit-get (cdr size))) 
+   (* (/ (car size) (length-unit-get (cdr size)))
       (length-unit-get unit))
    unit))
 
@@ -305,7 +305,7 @@
 ;; :PASTE-BY pjb
 ;; :PASTE-DATE 2011-10-11
 ;; :PASTE-URL (URL `http://paste.lisp.org/+2ON9')
-;; :WAS `best-fit' 
+;; :WAS `best-fit'
 ;; (defun best-fit (target sizes)
 ;;   (let ((candidates (member target sizes :test (function >=))))
 ;;     (cond
@@ -383,9 +383,9 @@
 ;;     (error "Arg NUMBER-BAG must be a proper-sequence with each element satisfying `cl:numberp'~% got: ~S" number-bag))
 ;;   (let* ((list-ensured
 ;;           (etypecase number-bag
-;;             (list  (copy-seq number-bag)) 
+;;             (list  (copy-seq number-bag))
 ;;             (vector (coerce number-bag 'list))))
-;;          (early-candidate-check 
+;;          (early-candidate-check
 ;;           (cond ((member target-number list-ensured :test (function =))
 ;;                  (return-from number-nearest-seq (list target-number 0)))
 ;;                 ((zerop target-number)
@@ -394,7 +394,7 @@
 ;;                        (list target-number target-number)
 ;;                        (if (some #'minusp list-ensured)
 ;;                            (if (some #'plusp list-ensured)
-;;                                (loop 
+;;                                (loop
 ;;                                   for x in list-ensured
 ;;                                   if (plusp x) minimizing x into plus
 ;;                                   else
@@ -404,12 +404,12 @@
 ;;                                                       minus)))
 ;;                                (apply #'max list-ensured))
 ;;                            (apply #'min list-ensured)))))
-;;                 (t (mapcar #'(lambda (x) 
+;;                 (t (mapcar #'(lambda (x)
 ;;                                (list (- target-number x) x))
 ;;                            list-ensured)))))
 ;;     ;; (declare (list list-ensured early-candidate-check)
 ;;     ;;          (optimize (speed 3)))
-;;     (setf list-ensured 
+;;     (setf list-ensured
 ;;           (assoc (reduce (if (plusp target-number)
 ;;                              ;; #'min #'max)
 ;;                              #'max #'min)
@@ -417,8 +417,8 @@
 ;;                  early-candidate-check))
 ;;     (rotatef (car list-ensured) (cadr list-ensured))
 ;;     (list list-ensured early-candidate-check)))
-;; (setf list-ensured 
-;;           (list 
+;; (setf list-ensured
+;;           (list
 ;;            (reduce (if (plusp target-number)
 ;;                        #'max #'min)
 ;;                          early-candidate-check :key #'car)
@@ -489,7 +489,7 @@
 ;; list))
 ;;; ==============================
 
-;; (list-length 
+;; (list-length
 ;; (typep (make-array '(2) 'sequence
 ;; (length (make-array '(2 2)))
 
@@ -502,7 +502,7 @@
 (fundoc 'number-sequence-loop
 "Like `mon:number-sequence' but uses `cl:loop'. ~%~@
 When optional arg TO-N is non-nil it is a number of type `cl:real' to increment to.~%
-When optional arg INC-BY is non-nil it is a number of type `cl:real' to incrembent by. 
+When optional arg INC-BY is non-nil it is a number of type `cl:real' to incrembent by.
 :EXAMPLE~%
  \(number-sequence-loop 3.3 8.6 1.001\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
@@ -619,14 +619,14 @@ since it will perform a multiplication on the average on every step.~%~@
 `cl:most-positive-single-float'.~%▶▶▶")
 
 (fundoc 'number-average-seq-simple
-        " Return the average of all elts of SEQ.~%~@
+        "Return the average of all elts of SEQ.~%~@
 SEQ is must be of tyep `cl:sequence' with every elt satisfying `cl:numberp'.~%~@
 :EXAMPLE~%
- \(number-average-seq-simple '\(1 2 3 4\)\)
- \(number-average-seq-simple #\(17/18 2.33\)\)
- \(number-average-seq-simple \(make-array 4 :element-type 'bit :initial-contents '\(1 1 0 1\)\)\)
- \(number-average-seq-simple '\( #c\(1.3 -1.2\) #c\(1.1 -1.4\)\)\)
- (number-average-seq-simple #*01011101000000101)
+ \(number-average-seq-simple '\(1 2 3 4\)\)~%~@
+ \(number-average-seq-simple #\(17/18 2.33\)\)~%~@
+ \(number-average-seq-simple \(make-array 4 :element-type 'bit :initial-contents '\(1 1 0 1\)\)\)~%~@
+ \(number-average-seq-simple '\( #c\(1.3 -1.2\) #c\(1.1 -1.4\)\)\)~%~@
+ (number-average-seq-simple #*01011101000000101)~%~@
 ;; Following fail succesfully:~%
  \(number-average-seq-simple '\( 8 \"8\"\)\)~%
  \(number-average-seq-simple #\(1 2 3\) \(make-array '\(2 2\) :initial-contents '\(\(1 1\) \(2 2\)\)\)\)~%~@
