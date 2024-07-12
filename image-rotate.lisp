@@ -16,24 +16,24 @@
 
 (defparameter *image-magick-convert-path*
   ;; :NOTE MS-windows has a convert that is _not_ equivalent to ImageMagick's:
-  #+(or win32 windows) nil 
+  #+(or win32 windows) nil
   ;;
   #-sbcl (and (probe-file #P"/usr/bin/convert") "/usr/bin/convert")
   ;;
   ;; We assume that any of the following have convert in /user/bin/ if
   ;; `mon:executable-find' doesn't return T:
   ;; #+(or linux darwin netbsd openbsd freebsd)
-  #+sbcl (or (executable-find "convert") 
+  #+sbcl (or (executable-find "convert")
              (and (probe-file #P"/usr/bin/convert")
                   "/usr/bin/convert")))
 
 
 (defun verify-image-magic-convert-path ()
-  ;; 
+  ;;
   (declare (inline string-not-empty-p)
            (optimize (speed 3)))
-  (unless (and (boundp '*image-magick-convert-path*) 
-               *image-magick-convert-path* 
+  (unless (and (boundp '*image-magick-convert-path*)
+               *image-magick-convert-path*
                (string-not-empty-p *image-magick-convert-path*))
     (error "Variable `mon:*image-magick-convert-path*' not bound.~%~
             A path to ImageMagick's `convert` command must be provided.~%~
@@ -69,9 +69,9 @@
     (:regular-file (pathname maybe-image-file-file))
     (t nil)))
 
-(defun unset-special-param-read-image-file-list (special-param) 
+(defun unset-special-param-read-image-file-list (special-param)
   (declare (special special-param))
-  (when 
+  (when
       (and (boundp special-param)
            (symbol-value special-param))
     (set special-param nil)))
@@ -82,8 +82,8 @@
 
   (declare (pathname-or-namestring pathname-or-namestring)
            (special special-param))
-  (with-open-file (img-files  pathname-or-namestring 
-                              :direction         :input 
+  (with-open-file (img-files  pathname-or-namestring
+                              :direction         :input
                               :if-does-not-exist :error
                               :external-format   external-format
                               :element-type      'character)
@@ -101,7 +101,7 @@
        (read-file-list-from-fprint0-file pathname-or-namestring :external-format external-format)))
 
 (defun make-target-pathname-for-image-resize (source-pathname &key target-directory target-type
-                                                               (prefix-name-with "") 
+                                                               (prefix-name-with "")
                                                                (suffix-name-with ""))
   (declare (pathname-or-namestring target-directory target-type)
            (string prefix-name-with suffix-name-with))
@@ -173,13 +173,13 @@
                            :if-exists :supersede
                            :if-does-not-exist :create
                            :external-format :UTF-8)
-      (loop 
+      (loop
          for file in (directory (car dir-wild-type))
          do (format nulls "~A~C" (namestring file) #\NUL)
          finally (return dest)))))
 
 ;; :TODO Add additional key resize-y and adapt body accordingly.
-(defun resize-image-files-in-fprint0-file (fprint0-file &key target-directory 
+(defun resize-image-files-in-fprint0-file (fprint0-file &key target-directory
                                                              target-type
                                                              (prefix-name-with "")
                                                              (suffix-name-with "" suffix-supplied)
@@ -192,7 +192,7 @@
          (suffix-with           (or (and suffix-supplied suffix-name-with)
                                     (concatenate 'string '(#\-) (the string resize-arg))))
          (base-resize-arg-list (list "-resize" resize-arg))
-         (resize-pairs         (make-pathname-source-destination-resize-pairs fprint0-file 
+         (resize-pairs         (make-pathname-source-destination-resize-pairs fprint0-file
                                                                               :target-directory target-directory
                                                                               :target-type      target-type
                                                                               :prefix-name-with prefix-name-with
@@ -218,7 +218,7 @@
     (all-resized-in-thread))))
 
 ;; :NOTE This should really be installed to Clime...
-(defun rotate-image-files-in-dir-list (dir-list &key image-type degrees positive-or-negative 
+(defun rotate-image-files-in-dir-list (dir-list &key image-type degrees positive-or-negative
                                        (special-thread-param '*rotate-images-thread*)
                                        (report-stream *standard-output*))
   (declare ((integer 1 359) degrees)
@@ -241,14 +241,14 @@
     (labels ((merge-wild-ftype (merge-dir)
                (merge-pathnames wild-file-type merge-dir))
              (make-rotation-list ()
-               (loop 
+               (loop
                   for dir in dir-list
                   for merge-dir = (merge-wild-ftype dir)
                   nconcing (directory merge-dir :resolve-symlinks nil) into rtn
                   finally (return (loop for pths in rtn collect (namestring pths)))))
              (process-rotation (pathname-native)
-               (let ((proc-stat 
-                      (sb-ext:process-exit-code 
+               (let ((proc-stat
+                      (sb-ext:process-exit-code
                        (sb-ext:run-program *image-magick-convert-path* (list "-rotate" rotation-string pathname-native pathname-native) ))))
                  ;; :NOTE Following could prob. be accomplished with an :if-error-exists arg.
                  (if (zerop proc-stat)
@@ -263,7 +263,7 @@
                         (setf proc-stack (nreverse proc-stack)))
                  (process-rotation dr)))
              (all-rotations-in-thread  ()
-               (sb-thread:make-thread #'all-rotations  
+               (sb-thread:make-thread #'all-rotations
                                       :name "rotate-image-files-in-dir-list")))
       (set special-thread-param
            (all-rotations-in-thread)))))
@@ -324,7 +324,7 @@ If not when ERROR-ON-WILD-EMPTY-DOTTED is null return nil, else signal an error.
 "Whether MAYBE-VALID-OUTPUT-EXTENSION is cl:string-equal an element in `mon:*valid-image-types*'.~%~@
 If so, return its `cl:string-downcase'd representation else signal an error.~%~@
 :EXAMPLE~%
- \(mapcar #'verify-image-file-output-type 
+ \(mapcar #'verify-image-file-output-type
          \(mapcar #'string-upcase mon::*valid-image-types*\)\)~%
  \(verify-image-file-output-type \"bubba\"\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
@@ -334,7 +334,7 @@ If so, return its `cl:string-downcase'd representation else signal an error.~%~@
 :EXAMPLE~%
  \(progn
    \(setf *read-image-file-list* \(list \"bubba\" \"BUBBA\" \"Bubba\"\)\)
-   \(unset-special-param-read-image-file-list '*read-image-file-list*\)\) 
+   \(unset-special-param-read-image-file-list '*read-image-file-list*\)\)
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'read-image-file-list-from-file
@@ -362,10 +362,10 @@ Keyword PREFIX-NAME-WITH is a string to prepend to SOURCE-PATHNAME's `cl:pathnam
 Keyword SUFFIX-NAME-WITH is a string to append to SOURCE-PATHNAME's `cl:pathname-name'.~%~@
 :EXAMPLE~%
  \(make-target-pathname-for-image-resize
-  #P\"/some/source/path/to/existing/image-of-type-bitmpap.bmp\" 
-  :target-directory #P\"/some/destination/path/for/resized/image/\" 
+  #P\"/some/source/path/to/existing/image-of-type-bitmpap.bmp\"
+  :target-directory #P\"/some/destination/path/for/resized/image/\"
   :target-type \"jpg\"
-  :prefix-name-with \"prepended-\" 
+  :prefix-name-with \"prepended-\"
   :suffix-name-with \"-appended\"\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
@@ -391,20 +391,20 @@ Return the pathname of file so written.~%~@
 SEARCH-DIRECTORY names an existing directory containing image files of type SEARCH-TYPE
 SEARCH-TYPE is a string naming a pathname-type image extension satisfying `verify-image-file-output-type'.
 APPEND-SUFFIX is a string to append to the file written. Defaul is as per `time-string-yyyy-mm-dd'.~%~@
-DEST-PATHNAME is a pathname-or-namestring specifying the destination to write to 
+DEST-PATHNAME is a pathname-or-namestring specifying the destination to write to
 if provided it must not be `pathname-or-namestring-not-empty-dotted-or-wild-p'.
 When DEST-PATHNAME is not provided a pathname is generated and written to
 SEARCH-DIRECTORY its namestring has the following form:
  <SEARCH-DIRECTORY>/process-files-<SEARCH-TYPE>-<APPEND-SUFFIX>
 :EXAMPLE~%
- \(write-fprint0-file-for-image-files-in-pathname 
+ \(write-fprint0-file-for-image-files-in-pathname
   :search-directory \"/some/path/full/of/tif/files/\"
   :search-type \"tif\"\)~%
- \(write-fprint0-file-for-image-files-in-pathname 
+ \(write-fprint0-file-for-image-files-in-pathname
   :search-directory \"/some/path/full/of/tif/files/\"
   :search-type \"tif\"
   :append-suffix \"bubba\"\)~%
- \(write-fprint0-file-for-image-files-in-pathname 
+ \(write-fprint0-file-for-image-files-in-pathname
   :search-directory \"/some/path/full/of/tif/files/\"
   :search-type \"tif\"
   :dest-pathname \"/some/path/full/of/tif/files/dump-file\"\)~%
@@ -425,28 +425,28 @@ Keyword SPECIAL-PARAM is a special variable to bind results to. Default is `mon:
 (fundoc 'resize-image-files-in-fprint0-file
 "Resize each null-terminated pathname in FPRINT0-FILE.~%~@
 Keyword resize-x is an unsigned integer value.
-Keywords TARGET-DIRECTORY, TARGET-TYPE, PREFIX-NAME-WITH, and SUFFIX-NAME-WITH are as per 
+Keywords TARGET-DIRECTORY, TARGET-TYPE, PREFIX-NAME-WITH, and SUFFIX-NAME-WITH are as per
 `mon:make-pathname-source-destination-resize-pairs'.
 When SUFFIX-NAME-WITH is not explicitly provided the value of RESIZE-X is
 appended to the resized imaged saved to TARGET-DIRECTORY.~%~@
 :EXAMPLE~%
  \(let* \(\(null-list-directory #P\"/some/directory/with/bitmaps/\" \)
-       \(null-list-pathname  \(merge-pathnames 
+       \(null-list-pathname  \(merge-pathnames
                              \(make-pathname :name \"null-terminated-file-list\"\)
                              null-terminated-file-list\)\)
        \(sb-ext:run-program \"/usr/bin/find\" \(list \(namestring null-list-directory\)
                                                  \"-type\" \"f\" \"-name\" \"*.bmp\" \"-fprint0\"
                                                  \(namestring null-list-pathname\)\)\)
-       \(mon::resize-image-files-in-fprint0-file null-list-pathname 
-                                                :target-directory null-list-directory 
-                                                :target-type \"jpg\" 
+       \(mon::resize-image-files-in-fprint0-file null-list-pathname
+                                                :target-directory null-list-directory
+                                                :target-type \"jpg\"
                                                 :resize-x 1000\)\)\)~%
-\(resize-image-files-in-fprint0-file 
- \(write-fprint0-file-for-image-files-in-pathname 
+\(resize-image-files-in-fprint0-file
+ \(write-fprint0-file-for-image-files-in-pathname
   :search-directory \"/some/path/full/of/tif/files/\"
   :search-type \"tif\"\)
  :target-directory \"/some/path/soon/full/of/jpg/files/\"
- :target-type \"jpg\" 
+ :target-type \"jpg\"
  :resize-x 1000\)~%~@
 :SEE-ALSO `read-image-file-list-from-fprint0-file', `write-fprint0-file-for-image-files-in-pathname'.~%▶▶▶")
 
