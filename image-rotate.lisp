@@ -2,8 +2,10 @@
 ;;; :FILE mon-systems/image-rotate.lisp
 ;;; ==============================
 
+;;; :NOTE this deprecated use the version here instead:
+;;; :URL https://github.com/monkpearman/image-ops/blob/master/image-ops-rotate.lisp
+
 (in-package #:mon)
-;; *package*
 
 
 (defparameter *rotate-images-thread* '())
