@@ -13,11 +13,11 @@
 ;;   `(assoc ,item ,alist)
 ;;   `(assoc ,item ,alist :test #'eq)))
 ;;; ==============================
-#-sbcl (defun assq (key a-list) 
+#-:sbcl (defun assq (key a-list) 
 	 (declare (list list))
 	 (assoc key a-list :test #'eq))
 ;; :NOTE SBCL's assq is build from whole cloth w/ `do' macro.
-#+sbcl 
+#+:sbcl 
 (defun assq (key a-list)
   (declare (type list a-list))
   (sb-int::assq key a-list))
@@ -79,7 +79,6 @@ Optional arg SORT-PRED is a predicate to sort keys by, default is `cl:string<'.~
 :SEE-ALSO `plist-to-alist'.~%▶▶▶")
 
 (fundoc   'alist-to-plist
-
 "Transform an ALIST to a PLIST as if by `cl:nconc', consing.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... }~%~@

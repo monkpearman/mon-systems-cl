@@ -2,14 +2,6 @@
 ;;; :FILE mon-systems/sldb-specials-deprecated.lisp
 ;;; ==============================
 
-;; :NOTE swank:*sldb-printer-bindings* is no longer present in slime from cvs as of slime-20120208-cvs
-;;
-;; How is swank:sldb-loop swank::call-with-bindings and swank::with-bindings supposed to allow
-;; dynamic binding of (for example) swank::*sldb-bitvector-length*
-;; swank::*sldb-string-length* when the variables are in the car positions of
-;; swank:*sldb-printer-bindings* are hardwired?
-;; 
-
 (in-package #:mon)
 
 ;; (swank:simple-completions "*sldb" (find-package "SWANK"))
@@ -41,11 +33,10 @@
 ;; ;; (export '(*sldb-bitvector-length-no-miser-me*
 ;; ;;           *sldb-string-length-no-miser-me*
 ;; ;;           *sldb-printer-bindings-no-miser-me*))
-;; ;; swank:*sldb-printer-bindings*
 (defvar *sldb-printer-bindings-no-miser-me*
-  #+swank 
+  #+:swank
   (sldb-printer-bindings-no-miser-me)
-  #-swank
+  #-:swank
   `((*print-pretty* . t) (*print-level* . 4)
     (*print-length* . 10) (*print-circle* . t) (*print-readably*)
     (*print-pprint-dispatch* . ,*print-pprint-dispatch*)
@@ -55,6 +46,10 @@
     ;; (swank::*sldb-bitvector-length* . 25)
     ;; (swank::*sldb-string-length* . 160)
     ))
+
+
+;;; ==============================
+;;; Documentation
 
 (fundoc 'sldb-printer-bindings-no-miser-me
 "Return an alist of printer-bindings for use as a dynamic binding for `swank::*sldb-printer-bindings*'.~%~@

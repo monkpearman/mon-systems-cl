@@ -3,19 +3,18 @@
 ;;; ==============================
 
 ;; (in-package #:mon) ;; for Slime
-;; *package*
 
 
-(defpackage #:mon (:use #:common-lisp) ;; #+sbcl #:sb-int
+(defpackage #:mon (:use #:common-lisp) ;; #+:sbcl #:sb-int
             (:import-from #:alexandria
                           #:once-only
-                          #-sbcl #:symbolicate
-                          #-sbcl #:keywordicate
-                          #-sbcl #:make-gensym-list
-                          #-sbcl #:featurep)
+                          #-:sbcl #:symbolicate
+                          #-:sbcl #:keywordicate
+                          #-:sbcl #:make-gensym-list
+                          #-:sbcl #:featurep)
 
  ;; sbcl/src/code/early-extensions.lisp
-  #+sbcl
+  #+:sbcl
   (:import-from #:sb-int
                 ;;
                 ;; <MACROS>
@@ -34,12 +33,12 @@
                 #:symbolicate
                 #:keywordicate)
 
-  #+sbcl
+  #+:sbcl
   (:import-from #:sb-introspect
 		#:function-type
 		#:deftype-lambda-list)
 
-  #+sbcl
+  #+:sbcl
   (:import-from #:sb-ext
 		;; native-namestring
 		;; native-pathname
@@ -54,7 +53,7 @@
 		;; sb-ext:process-p
 		)
   ;;
-  ;; #+sbcl (:import-from #:sb-posix #:rmdir)
+  ;; #+:sbcl (:import-from #:sb-posix #:rmdir)
   ;;
   ;; (:shadowing-import-from  {...} )
   ;;
@@ -121,7 +120,7 @@
    #:with-gensyms          ;; sb-int:with-unique-names
    #:retaining-value
    #:multiple-value-setf
-   #:once-only         ;; #+sbcl  sb-int:once-only
+   #:once-only         ;; #+:sbcl  sb-int:once-only
    #:ref-bind
    #:it             ;; `it' won't be accessible otherwise.
    #:ref-it-if
@@ -208,11 +207,11 @@
    #:getenv-path-pathnames
    #:posix-working-directory        ;; sb-posix:getcwd, si:getcwd, ccl::current-directory-name, ext:cd
    #:set-posix-working-directory    ;; sb-posix:chdir, si:chdir, ccl::%chdir, ext:cd, 
-   #+sbcl #:username-for-system-var-bind
-   #+sbcl #:lisp-implementation-description
-   #+sbcl #:username-for-system-var-p      ;; sb-posix:getpwnam sb-posix:passwd-name
-   #+sbcl #:syslog-action                  ;; sb-posix:syslog, sb-posix:openlog, sb-posix:closelog
-   #+sbcl #:logical-hosts
+   #+:sbcl #:username-for-system-var-bind
+   #+:sbcl #:lisp-implementation-description
+   #+:sbcl #:username-for-system-var-p      ;; sb-posix:getpwnam sb-posix:passwd-name
+   #+:sbcl #:syslog-action                  ;; sb-posix:syslog, sb-posix:openlog, sb-posix:closelog
+   #+:sbcl #:logical-hosts
    ;;
  ;; introspect.lisp
    ;;
@@ -221,19 +220,21 @@
    #:keyword-prune
    #:keyword-property-to-function
    #:fset
+   #:function-type
    #:where-is
    #:where-is-local          ;; sb-int:sane-package
    #:find-package*
    #:package-external-symbols
    #:do-all-symbols-to-stream ;; alexandria:ensure-list
    #:symbol-external-p
+   #:print-all-package-symbols
    #:print-symbol-name-qualified
    #:symbol-string-name-check
    #:symbol-string-name-chk-whitespace
    #:read-symbol-name-preserving-case-if
    #:read-symbol-name-preserving-case
-   #+sbcl #:symbol-hash      ;; sb-impl::symbol-hash ;; sbcl/src/code/symbol.lisp
-   #+sbcl #:function-arglist ;; sb-introspect:function-lambda-list
+   #+:sbcl #:symbol-hash      ;; sb-impl::symbol-hash ;; sbcl/src/code/symbol.lisp
+   #+:sbcl #:function-arglist ;; sb-introspect:function-lambda-list
    ;;
  ;; class-utils.lisp
    ;;
@@ -246,12 +247,12 @@
    #:find-class-slot-instance
    #:slot-definition-and-name ;; sb-mop:class-finalized-p, sb-mop:slot-definition-name
    #:class-bound-slot-names
-   #+sbcl #:copy-instance-of-class-shallowly ;; sb-mop:class-slots sb-mop:slot-value-using-class sb-mop:slot-boundp-using-class
+   #+:sbcl #:copy-instance-of-class-shallowly ;; sb-mop:class-slots sb-mop:slot-value-using-class sb-mop:slot-boundp-using-class
    ;; Following use:  sb-pcl::slot-definition-allocation, sb-pcl::initargs, sb-pcl::name
-   #+sbcl #:class-slot-list-direct
-   #+sbcl #:class-slot-list
-   #+sbcl #:class-slot-initargs
-   #+sbcl #:structure-slots
+   #+:sbcl #:class-slot-list-direct
+   #+:sbcl #:class-slot-list
+   #+:sbcl #:class-slot-initargs
+   #+:sbcl #:structure-slots
    ;;
  ;; class-doc-.lisp
    ;;
@@ -395,7 +396,7 @@
    #:bool-vector
    #:byte-array
    #:code-point
-   #+sbcl #:closure-obj  ;; sbcl/src/code/kernel.lisp  #:sb-impl::closurep
+   #+:sbcl #:closure-obj  ;; sbcl/src/code/kernel.lisp  #:sb-impl::closurep
  ;; :TYPE-PREDICATES
    #:define-list-of-predicate
    #:make-list-of-predicate-name
@@ -469,14 +470,14 @@
    #:pathname-empty-p
    #:standard-test-function-p
    #:declared-special-p             ;; sb-walker:var-globally-special-p
-   #:featurep                       ;; sb-int:featurep      ;;#-sbcl alexandria:eswitch
-   #+sbcl #:closure-p               ;; sb-impl::closurep    ;; sbcl/src/code/kernel.lisp 
-   #+sbcl #:variable-special-p      ;; sb-walker:var-globally-special-p
-   #+sbcl #:type-specifier-valid-p  ;; sb-ext:valid-type-specifier-p
-   #+sbcl #:type-expand-all         ;; sb-ext:typexpand-all
-   #+sbcl #:type-expand             ;; sb-ext:typexpand 
-   #+sbcl #:type-expand-1           ;; sb-ext:typexpand-1
-   #+sbcl #:singleton-p             ;; sb-int::singleton-p
+   #:featurep                       ;; sb-int:featurep      ;;#-:sbcl alexandria:eswitch
+   #+:sbcl #:closure-p               ;; sb-impl::closurep    ;; sbcl/src/code/kernel.lisp
+   #+:sbcl #:variable-special-p      ;; sb-walker:var-globally-special-p
+   #+:sbcl #:type-specifier-valid-p  ;; sb-ext:valid-type-specifier-p
+   #+:sbcl #:type-expand-all         ;; sb-ext:typexpand-all
+   #+:sbcl #:type-expand             ;; sb-ext:typexpand
+   #+:sbcl #:type-expand-1           ;; sb-ext:typexpand-1
+   #+:sbcl #:singleton-p             ;; sb-int::singleton-p
    ;;
  ;; conditions.lisp
    ;;
@@ -589,7 +590,7 @@
    ;; :NOTE `hash-resize' requires the following:
    ;; sb-thread::with-recursive-system-spinlock, sb-impl::hash-table-spinlock
    ;; sb-impl::hash-table-next-vector, sb-impl::rehash-size, sb-impl::hash-table-rehash-size
-   ;; #+sbcl #:hash-resize
+   ;; #+:sbcl #:hash-resize
    ;;
  ;; seqs.lisp
    ;;
@@ -620,8 +621,8 @@
    #:list-from-singleton
    #:list-get-singleton
    #:list-dotted-p-destructure
-   ;; #+sbcl #:last-cons    ;; sb-impl::last-cons-of
-   ;; #+sbcl #:nth-sane     ;; sb-int::nth-but-with-sane-arg-order
+   ;; #+:sbcl #:last-cons    ;; sb-impl::last-cons-of
+   ;; #+:sbcl #:nth-sane     ;; sb-int::nth-but-with-sane-arg-order
    ;;
    #:nth-remove
    #:delete-w-count
@@ -703,11 +704,11 @@
    #:char-or-char-code-integer-or-string-1-ensure-char
    #:char-invert-case-maybe
    #:char-for-readtable-case
-   ;; #+sbcl #:char-length         ;; sb-impl::char-len-as-utf8
+   ;; #+:sbcl #:char-length         ;; sb-impl::char-len-as-utf8
    #:string-escape-as-unicode-octo-chars
    #:char-escape-as-unicode-octochar-string
    ;;
-   ;; #+sbcl
+   ;; #+:sbcl
    ;; +unicode-replacement-character+     ;; sb-impl::+unicode-replacement-character+
    ;; with-default-decoding-replacement   ;; sb-impl::with-default-decoding-replacement
    ;; with-standard-replacement-character ;; sb-impl::with-standard-replacement-character
@@ -775,7 +776,7 @@
    #:string-call-with-substrings
    #:string-percent-encode
    #:string-increment-numeric
-   ;; #+sbcl #:string-remove-backslashes ;; sb-impl::remove-backslashes
+   ;; #+:sbcl #:string-remove-backslashes ;; sb-impl::remove-backslashes
    ;;
  ;; file-dir.lisp
    ;;
@@ -788,8 +789,8 @@
    #:file-directory-p
    #:file-name-directory
    #:file-write-date-timestring
-   #+sbcl #:set-file-write-date
-   #+sbcl #:set-file-write-date-using-file
+   #+:sbcl #:set-file-write-date
+   #+:sbcl #:set-file-write-date-using-file
    #:timestamp-for-file-with
    #:namestring-directory
    #:namestring-file
@@ -808,7 +809,7 @@
    #:pathname-native-file-kind        ;; sb-ext:native-namestring/osicat-sys:native-namestring  sb-impl::native-file-kind/osicat:file-kind
    #:remove-directory                 ;; sb-posix:rmdir/osicat-posix:rmdir
    #:probe-directory                  ;; sb-impl::native-file-kind/osicat:file-kind
-   #+sbcl #:directory-pathname-ensure ;; sb-ext:parse-native-namestring sb-ext:native-namestring
+   #+:sbcl #:directory-pathname-ensure ;; sb-ext:parse-native-namestring sb-ext:native-namestring
    #:rename-file*
    #:replace-file
    #:delete-file-if-exists
@@ -828,11 +829,11 @@
    ;; #:make-pathname-directory-w-name-wild ;; cl-fad::directory-wildcard
    ;;
    #:pathname-absolute-p
-   #+asdf #:default-directory   ;; asdf:truenamize, asdf:pathname-directory-pathname
-   #+asdf #:namestring-system
-   #+asdf #:pathname-system
-   #+asdf #:pathname-directory-system
-   #+asdf #:pathname-directory-system-ensure
+   #+:asdf #:default-directory   ;; asdf:truenamize, asdf:pathname-directory-pathname
+   #+:asdf #:namestring-system
+   #+:asdf #:pathname-system
+   #+:asdf #:pathname-directory-system
+   #+:asdf #:pathname-directory-system-ensure
    ;; sb-ext:native-namestring
    ;; sb-ext:native-pathname
    ;; sb-ext:parse-native-namestring
@@ -872,19 +873,19 @@
    #:bit-vector-to-string
    #:string-ascii-to-byte-array
    #:byte-array-to-hex-string
-   #+sbcl #:byte-array-to-string    ;; sb-ext:octets-to-string
-   #+sbcl #:string-to-byte-array    ;; sb-ext:string-to-octets
+   #+:sbcl #:byte-array-to-string    ;; sb-ext:octets-to-string
+   #+:sbcl #:string-to-byte-array    ;; sb-ext:string-to-octets
    #:bit-vector-copy
    #:bit-vector-replace
-   #+sbcl #:bit-vector-set
-   #+sbcl #:bit-vector-clear
+   #+:sbcl #:bit-vector-set
+   #+:sbcl #:bit-vector-clear
    #:vector-remove-elts
    #:vector-copy-extend
    #:shuffle-vector
    #:nshuffle-vector
    #:vector-grow
-   #+sbcl  #:vector-shrink   ;; sb-kernel::shrink-vector
-   ;; #+sbcl  #:dovector     ;; sb-int::dovector
+   #+:sbcl  #:vector-shrink   ;; sb-kernel::shrink-vector
+   ;; #+:sbcl  #:dovector     ;; sb-int::dovector
    ;;
    ;; #:ignore
    ;;
@@ -918,7 +919,7 @@
    ;;
  ;; chronos.lisp
    ;;
-   #+sbcl #:current-time          ;; sb-ext:get-time-of-day
+   #+:sbcl #:current-time          ;; sb-ext:get-time-of-day
    #:time-string-right-now
    #:time-string-yyyy-mm-dd
    #:time-zone-to-string
@@ -952,8 +953,6 @@
    ;;
    ))
 
-
-;; (in-package #:mon)
 
 ;;; ==============================
 

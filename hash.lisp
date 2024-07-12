@@ -28,10 +28,9 @@
 
 
 (in-package #:mon)
-;; *package*
 
 ;; :SOURCE sbcl/src/code/early-extensions.lisp :WAS `positive-primep'
-#+sbcl 
+#+:sbcl
 (defun prime-plusp (putative-prime)
   (unless (fixnump putative-prime)
     (simple-error-mon :w-sym 'prime-plusp
@@ -41,7 +40,7 @@
                       :w-type-of t))
   (sb-int:positive-primep putative-prime))
 
-#-sbcl
+#-:sbcl
 (defun prime-plusp (x)
   (declare (fixnum x))
   (if (<= x 5)
@@ -57,7 +56,7 @@
              (multiple-value-setq (q r) (truncate x d))))))
 
 ;; :SOURCE sbcl/src/compiler/globaldb.lisp:WAS  `primify'
-;; #+sbcl
+;; #+:sbcl
 ;; (defun prime-or-next-greatest (fixnum)
 ;;   (declare (type unsigned-byte-29  fixnum))
 ;;   (sb-c::primify fixnum))
@@ -191,7 +190,7 @@
 	     hash-b)))
 
 ;; :COURTESY GBBopen/source/tools/tools.lisp :WAS 
-;; #+sbcl 
+;; #+:sbcl 
 ;; (defun hash-resize (hash-table new-size)
 ;;   ;; (sb-thread::with-recursive-system-spinlock
 ;;   (sb-thread:with-recursive-lock
@@ -588,7 +587,7 @@ If MAYBE-HASH-TABLE is NULL or T return a newly generated hash-table object.~%~@
            \(hash-found-p \"no-bubba\" tt-ht \"can't find bubba\"\)\)\)~%
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-;; #+sbcl 
+;; #+:sbcl 
 ;; (setf (documentation 'hash-resize 'function)
 ;;       #.(format nil
 ;; "Resize \(grow\) a hash-table per NEW-SIZE.~%~@

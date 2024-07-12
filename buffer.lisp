@@ -4,7 +4,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 ;; flex:
 ;; (let ((in (flex:MAKE-FLEXI-STREAM :element-type '(unsigned-byte 8))))
