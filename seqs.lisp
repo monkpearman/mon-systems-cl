@@ -22,13 +22,8 @@
 
 
 (in-package #:mon)
-;; *package*
-
 
 
-;; file-local-variables-alist
-;; slime-mode-hook
-;; (cdr (assq 'show-trailing-whitespace file-local-variables-alist))
 ;;; ==============================
 ;;; :SEQ-PREDICATE-PREDICATE-LIKE
 ;;; ==============================
@@ -39,7 +34,7 @@
   (and (consp lst-a)
        (eq (car lst-a) obj-b)))
 
-#-sbcl
+#-:sbcl
 (defun position-eq (item list)
   (do ((i list (cdr i))
        (j 0 (1+ j)))
@@ -47,7 +42,7 @@
     (when (eq (car i) item)
       (return j))))
 
-#+sbcl
+#+:sbcl
 (defun position-eq (item lst)
   (sb-int::posq item lst))
 
@@ -67,15 +62,10 @@
 
 ;;; ==============================
 
-;;; :SOURCE Sam Steingold :HIS /clocc/src/cllib/elisp.lisp
-#-sbcl (defun memq (elt list)
-	 (declare (list list))
-	 (member elt list :test #'eq))
+#-:sbcl (declaim (inline not-eq))
+#-:sbcl (defun not-eq (obj-x obj-y) (not (eq obj-x opj-y)))
 
-#-sbcl (declaim (inline not-eq))
-#-sbcl (defun not-eq (obj-x obj-y) (not (eq obj-x opj-y)))
-
-#+sbcl
+#+:sbcl
 (defun not-eq (obj-x obj-y)
   (sb-int::neq obj-x obj-y))
 
@@ -163,19 +153,28 @@
 ;;; :SEQ-SETS
 ;;; ==============================
 
-;; #-sbcl
+;;; :SOURCE Sam Steingold :HIS /clocc/src/cllib/elisp.lisp
+#-:sbcl (defun memq (elt list)
+	 (declare (list list))
+	 (member elt list :test #'eq))
+
+;; (defun member-eq (item list)
+;;   (declare (list list))
+;;   (member item list :test #'eq))
+
+;; #-:sbcl
 ;; (defun memq (item list)
 ;;   (do ((i list (cdr i)))
 ;;       ((null i))
 ;;     (when (eq (car i) item)
 ;;       (return i))))
 ;;
-;; #+sbcl
+;; #+:sbcl
 ;; (defun memq (elt list)
 ;;   (declare (type proper-list list))
 ;;   (sb-int::memq elt list))
 ;;
-;; #+sbcl
+;; #+:sbcl
 ;; (define-compiler-macro memq (elt list)
 ;;   `(member ,elt (the proper-list ,list) :test #'eq))
 ;;
@@ -248,11 +247,11 @@
 (declaim (inline list-last))
 (defalias 'list-last 'last-elt)
 
-;; #+sbcl
+;; #+:sbcl
 ;; (defun last-cons (in-list)
 ;;   (sb-impl::last-cons-of in-list))
 
-;; #+sbcl
+;; #+:sbcl
 ;; (defun nth-sane (lst idx)
 ;;   (sb-int::nth-but-with-sane-arg-order lst idx))
 
@@ -351,16 +350,17 @@
 ;;; :SEQ-DESTURCTIVE
 ;;; ==============================
 
-#-sbcl (defun delq (elt list)
-	 (declare (list list))
-	 (delete elt list :test #'eq))
+#-:sbcl
+(defun delq (elt list)
+	  (declare (list list))
+	  (delete elt list :test #'eq))
 
-#+sbcl
+#+:sbcl
 (defun delq (elt list)
   (declare (type list list))
   (sb-int::delq elt list))
 
-#+sbcl
+#+:sbcl
 (define-compiler-macro delq (elt list)
   `(delete ,elt (the list ,list) :test #'eq))
 
@@ -495,30 +495,27 @@
 ;; :PASTE-CHANNEL #lisp
 ;; :WAS `each-n-tuple'
 (defun list-n-tuples (w-fun n-tuples in-list)
-  (declare
-   (index-from-1 n-tuples)
-   (list in-list)
-   (optimize (speed 3)))
+  (declare (index-from-1 n-tuples)
+           (list in-list)
+           (optimize (speed 3)))
   (do ((rest in-list (nthcdr n-tuples rest)))
       ((null rest) (values))
     (funcall w-fun
              (subseq (the list rest) 0
                      ;; (min n-tuples  (length (the list rest)))))))
-                     ;; NOTE list-length is likely to return wacko if rest is ever circular.
+                     ;; :NOTE list-length is likely to return wacko if rest is ever circular.
                      (min n-tuples  (list-length rest))))))
 
 (defun list-slice (n-tuples in-list)
-  (declare
-   (index-from-1 n-tuples)
-   (list in-list)
-   (optimize (speed 3)))
+  (declare (index-from-1 n-tuples)
+           (list in-list)
+           (optimize (speed 3)))
   (let ((gthr '()))
     (flet ((mk-slice (sublist)
              (declare (list sublist gthr))
              (push sublist gthr)))
       (list-n-tuples #'mk-slice n-tuples in-list))
     (setf gthr (nreverse gthr))))
-
 
 ;;; ==============================
 ;;; :SEQ-COLLECT
@@ -603,9 +600,8 @@
                                    got-dimension: ~S"
                         :w-args `(,list ,(length list) ,sz  ,dims)))
     (loop :for el :in list :for i :upfrom 0
-       :do (setf (row-major-aref arr i) el))
+          :do (setf (row-major-aref arr i) el))
     arr))
-
 
 ;; :COURTESY Kaz Kylheku
 ;; :NEWSGROUP comp.lang.lisp
@@ -648,7 +644,7 @@
 	   (type (function (t t) t) test)
            (type (function (t) t) key)
            (optimize (speed 3)))
-  #-sbcl (assert (sequencep seq))
+  #-:sbcl (assert (sequencep seq))
   (unless (sequence-zerop seq)
     (sort
      (reduce #'(lambda (res el)
@@ -725,20 +721,19 @@
 
 
 ;;; :SOURCE cllib/string.lisp
-(defun split-seq (seq pred &key (start 0) end key strict)
+(defun split-seq (seq predicate &key (start 0) end key (remove-empty-subseqs nil))
   (declare (type sequence seq)
-	   (type (function (t t) t) pred)
+	   (type (function (t t) t) predicate)
 	   ;; (type fixnum start)
 	   (type fixnum-exclusive start))
-  (loop :for st0 = (if strict start
-                       (position-if-not pred seq :start start
-                                        :end end :key key))
-        :then (if strict (if st1 (1+ st1))
-                  (position-if-not pred seq :start (or st1 st0)
-                                   :end end :key key))
-        :with st1 = 0 :while (and st0 st1) :do
-        (setq st1 (position-if pred seq :start st0 :end end :key key))
-        :collect (subseq seq st0 (or st1 end))))
+  (loop for st0 = (if remove-empty-subseqs start
+                       (position-if-not predicate seq :start start :end end :key key))
+        then (if remove-empty-subseqs (if st1 (1+ st1))
+                  (position-if-not predicate seq :start (or st1 st0) :end end :key key))
+        with st1 = 0
+        while (and st0 st1)
+        do (setq st1 (position-if predicate seq :start st0 :end end :key key))
+        collect (subseq seq st0 (or st1 end))))
 
 ;;; :SOURCE clocc/src/screamer/iterate.lisp :WAS `split-list-odd-even'
 (defun list-split-odd-even (lst &optional return-list)
@@ -1376,7 +1371,7 @@ Helper function for `mon:mapcar-sharing'.~%~@
 ;;; Provide better documentation of functions for the split-sequence package
 ;;; ==============================
 
-#+split-sequence
+#+:split-sequence
 (fundoc 'split-sequence:split-sequence
   "Split SEQ delimited by DELIMITER.~%~@
 Return value is as if by `cl:values':~%
@@ -1420,7 +1415,7 @@ Keyword KEY isa a designator for a function of one argument. Default is nil.~%~@
 `cl:nsubstitute-if-not', `cl:position', `cl:position-if',
 `cl:position-if-not'.~%▶▶▶")
 
-#+split-sequence
+#+:split-sequence
 (fundoc 'split-sequence:split-sequence-if
   "Split SEQ into subsequences delimited by items satisfying PREDICATE.~%~@
 Return value is as if by `cl:values':~%
@@ -1452,7 +1447,7 @@ Keyword KEY isa a designator for a function of one argument. Default is nil.~%~@
 `cl:nsubstitute', `cl:nsubstitute-if', `cl:nsubstitute-if-not', `cl:position',
 `cl:position-if', `cl:position-if-not'.~%▶▶▶")
 
-#+split-sequence
+#+:split-sequence
 (fundoc 'split-sequence:split-sequence-if
   "Split SEQ into subsequences delimited by items satisfying PREDICATEs complement.~%~@
 Return value is as if by `cl:values':~%

@@ -43,7 +43,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 ;; :SOURCE (URL `http://tumblr.com/xon4ysenfw') :DATE 2011-09-29
 (defun bit-format (integer &optional (width 8) stream)
@@ -128,8 +127,6 @@
 ;; :SOURCE (URL `http://www.lispforum.com/viewtopic.php?f=2&t=1205#p6269')
 ;; with modifications
 (defun %bit-vector-to-integer.mon (bit-vector)
-  "Return BIT-VECTOR's representation as a positive integer.
-MON version using `cl:flet' and `cl:reduce'."
    ;; (= (bit-vector-to-integer #*01011100000100010011100100110101001111001100000001011110100000001010010001011110001001100011000101010010111000101101101101011010)
    ;; 122378404974049034400182615604361091930)
   (declare (bit-vector bit-vector)
@@ -140,9 +137,9 @@ MON version using `cl:flet' and `cl:reduce'."
   (flet ((bit-adder (first-bit second-bit)
            (+ (ash first-bit 1) second-bit)))
     (etypecase bit-vector
-      (simple-bit-vector 
+      (simple-bit-vector
        (locally (declare (simple-bit-vector bit-vector))
-         (reduce #'bit-adder bit-vector)))    
+         (reduce #'bit-adder bit-vector)))
       (bit-vector
        (reduce #'bit-adder bit-vector)))))
 
@@ -187,7 +184,7 @@ Xach version using `cl:dotimes'."
 
 (defun boolean-to-bit (boolean &optional no-error)
   (declare (optimize (speed 3)))
-  (multiple-value-bind (boolp boolval) (booleanp boolean)    
+  (multiple-value-bind (boolp boolval) (booleanp boolean)
     (if no-error
         (values
          (or (and boolp (or (and boolp 1) 0))
@@ -204,7 +201,7 @@ Xach version using `cl:dotimes'."
 
 
 ;;; ==============================
-;; SBCL's definition of `cl:logbitp' checks the follwing props of  INDEX 
+;; SBCL's definition of `cl:logbitp' checks the follwing props of  INDEX
 ;; sb-vm:n-word-bits => 32 sb-vm:n-lowtag-bits => 3 (- 32 3) => 29
 ;; If INDEX is greater than 29 it checks it sign else it does as below:
 (declaim (inline octet-logbitp-1-or-0))
@@ -214,7 +211,7 @@ Xach version using `cl:dotimes'."
            (optimize (speed 3) ))
   ;; (or (and (logbitp index unsigned-byte-8) 1) 0) ==
   ;; (or (and (zerop (logand byte-int (ash 1 i))) 0) 1) ==
-  ;; (if (= (logand byte-int (ash 1  i)) 0) 0 1) == 
+  ;; (if (= (logand byte-int (ash 1  i)) 0) 0 1) ==
   (or (and (= (logand unsigned-byte-8 (ash 1 index)) 0) 0) 1))
 
 (declaim (inline octet-set-bit-vector-index))
@@ -286,7 +283,7 @@ Xach version using `cl:dotimes'."
   (loop
      with ba-array = (make-array 256)
      for x upfrom 0 below 256
-     do (setf (aref ba-array x) 
+     do (setf (aref ba-array x)
               (the bit-vector-octet (octet-to-bit-vector x)))
      finally (return ba-array)))
 
@@ -371,7 +368,7 @@ Xach version using `cl:dotimes'."
 ;;                    octet-logbitp-1-or-0
 ;;                    octet-set-bit-vector-index)
 ;;            (optimize (speed 3)))
-;;   (loop 
+;;   (loop
 ;;      with ba = (octet-bit-vector-zeroed)
 ;;      for fld upfrom 0 below 8
 ;;      for bit downfrom 7 to 0 ;; MSB is at 0, LSB is at 7 --> little-endian
@@ -380,15 +377,15 @@ Xach version using `cl:dotimes'."
 ;;
 ;; (defun octet-to-bit-vector-2 (byte-int)
 ;;   (declare (type unsigned-byte-8 byte-int)
-;;            (inline octet-bit-vector-zeroed 
+;;            (inline octet-bit-vector-zeroed
 ;;                    octet-logbitp-1-or-0
 ;;                    octet-set-bit-vector-index)
 ;;            (optimize (speed 3)))
 ;;   (let ((bv (octet-bit-vector-zeroed)))
 ;;     (declare (bit-vector-octet bv))
 ;;     (dotimes (i 8 bv)
-;;       (octet-set-bit-vector-index bv 
-;;                                   (logxor i 7) 
+;;       (octet-set-bit-vector-index bv
+;;                                   (logxor i 7)
 ;;                                   (octet-logbitp-1-or-0 i byte-int)))))
 ;;
 ;; (defun octet-to-bit-vector-2-5 (byte-int)
@@ -398,7 +395,7 @@ Xach version using `cl:dotimes'."
 ;;              octet-set-bit-vector-index-xor
 ;;              octet-set-bit-vector-index-xor-if)
 ;;            (optimize (speed 3)))
-;;   (loop 
+;;   (loop
 ;;      with bv = (octet-bit-vector-zeroed)
 ;;      for i upfrom 0 below 8
 ;;      do (octet-set-bit-vector-index-xor bv i (octet-logbitp-1-or-0 i byte-int))
@@ -433,7 +430,7 @@ Xach version using `cl:dotimes'."
         value)))
 
 (define-compiler-macro byte-request-integer (&whole form array offset length &key little-endian sign-extend)
-  (if (and (member length '(1 2 4)) 
+  (if (and (member length '(1 2 4))
            (member little-endian '(t nil))
            (member sign-extend '(t nil)))
       `(let* (,@(loop
@@ -510,9 +507,8 @@ Xach version using `cl:dotimes'."
            :finally (return (values byte-arr type-cnt))))))
 
 ;; (number-to-byte-array most-positive-fixnum)
-; #(31 255 255 255)
-; => 4
-;
+;; => #(63 255 255 255 255 255 255 255)
+;;
 ;; (multiple-value-bind (byts len) (number-to-byte-array 825973027016)
 ;;   (bytes-to-int byts 0 len))
 
@@ -522,7 +518,7 @@ Xach version using `cl:dotimes'."
   (declare (type string string))
   (let ((digester (ironclad:make-digest :sha1)))
     (declare (ironclad:sha1 digester))
-    (ironclad:update-digest digester 
+    (ironclad:update-digest digester
                             ;; :WAS (ironclad:ascii-string-to-byte-array string)
                             #-sbcl (flexi-streams:string-to-octets string :external-format :UTF-8)
                             #+sbcl (sb-ext:string-to-octets string :external-format :UTF-8))
@@ -532,6 +528,14 @@ Xach version using `cl:dotimes'."
 ;;; ==============================
 ;;; :BIT-TWIDDLE-DOCUMENTATION
 ;;; ==============================
+
+
+(fundoc '%bit-vector-to-integer.mon
+  "Return BIT-VECTOR's representation as a positive integer.~%
+MON version using `cl:flet' and `cl:reduce'.~%
+:EXAMPLE~%~@
+ { ... <EXAMPLE> ... } ~%~@
+:SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'boolean-to-bit
 "Convert BOOLEAN to a bit \(an integer either 0 or 1\).~%~@
@@ -638,8 +642,7 @@ in 128 bits.~%~@
 (fundoc 'byte-request-integer
   "Decode an integer of LENGTH octets from ARRAY starting at OFFSET.~%~@
 INTEGER may be any positive integer representable in 128 bits.
-The OFFSET is effectively :start and 
-LENGTH is :end where :end => \(+ offset length\)
+The OFFSET is effectively :start and LENGTH is :end where :end => \(+ offset length\)~%
 x86-32 OSs are LITTLE-ENDIAN but RFC's want network-byte-order e.g. big-endian...~%~@
 The SIGN-EXTEND is as per the following explanation snarfed from interwebs:~%~@
  Sign extension is the operation, in computer arithmetic, of increasing the
@@ -685,7 +688,7 @@ sign extension:
 The returned array containins the bits of integer set 1/0 according to the
 `cl:logbitp' index into BYTE-INT's.~%~@
 :EXAMPLE~%
- 192 
+ 192
  => (8 bits, #xC0, #o300, #b11000000~%
  \(octet-to-bit-vector 192\)
  => #*11000000
@@ -712,17 +715,17 @@ Arg UNSIGNED-BYTE-8 is an integer of type `mon:unsigned-byte-8'.~%
 :EXAMPLE~%
  \(= \(octet-logbitp-1-or-0 3 247\) 0\)~%
  \(= \(octet-logbitp-1-or-0 4 247\) 1\)~%
- \(loop 
-    with int = 254 
+ \(loop
+    with int = 254
     for idx downfrom 7 to 0 collect \(octet-logbitp-1-or-0 idx int\)\)~%
- \(loop 
-    with int = 254 
+ \(loop
+    with int = 254
     for idx downfrom 7 to 0 collect \(logbitp idx int\)\)~%
   #b11110111 => 247
   1 1 1 1 0 1 1 1
   7 6 5 4 3 2 1 0
   0 1 2 3 4 5 6 7~%
- \(loop 
+ \(loop
     with int = 247
     for x downfrom 7 to 0
     for y upfrom 0 below 8
@@ -745,13 +748,13 @@ Arg UNSIGNED-BYTE-8 is an integer of type `mon:unsigned-byte-8'.~%
 "Return an array of 256 elts each containing an array of type: \(SIMPLE-BIT-VECTOR 8\)~%~@
 The elts of array are indexed by their octet value as generated with `mon:octet-to-bit-vector'.~%~@
 :EXAMPLE~%
- (make-array-of-octet-bit-vectors)~%
- (aref (make-array-of-octet-bit-vectors) 247)
+ \(make-array-of-octet-bit-vectors\)~%
+ \(aref \(make-array-of-octet-bit-vectors\) 247\)
   => #*11110111~%
- (octet-to-bit-vector 247)
+ \(octet-to-bit-vector 247\)
   => #*11110111~%
- (equal (aref (make-array-of-octet-bit-vectors) 247) 
-        (octet-to-bit-vector 247))
+ \(equal \(aref \(make-array-of-octet-bit-vectors\) 247\)
+        \(octet-to-bit-vector 247\)\)
  => T~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 

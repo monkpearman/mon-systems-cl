@@ -9,16 +9,13 @@
 
 
 (in-package #:mon)
-;; *package*
 
 (defun toggle-print-case  ()
-  (case *print-case* 
-    (:downcase (setf *print-case* ':upcase)) 
+  (case *print-case*
+    (:downcase (setf *print-case* ':upcase))
     (:upcase   (setf *print-case* ':downcase))
-    (:capitalize 
+    (:capitalize
      (warn ":FUNCTION `toggle-print-case' -- case is :capitalize, won't toggle"))))
-
-
 
 ;;: :NOTE This is likely really wrong for binary streams!
 ;; (let ((s-e-t (stream-element-type stream)))
@@ -35,17 +32,17 @@
   (unless (and (typep stream 'file-stream)
                (open-stream-p stream)
                (input-stream-p stream)
-               (equal (multiple-value-list (subtypep (stream-element-type stream) 'character)) 
+               (equal (multiple-value-list (subtypep (stream-element-type stream) 'character))
                     (list T T)))
     (error ":FUNCTION `EOF-P' -- Arg STREAM not valid as an open character input-stream"))
   (null (peek-char nil stream nil nil)))
 
 
 ;; :SOURCE xit/cl-utilities/cl-utilities.lisp
-(defun query-string (query-string &key special default (test nil) 
-		     (trim-chars '(#\Space #\Tab)));; '(#\Space #\Tab #\Newline)))					
+(defun query-string (query-string &key special default (test nil)
+		     (trim-chars '(#\Space #\Tab)));; '(#\Space #\Tab #\Newline)))
   (let ((input nil))
-    (loop 
+    (loop
       (setq input
 	(progn (if default
 		   (format *query-io* "~&~a (~a) " query-string default)
@@ -66,7 +63,7 @@
 ;;; :PASTE-NUMBER 119586: trivial-get-char :PASTED-BY redline6561 :DATE 2011-02-11
 ;;; :SEE (info "(libc)Terminal Modes")
 (defun read-next-term-char (&optional (stream *query-io*))
-  #+sbcl
+  #+:sbcl
   ;; Thanks to Thomas F. Burdick
   (let ((old (sb-posix:tcgetattr 0))
         (new (sb-posix:tcgetattr 0))
@@ -82,7 +79,7 @@
            (read-char stream))
       (sb-posix:tcsetattr 0 sb-posix:tcsadrain old)))
 
-  #+ccl
+  #+:ccl
   (rlet ((old :termios)
          (new :termios))
         (let ((bits (logior #$ICANON #$ECHO #$ECHOE #$ECHOK #$ECHONL))
@@ -99,10 +96,10 @@
                  (read-char stream))
             (#_tcsetattr 0 #$TCSADRAIN old))))
 
-  #+ecl
+  #+:ecl
   ()
 
-  #+cmucl
+  #+:cmucl
   ;; Thanks to Rob Warnock
   ;; FIXME: Why does it return immediately?
   (alien:with-alien ((old (alien:struct unix:termios))
@@ -122,7 +119,7 @@
              (read-char stream))
         (unix:unix-tcsetattr 0 unix:tcsadrain old))))
 
-  #+clisp
+  #+:clisp
   ;; Thanks to Pascal Bourguignon
   (ext:with-keyboard
     (system::input-character-char
@@ -131,15 +128,15 @@
 (defun read-new-random-state-seed ()
   ;; Read an integer from #P"/dev/urandom" suitable for passing to sb-ext:seed-random-state.
   ;; :EXAMPLE (sb-ext:seed-random-state (read-new-random-state-seed))
-  ;;  
+  ;;
   ;; (let ((probe-urandom (and (probe-file #P"/dev/urandom"))))
   ;; (or (and probe-urandom)
   ;;     (error (make-condition 'simple-error
   ;;                            ;;  'file-error :pathname #P"/dev/urandom")
   ;;                            :format-control "did not find file #P\"/dev/urandom\"")))
-  (with-open-file (r #P"/dev/urandom" 
+  (with-open-file (r #P"/dev/urandom"
                      :element-type '(unsigned-byte 32)
-                     :direction :input 
+                     :direction :input
                      :if-does-not-exist :error)
     (let ((a (make-array '(1) :element-type '(unsigned-byte 32))))
       (assert (= 1 (read-sequence a r)))
@@ -151,7 +148,7 @@
 ;; :PASTED-BY stassats 2011-02-12
 ;; :SEE (URL `http://paste.lisp.org/+2KAO/1')
 ;; :WAS `stream-fd'
-;; :SEE `sb-impl::*available-buffers*' 
+;; :SEE `sb-impl::*available-buffers*'
 ;; :SEE :FILE sbcl/src/code/fd-stream.lisp
 ;; :SEE `sb-sys:fd-stream'/`external-format' structures
 ;; :SEE `make-fd-stream' `sb-sys:fd-stream-fd', `beep'
@@ -176,7 +173,7 @@
 
 ;;; :SOURCE D. Mcdermott ytools/base.lisp
 (defun print-spaces (number stream)
-    (dotimes (n number) 
+    (dotimes (n number)
       (write-char #\Space stream)))
 
 ;; :SOURCE sbcl/src/compiler/disassem.lisp  :WAS `princ16'
@@ -201,7 +198,7 @@
 ;;   ;; (query-read-while :show-stack t) *standard-output*
 ;;   (let ((gthr-while '()))
 ;;     (with-simple-restart (quit-repl "Leave current-query REPL")
-;;       (progn 
+;;       (progn
 ;;         (format t "Entering query REPL~% Continue providing new values when finshied type quit~%")
 ;;         (force-output)
 ;;         (loop
@@ -219,7 +216,7 @@
 ;;; ==============================
 ;;; Lice handles a few escape codes like GNU Emacs
 ;;;  (set-macro-character #\" #'read-string-with-escapes)
-;;; 
+;;;
 ;;; :TODO Needs an alias `read-string-with-escapes' -> `string-read-with-escapes'
 ;;; :COURTESY lice/src/global.lisp
 (defun read-string-with-escapes (stream close)
@@ -247,7 +244,7 @@
 ;;; ==============================
 ;; (let ((s (make-string-output-stream)))
 ;;   (write-string (format nil "~S" (output-stream-p s)) s)
-;;   (unwind-protect 
+;;   (unwind-protect
 ;;        (get-output-stream-string s)
 ;;     (close s)))
 ;;
@@ -267,7 +264,7 @@
           (and (streamp stream)
                (open-stream-p (the stream stream))
                (output-stream-p (the stream stream))))
-      (if w-error 
+      (if w-error
           (values (cond ((null stream) nil)
                         ;; ((eql stream t) t)
                         ((eq stream t) t)
@@ -281,8 +278,8 @@
                                             :w-type 'function
                                             :w-obj-locus "STREAM"
                                             :expected-type ;;(or (and allow-booleans 'stream-or-boolean) 'stream)
-                                            (let ((1or 
-                                                   (delete-if #'null `(,(or (and allow-booleans 'stream-or-boolean) 'stream) 
+                                            (let ((1or
+                                                   (delete-if #'null `(,(or (and allow-booleans 'stream-or-boolean) 'stream)
                                                                         ,(and allow-fill-pointer-strings 'string-with-fill-pointer)))))
                                               (case (length 1or)
                                                 (1 1or)
@@ -290,25 +287,25 @@
                                             :signal-or-only nil))))
 
 ;; (delete-if #'null
-;;            `(or ,(or (and allow-booleans 'stream-or-boolean) 'stream) 
+;;            `(or ,(or (and allow-booleans 'stream-or-boolean) 'stream)
 ;;                 ,(and allow-fill-pointer-strings 'string-with-fill-pointer)))
 
 
 ;; :WAS skip-bytes :SOURCE imago-20101006/src/utilities.lisp
-;; :TODO verify the `stream-element-type' 
+;; :TODO verify the `stream-element-type'
 ;; :TODO verify `mon:open-stream-output-stream-p'
 ;; :TODO Add EOF handling
 (defun read-skip-bytes (stream count)
-  (loop 
+  (loop
      repeat count
      do (read-byte stream)))
 
 ;; :WAS `skip-line' :SOURCE imago-20101006/src/utilities.lisp
-;; :TODO verify the `stream-element-type' 
+;; :TODO verify the `stream-element-type'
 ;; :TODO verify `mon:open-stream-output-stream-p'
 ;; :TODO Add EOF handling
 (defun read-skip-line (stream)
-  (loop 
+  (loop
      while (char/= (read-char stream) #\newline)))
 
 ;; :SOURCE imago-20101006/src/utilities.lisp
@@ -336,7 +333,7 @@
 ;;; ==============================
 
 (fundoc 'toggle-print-case
- "Toggle `*print-case*'.~% 
+ "Toggle `*print-case*'.~%
 When :downcase set it :upcase.~%~@
 When :upcase set it :upcase.~%~@
 When :capitalize signal a warning and do nothing.~%~@
@@ -368,7 +365,7 @@ carriage returns, e.g. character #\\RETURN.~%~@
 STREAM is a stream to read from.~%~@
 CLOSE is a character which when encountered will close STREAM.~%~@
 Signal an error when :of is encountered.~%~@
-Following table maps the corresponding conversions:~% 
+Following table maps the corresponding conversions:~%
 - \\n -> #\\NEWLINE     LINE FEED \(LF\) \(10, #o12, #xa\)
 - \\f -> #\\PAGE        FORM FEED \(FF\) \(12, #o14, #xc\)
 - \\t -> #\\TAB         CHARACTER TABULATION \(9, #o11, #x9\)
@@ -430,18 +427,18 @@ type `mon:open-stream-output-stream-error'.~%~@
  \(open-stream-output-stream-p \"bubba\" :allow-booleans t :w-error t\)~%
  \(open-stream-output-stream-p \"string\" :allow-booleans t :allow-fill-pointer-strings t :w-error t\)~%
  \(open-stream-output-stream-p \"string\" :allow-fill-pointer-strings t :w-error t\)~%
- \(let \(\(fp-strm \(make-array 6 
-                            :element-type 'character 
-                            :initial-contents \"string\" 
+ \(let \(\(fp-strm \(make-array 6
+                            :element-type 'character
+                            :initial-contents \"string\"
                             :fill-pointer 6\)\)\)
    \(open-stream-output-stream-p fp-strm :w-error t\)\)~%
- \(let \(\(fp-strm \(make-array 6 
-                            :element-type 'character 
-                            :initial-contents \"string\" 
+ \(let \(\(fp-strm \(make-array 6
+                            :element-type 'character
+                            :initial-contents \"string\"
                             :fill-pointer 6\)\)\)
-   \(multiple-value-bind \(str-strm fp-strm-p\) 
-       \(open-stream-output-stream-p fp-strm 
-                                    :allow-fill-pointer-strings t 
+   \(multiple-value-bind \(str-strm fp-strm-p\)
+       \(open-stream-output-stream-p fp-strm
+                                    :allow-fill-pointer-strings t
                                     :w-error t\)
      \(list str-strm fp-strm-p \(type-of str-strm\)\)\)\)~%~@
 :SEE-ALSO `mon:stream-or-boolean', `cl:streamp', `cl:open-stream-p',

@@ -72,7 +72,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 
 ;; :TODO Add support for prepending "Correlative conjunctions":
@@ -144,7 +143,7 @@
             (~2f-or-w-list    "~,2f" "or"  nil nil)
             (~2f-and-no-list  "~,2f" "and" nil t)
             (~2f-or-no-list   "~,2f" "or"  nil t))))
-
+;;
 ;; (format nil (cdr (assoc '~2f-or-no-list *format-delimited-english-list-templates*)) 3 .5 3.3333)
 ;; (format nil (cdr (assoc '~S-AND-NO-LIST *format-delimited-english-list-templates*)) "A" "B" "Q")
 
@@ -183,7 +182,7 @@
 (vardoc '*format-delimited-english-list-templates*
 "Alist of control-strings to generate gramatically delimited lists.~%~@
 :EXAMPLE~%
- \(format nil \(cdr \(assoc '~~S-or-no-list *format-delimited-english-list-templates*\)\)
+\(format nil \(cdr \(assoc '~~S-or-no-list *format-delimited-english-list-templates*\)\)
          1 2 3 4\)~%~@
 :NOTE Stolen/adapted from PCL chap 18 pg 229.~%
 :SEE \(URL `http://www.gigamonkeys.com/book/a-few-format-recipes.html'\)
@@ -196,10 +195,10 @@ PREFIX-STR is a string to prepend to output of preceding formatted LIST.~%~@
 BY-N is an integer value to group elts of LIST by.~%~@
 FORMAT-DIRECTIVE is a format directive to format elts of LIST with.~%~@
 :EXAMPLE~%~@
- \(format-list-items-by-n t \"list grouped by\" 8 \"~~S\"
-                         \(loop for i from 0 to 10 collect \(expt 1.065 i\)\)\)
- \(format-list-items-by-n t 8 \"~~,2F\"
-                         \(loop for i from 0 to 25 collect \(expt 1.065 i\)\)\)
+ \(format-list-items-by-n nil \"list grouped by\" 4 \"~~S\"
+                         \(loop for i from 0 to 10 collect \(expt 1.065 i\)\)\)~%~@
+ \(format-list-items-by-n nil \"2F floating point list grouped by\" 2 \"~~,2F\"
+                         \(loop for i from 0 to 25 collect \(expt 1.065 i\)\)\)~%~@
 :SEE-ALSO `mon::%format-list-items'.~%▶▶▶")
 
 (fundoc '%format-list-items
@@ -251,7 +250,7 @@ Default is \"~~{\".~%~@
 Column is a positivie integer value 0,80.~%~@
 :EXAMPLE~%
  \(progn \(format-emit-tab 18 t\) \(format t \"str\"\)\)~%~@
-:SEE-ALSO `cl:formatter'.~%▶▶▶")
+:SEE-ALSO `cl:formatter', `format-delimited-english-list'.~%▶▶▶")
 
 ;;; ==============================
 

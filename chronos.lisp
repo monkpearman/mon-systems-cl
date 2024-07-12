@@ -50,14 +50,12 @@
 
 
 (in-package #:mon)
-;; *package*
 
 (defun current-time ()
   (multiple-value-bind (secs usec) (sb-ext:get-time-of-day)
     (list (ldb (byte 16 16) secs) ;; hi-bit
 	  (ldb (byte 16 0)  secs) ;; lo-bit
 	  usec)))
-
 
 ;; :SOURCE CLOCC-cllib/port/sys.lisp :WAS `tz->string'
 ;;
@@ -256,8 +254,6 @@
   ;; "^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-2][0-9]):([0-6][0-9]):([0-6][0-9])(\\.[0-9]+)?$"
   (multiple-value-bind (matched values) (cl-ppcre:scan-to-strings "^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?$" v)
     (if matched
-        ;; (make-instance 'database-timestamp :value
-        ;;
         ;; Drop 6th elt of values array e-u-t doesn't want it
         (encode-universal-time  (parse-integer (aref values 5))  ; SECOND
                                 (parse-integer (aref values 4))  ; MINUTE
@@ -266,7 +262,6 @@
                                 (parse-integer (aref values 1))  ; MONTH
                                 (parse-integer (aref values 0))) ; YEAR
         (error "Can't parse ~S as a timestamp" v))))
-
 ;;
 ;; :SOURCE dhs-db/dhs-db-api/timestamp.lisp
 ;; :WAS `make-database-date'
@@ -274,14 +269,11 @@
   (multiple-value-bind (matched values) (cl-ppcre:scan-to-strings "^([0-9]{4})-([0-9]{2})-([0-9]{2})$" v)
     (unless matched
       (error "Can't parse ~S as a date" v))
-    ;;(make-instance 'database-date :value
     (encode-universal-time 0 0 0
                            (parse-integer (aref values 2))
                            (parse-integer (aref values 1))
-                           (parse-integer (aref values 0))) ;)
-    ))
+                           (parse-integer (aref values 0)))))
 
-;;; ==============================
 
 
 ;;; ==============================

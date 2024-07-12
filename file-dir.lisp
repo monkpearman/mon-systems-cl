@@ -74,7 +74,7 @@
                                          ;;   yr  mon   day     hr    min    sec
                                          ))
   (declare (type string timestring-format))
-  #-sbcl (check-type timestring-format string)
+  #-:sbcl (check-type timestring-format string)
   (multiple-value-bind (sec min hr day mon yr wd dp zn) (decode-universal-time (file-write-date pathname-or-namestring))
     (declare (ignore wd dp zn))
     (format nil timestring-format yr mon day hr min sec)))
@@ -91,7 +91,7 @@
 ;; *features*
 
 ;; (featurep 'SB-POSIX)
-#+sbcl
+#+:sbcl
 (defun set-file-write-date (pathname-or-namestring access-time modification-time)
   (declare (pathname-or-namestring pathname-or-namestring)
            (unsigned-byte access-time modification-time))
@@ -102,7 +102,7 @@
    (zerop (sb-posix:utime (sb-ext:native-namestring pathname-or-namestring) access-time modification-time))
    (file-write-date pathname-or-namestring)))
 ;;
-#+sbcl
+#+:sbcl
 (defun set-file-write-date-using-file (target-pathname-or-namestring source-pathname-or-namestring)
   (declare (pathname-or-namestring target-pathname-or-namestring source-pathname-or-namestring))
   (unless (probe-file source-pathname-or-namestring)
@@ -160,7 +160,7 @@
 ;; :FILE fsdb/src/sbcl.lisp
 ;; :NOTE `ensure-directory-pathname' retuns a namestring _even if_ PATH names a file.
 ;;       It is intended to be passed directly to `cl:ensure-directories-exist'
-;; #+sbcl
+;; #+:sbcl
 ;; (defun ensure-directory-pathname (path)
 ;;   (sb-ext:parse-native-namestring
 ;;    (sb-ext:native-namestring (pathname path) :as-file nil) ;<THING>
@@ -169,7 +169,7 @@
 ;;    :as-directory t ;; :START 0 :END nil :JUNK-ALLOWED nil
 ;;    ))
 ;;; ==============================
-#+sbcl
+#+:sbcl
 (defun directory-pathname-ensure (path)
   (declare (pathname-or-namestring path))
   (let* ((path-pathname (pathname path))
@@ -242,7 +242,7 @@
              (list non-path-string-things))
     (when no-relatives
       (setf non-path-string-things (nconc (list "../" "./") non-path-string-things)))
-    #-sbcl (and
+    #-:sbcl (and
             (not (pathname-or-namestring-empty-p maybe-sane-pathname))
             (not (member maybe-sane-pathname non-path-string-things))
             (not (wild-pathname-p (pathname maybe-sane-pathname)))
@@ -397,7 +397,7 @@
          (pathname-if  pathname-chk))
     (declare (pathname pathname-if))
     ;; :NOTE The non-SBCL version has a different behaviour w/r/t symlinks!
-    ;; #-sbcl
+    ;; #-:sbcl
     ;; (when (setf pathname-chk (probe-file pathname-if))
     ;;   (locally (declare (pathname pathname-chk))
     ;;     (if allow-directory
@@ -405,7 +405,7 @@
     ;;         (when (not (equal pathname-chk
     ;;                           (make-pathname :directory (pathname-directory pathname-chk))))
     ;;           pathname-chk))))
-    ;; #+sbcl
+    ;; #+:sbcl
     (multiple-value-bind (path-type path-if) (pathname-native-file-kind pathname-if)
       (ecase path-type
         ;; NIL is a corner case for :WILD, :PATHNAME-EMPTY, :STRING-EMPTY, etc.
@@ -623,10 +623,6 @@
 	 while char
          do (write-char char output-stream)))))
 
-;; copy-file-character
-;; copy-file-unsigned-byte-8
-
-
 ;; :SOURCE mcclim/Apps/Listener/util.lisp :WAS `strip-filespec'
 (defun pathname-strip-filespec (pathname)
   ;; (declare (type pathname-designator pathname)) ;; don't bother with a file-stream!
@@ -677,8 +673,8 @@
                                        :signal-or-only  nil))))
     (flet ((find-fl (ffsp-dir)
              (some #'probe-file
-                   #-sbcl (directory (merge-pathnames chk-search-file ffsp-dir))
-                   #+sbcl (directory (merge-pathnames chk-search-file ffsp-dir) :resolve-symlinks nil))))
+                   #-:sbcl (directory (merge-pathnames chk-search-file ffsp-dir))
+                   #+:sbcl (directory (merge-pathnames chk-search-file ffsp-dir) :resolve-symlinks nil))))
       ;; (declare (pathname-or-namestring chk-search-path))
       (some #'(lambda (w-path)
                 (etypecase w-path
@@ -909,8 +905,8 @@
 (defun make-pathname-user-homedir (&key user path)
   (declare (string-or-null user)
            (proper-list path))
-  #-sbcl (check-type user string-or-null)
-  #-sbcl (check-type path proper-list)
+  #-:sbcl (check-type user string-or-null)
+  #-:sbcl (check-type path proper-list)
   (if user
       (if (string-not-empty-or-all-whitespace-p user)
           (pathname (osicat-sys:native-namestring (make-pathname :directory `(:absolute :home ,user ,@path))))
@@ -1125,7 +1121,7 @@
           comp-plist nil)
     ;; :NOTE On SBCL 1.0.47.1 return value of (make-pathname :type "bmp") is IMO bogus.
     ;; A workaround would be to special case around :pathname-type with something like this:
-    ;; #+sbcl for paths = (if (eql key :pathname-type)
+    ;; #+:sbcl for paths = (if (eql key :pathname-type)
     ;;                     (pathname (pathname-type (make-pathname :type "bmp")))
     ;; Which is equally bogus...
     (loop
@@ -1147,9 +1143,9 @@
   (declare (pathname-or-namestring pathname-or-namestring)
            (optimize (speed 3)))
   ;; (define-call "rename" int minusp (oldpath filename) (newpath filename))
-  #+sbcl (sb-posix:rmdir (pathname pathname-or-namestring))
+  #+:sbcl (sb-posix:rmdir (pathname pathname-or-namestring))
   ;; (defsyscall "rmdir" :int (path filename-designator))
-  #-sbcl (osicat-posix:rmdir pathname-or-namestring))
+  #-:sbcl (osicat-posix:rmdir pathname-or-namestring))
 
 
 
@@ -1162,19 +1158,19 @@
 ;;  Should this ever change to equalp we needn't downcase the string.
 ;;
 ;; (equal (gethash "mon" asdf::*defined-systems*) 'equal)
-;;
-;; (hash-table-test asdf/source-registry:*source-registry*)
 #+asdf
 (defun pathname-directory-system (system &optional preserve-case)
   ;; b/c asdf:find-system is way too overloaded and "finds" the system by loading it.
-  ;; :EXAMPLE (pathname-directory-system :mon)
   (declare (string-or-symbol system))
   (when (or (string-empty-p system)
             (booleanp system))
     (return-from pathname-directory-system))
   (let* ((frob-w
-          ;;; FIXME `asdf::*defined-systems*' is no longer a valid variable for holding systems.
-          (ecase (hash-table-test (the hash-table asdf::*defined-systems*))
+          ;;; :FIXME `asdf::*defined-systems*' is no longer a valid variable for holding systems.
+          ;; <Timestamp: #{2024-07-12T14:44:25-04:00Z}#{24285} - by MON KEY>
+          ;; Assuming that `asdf:*registered-systems*' is the correct variable to replace it with
+          ;; :WAS (ecase (hash-table-test (the hash-table asdf::*defined-systems*))
+          (ecase (hash-table-test (the hash-table asdf/system-registry:*registered-systems*))
             (equal  (or (and preserve-case (function string)) (function string-downcase)))
             (equalp (function string))))
          (sys-str
@@ -1183,6 +1179,7 @@
                      (string system)
                      (symbol (string system))))))
     ;; :WAS (setf sys-str (asdf:system-registered-p sys-str))
+    ;; :NOTE `asdf:system-registered-p' is deprecated as of asdf version 3.3.
     (setf sys-str (asdf/backward-interface:system-registered-p sys-str))
     (and sys-str
          (setf sys-str (cdr sys-str))
@@ -1365,6 +1362,16 @@ In Unix-syntax, this function just removes the final slash.~%~@
      \(delete-file mp\)\)\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
+(fundoc 'pathname-directory-system
+ "Return a pathname for SYSTEM.~%~@
+Arg SYSTEM is a string naming a registered system that ASDF knows about as a key
+in the hash-table `asdf/system-registry:*registered-systems*'.~%
+Arg PRESERVE-CASE \(a boolean\) indicates whether case should be preserved when looking up SYSTEM.~%
+:NOTE Useful because `asdf:find-system' is way too overloaded and \"finds\" the system by loading it.~%
+:EXAMPLE~%~@
+ \(pathname-directory-system \"mon\"\)~%~@
+:SEE-ALSO `pathname-directory-merged'.~%▶▶▶")
+
 (fundoc 'pathname-directory-merged
         "Return `cl:pathname-directory' merging DIRNAME with PATHNAME-DEFAULTS.~%~@
 Return valus is a a list designating an absolute directory pathname, e.g.:~%
@@ -1382,15 +1389,15 @@ The merged pathname is generated as if by `cl:merge-pathnames' with:~%
                \(make-pathname :directory `\(:relative ,drnm\) :defaults dflts\)
                dflts\)\)\)\)\)
   \(setf rtn `\(,\(equal \(car rtn\) \(cdr rtn\)\) ,@rtn\)\)\)~%~@
-:SEE-ALSO `mon:pathname-directory-append', `mon:pathname-absolute-p',
-`mon:pathname-components'.~%▶▶▶")
+:SEE-ALSO `mon:pathname-directory-system', `mon:pathname-directory-append',
+`mon:pathname-absolute-p', `mon:pathname-components'.~%▶▶▶")
 
 (fundoc 'pathname-directory-append
         "Merge DIRNAME as if by `cl:merge-pathnames' with :defaults PATHNAME-DEFAULTS.~%~@
 PATHNAME-DEFAULTS is a pathname desigator of an absolute parent of directory with DIRNAME.~%~@
 :EXAMPLE~%
  \(pathname-directory-append \"bubba\" \(user-homedir-pathname\)\)~%
-:SEE-ALSO `mon:pathname-directory-merged'.~%▶▶▶")
+:SEE-ALSO `mon:pathname-directory-system', `mon:pathname-directory-merged'.~%▶▶▶")
 
 (fundoc 'make-pathname-directory-w-type-wild
         "Return BASE-PATHNAME merged with PATHNAME-NAME with its `cl:pathname-type' wild.~%~@
@@ -1418,11 +1425,15 @@ which is \"almost\" certainly not want one wants.~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
+
 (fundoc 'pathname-strip-filespec
 "Remove name, type, and version components from PATHNAME.~%~@
 Return value is as if by `cl:make-pathname'~%~@
 :EXAMPLE~%~@
- { ... <EXAMPLE> ... } ~%~@
+ \(pathname-strip-filespec \(make-pathname :directory '\(:absolute \"bar\" \"baz\"\)
+                                        :name \"FOO\"
+                                        :type \"lisp\"
+                                        :version :newest\)\)~%
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'make-pathname-directory-wildcard
@@ -1446,17 +1457,16 @@ trailing #\\/ return value is the parent of PATHNAME.~%~@
  \(let \(\(ntv \(list \(pathname \(sb-ext:native-namestring *default-pathname-defaults* :as-file t\)\)\)\)\)
    \(list :ORIGINAL *default-pathname-defaults*
          :FROBBED \(adjoin \(pathname-directory-pathname \(car ntv\)\) ntv\)\)\)~%~@
-:SEE-ALSO `<XREF>'.~%▶▶▶")
+:SEE-ALSO `mon:pathname-directory-system'.~%▶▶▶")
 
 (fundoc 'pathname-as-file
         "Like `cl-fad:pathname-as-directory' but more careful about the empty string.~%~@
 Converts the non-wild pathname designator PATHSPEC to file form.~%~@
 Keyword ERROR-ON-EMPTY when non-nil indicates that when the namestring of
 PATHSPEC is evaluates to an empty-string it should be returned as if by:
- \(make-pathname :defaults pathspec\)
+ \(make-pathname :defaults pathspec\)~%
 When keyword ERROR-ON-EMPTY is T and PATHSPEC is evaluates to the empty-string
-an error is signaled.
-
+an error is signaled.~%
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
@@ -1697,7 +1707,7 @@ Default is to return:~%
 :SEE-ALSO `sb-ext:native-namestring', `sb-unix:unix-lstat', `sb-unix:unix-stat',
 `sb-posix:lstat', `sb-posix:stat'.~%▶▶▶")
 
-#+sbcl
+#+:sbcl
 (fundoc 'directory-pathname-ensure
 "Return PATH ensuring that if it is a directory ends in a trailing slash.~%~@
 Return two values as if by cl:values:~%

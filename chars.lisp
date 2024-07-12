@@ -87,7 +87,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 (declaim (inline whitespace-char-p))
 (defun whitespace-char-p (maybe-wsp-char)
@@ -192,7 +191,7 @@
            (inline %char-code-integer-to-char-if
                    %char-coerce-string-of-length-1-if)
            (optimize (speed 3)))
-  ;; #-sbcl (assert (char-or-char-code-integer-or-string-1
+  ;; #-:sbcl (assert (char-or-char-code-integer-or-string-1
   (etypecase char-or-char-code-integer-or-string-1
     (character char-or-char-code-integer-or-string-1)
     (char-code-integer (%char-code-integer-to-char-if char-or-char-code-integer-or-string-1))

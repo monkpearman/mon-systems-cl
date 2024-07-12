@@ -10,7 +10,7 @@
 ;;; for the documentation present...
 ;;;
 ;;; E.g. at loadtime
-;;; (make-documented-class 
+;;; (make-documented-class
 ;;;  'tt--my-class
 ;;;  :my-slot-a "docstring for MY-SLOT-A"
 ;;;  :my-slot-b "docstring for MY-SLOT-B"
@@ -18,22 +18,22 @@
 ;;;  :doc-hash-table *default-class-documentation-table*)
 ;;;
 ;;;     (defclass tt--my-class ()
-;;;       ((my-slot-a 
+;;;       ((my-slot-a
 ;;;         :documentation #.(classdoc 'tt--my-class :my-slot-a))
-;;;        (my-slot-b 
+;;;        (my-slot-b
 ;;;         :documentation #.(classdoc 'tt--my-class :my-slot-b)))
 ;;;       (:documentation  #.(classdoc 'tt--my-class :class-doc)))
 ;;;
 ;;; ---
 ;;; Example usage with tests:
 ;;; ---
-;;; (make-documented-class 
+;;; (make-documented-class
 ;;;  'my-class
 ;;;  :my-slot-a "docstring for MY-SLOT-A"
 ;;;  :my-slot-b "docstring for MY-SLOT-B"
 ;;;  :class-doc "docstring for MY-CLASS"
 ;;;  :doc-hash-table *default-class-documentation-table*)
-;;;    
+;;;
 ;;; (let ((gthr '()))
 ;;;   (dolist (cd '(:my-slot-a
 ;;;                 :my-slot-b
@@ -41,22 +41,22 @@
 ;;;            (progn (setf gthr (nreverse gthr)) gthr))
 ;;;     (push (classdoc 'my-class cd) gthr)))
 ;;; ---
-;;; (progn 
+;;; (progn
 ;;;   (setf (gethash 'my-class *default-class-documentation-table*) nil)
-;;;   (make-documented-class 
+;;;   (make-documented-class
 ;;;    'my-class
 ;;;    :my-slot-a "docstring for MY-SLOT-A"
 ;;;    :my-slot-b "docstring for MY-SLOT-B"
 ;;;    :class-doc "docstring for MY-CLASS"
 ;;;    :doc-hash-table *default-class-documentation-table*)
 ;;;   (equal
-;;;    (list 
+;;;    (list
 ;;;     (equal (nth 2 (documented-class-doc 'my-class)) '(:CLASS-DOC . "docstring for MY-CLASS"))
 ;;;     (equal (documented-class-slot-doc 'my-class :my-slot-a) "docstring for MY-SLOT-A")
 ;;;     (equal (documented-class-slot-doc 'not-a-slot :my-slot-a :slot-doc-default "bubba") "bubba")
 ;;;     (equal (documented-class-slot-doc 'not-a-slot :class-doc  :class-doc-default "bubba") "bubba")
 ;;;     (equal (documented-class-slot-doc 'my-class :class-doc) "docstring for MY-CLASS")
-;;;     (eq (documented-class-slot-doc 'my-class :class-doc) nil) 
+;;;     (eq (documented-class-slot-doc 'my-class :class-doc) nil)
 ;;;     (eq (gethash 'my-class *default-class-documentation-table*) nil))
 ;;;    '(T T T T T T T)))
 ;;; ---
@@ -66,10 +66,8 @@
 ;;;
 ;;; ==============================
 
-
 
 (in-package #:mon)
-;; *package*
 
 (defgeneric documented-class-doc (named-class &key))
 
@@ -91,12 +89,12 @@
 (defmethod documented-class-doc ((named-class t) &key doc-hash-table)
   (gethash named-class (%verify-hash-table-for-documented-class doc-hash-table)))
 
-(defmethod documented-class-slot-doc ((named-class t) documented-slot 
+(defmethod documented-class-slot-doc ((named-class t) documented-slot
                                       &key doc-hash-table slot-doc-default)
   (declare ((or null string) slot-doc-default))
-  (multiple-value-bind  (if-docs present) (documented-class-doc named-class 
+  (multiple-value-bind  (if-docs present) (documented-class-doc named-class
                                                                 :doc-hash-table doc-hash-table)
-    (if present 
+    (if present
         (or (cdr (assoc documented-slot if-docs)) slot-doc-default)
         slot-doc-default)))
 
@@ -104,11 +102,11 @@
                                       &key doc-hash-table class-doc-default)
   (declare ((or null string) class-doc-default))
   (let ((chk-hash (%verify-hash-table-for-documented-class doc-hash-table)))
-    (multiple-value-bind (if-docs present) (documented-class-doc named-class 
+    (multiple-value-bind (if-docs present) (documented-class-doc named-class
                                                                  :doc-hash-table chk-hash)
-      (if present 
-          (prog1 
-              (or (cdr (assoc :class-doc if-docs)) 
+      (if present
+          (prog1
+              (or (cdr (assoc :class-doc if-docs))
                   class-doc-default)
             ;; Access to class-doc should occur last in a class' definition.
             ;; So, we can now remove the key from the hash-table.
@@ -120,7 +118,7 @@
            (error 'type-error :datum initform :expected-type 'list))
        (or (list-proper-p initform)
            (proper-list-error :w-sym 'documented-class-verify-init
-                              :w-type 'function 
+                              :w-type 'function
                               :error-args `(initform ,initform)
                               :signal-or-only nil))
        (or (= (length initform) 2)
@@ -129,7 +127,7 @@
                              :w-spec "arg INITFORM not of length 2"
                              :w-got initform
                              :w-type-of t
-                             :signal-or-only nil))       
+                             :signal-or-only nil))
        (symbol-not-null-or-error (car initform) :w-locus 'initform :signal-or-only nil)
        (or (plist-proper-not-null-p (cadr initform))
            (plist-not-null-error :w-sym 'documented-class-verify-init
@@ -137,36 +135,36 @@
                                  :w-spec "arg INITFORM not suitable for plist construction~%~%~
                                           INITFORM must contain at least one key/value pair of the form:~% ~
                                           <:SLOT-NAME>/<DOCSTRING> or :CLASS-DOC/<DOCSTRING>~%~%"
-                                 :w-obj-locus 'initform 
+                                 :w-obj-locus 'initform
                                  :signal-or-only nil))
        initform))
-       
+
 (defun %verify-hash-table-for-documented-class (&optional doc-hash-table)
   ;; (or (and doc-hash-table (hash-or-symbol-p doc-hash-table))
-  (or (and doc-hash-table 
+  (or (and doc-hash-table
            (hash-or-symbol-p doc-hash-table :w-no-error t))
       (or (and (hash-table-p *default-class-documentation-table*)
                *default-class-documentation-table*)
           (setq *default-class-documentation-table* (make-hash-table)))))
 
-(defun make-documented-class (named-class 
+(defun make-documented-class (named-class
                               &rest key-val-pairs
                               &key doc-hash-table
                               &allow-other-keys)
   (declare ((or null hash-table) doc-hash-table))
-  (let ((chk-name-pairs (progn 
+  (let ((chk-name-pairs (progn
                           (remf key-val-pairs :doc-hash-table)
                           (documented-class-verify-init (list named-class key-val-pairs))))
         (chk-hash (%verify-hash-table-for-documented-class doc-hash-table)))
-    (make-instance 'documented-class-with-docs 
-                   :documented-class chk-name-pairs 
+    (make-instance 'documented-class-with-docs
+                   :documented-class chk-name-pairs
                    :doc-hash-table  chk-hash)))
 
 (defun classdoc (class slot-or-class &key doc-hash-table slot-doc-default)
   (declare (type symbol class slot-or-class)
            ((or null symbol hash-table) doc-hash-table)
            ((or null string) slot-doc-default))
-  (documented-class-slot-doc class 
+  (documented-class-slot-doc class
                              (or (and (memq slot-or-class '(:class :class-doc)) :class-doc)
                                  slot-or-class)
                              :doc-hash-table doc-hash-table
@@ -205,13 +203,13 @@ As a special case, when the key of a key/val pair is the colon-prefixed keyword
 :NOTE Because KEY-VAL-PAIRS is passed as an &rest arg they need not \(indeed
 should not\) be supplied as the quoted list.~%~@
 Keyword DOC-HASH-TABLE names a symbol or hash-table to store NAMED-CLASS's
-documentation data structure to. 
+documentation data structure to.
 Default value is the hash-table at the value cell of special variable
 `mon:*default-class-documentation-table*'.
 If supplied, DOC-HASH-TABLE should satisfy `mon:hash-or-symbol-p', a condition
 of type `cl:type-error' is signaled if not.~%~@
 :EXAMPLE~%
- \(make-documented-class 
+ \(make-documented-class
   'my-class
   :my-slot-a \"docstring for MY-SLOT-A\"
   :my-slot-b \"docstring for MY-SLOT-B\"
@@ -225,7 +223,7 @@ of type `cl:type-error' is signaled if not.~%~@
 `mon:documented-class-verify-init',
 `mon:*default-class-documentation-table*'.~%▶▶▶")
 
-(fundoc 'classdoc 
+(fundoc 'classdoc
 "Retrieve documentation for CLASS.~%~@
 CLASS is a symbol naming a class.~%~@
 SLOT-OR-CLASS is a symbol names the slot to retrieve a documentation string for.
@@ -235,7 +233,7 @@ Keyword DOC-HASH-TABLE is symbol or hash-table the values of which contain an
 alist of documentation data for CLASS.~%~@
 Keyword SLOT-DOC-DEFAULT is a string to return if a documentation string is not found.~%~@
 :EXAMPLE~%
- \(make-documented-class 
+ \(make-documented-class
   'my-class
   :my-slot-a \"docstring for MY-SLOT-A\"
   :my-slot-b \"docstring for MY-SLOT-B\"
@@ -257,7 +255,7 @@ Keyword SLOT-DOC-DEFAULT is a string to return if a documentation string is not 
 `mon:documented-class-with-docs'.~%~@
 INITFORM is a two element list of the form:~%
  \(<NAMED-CLASS> \( { <:SLOT-NAME> <DOCSTRING> }* { :CLASS-DOC <DOCSTRING> } \)\)~%~@
-The <NAMED-CLASS> at the car of INITFORM is a symbol naming the class documented. 
+The <NAMED-CLASS> at the car of INITFORM is a symbol naming the class documented.
 <NAMED-CLASS> need not reference a defined or finalized class but should be of
 type `mon:symbol-not-null', an error is signaled if not.~%~@
 The cadr of <INITFORM> should be a plist of type `mon:proper-list-not-null' an
@@ -274,13 +272,13 @@ of a :CLASS-DOC/<DOCSTRING> key/value pair is optional. When provided, the key
 :CLASS-DOC must occur as :CLASS-DOC, <DOCSTRING> is a string documenting
 <NAMED-CLASS>.~%~@
 :EXAMPLE~%
- \(documented-class-verify-init 
+ \(documented-class-verify-init
   '\(my-class
     \(:my-slot-a \"docstring for MY-SLOT-A\"
      :my-slot-b \"docstring for MY-SLOT-B\"
      :class-doc \"docstring for MY-CLASS\"\)\)\)~%~@
 ;; Following successfully signal errors:~%
- \(documented-class-verify-init 
+ \(documented-class-verify-init
   '\(nil '\(:my-slot-a \"docstring for MY-SLOT-A\"\)\)\)~%
  \(documented-class-verify-init '\(my-class\)\)~%
  \(documented-class-verify-init '\(my-class . :my-slot-a\)\)~%

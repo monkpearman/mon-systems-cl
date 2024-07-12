@@ -7,14 +7,12 @@
 ;; from the rest of the system. We do this b/c on SBCL `%char-numeric=' is
 ;; defined with significant optimizations and if any portion of this file is
 ;; changed we will get a restart at compile-time. IOW unless specifically
-;; editing `%char-numeric=' do your edits elswhere! 
+;; editing `%char-numeric=' do your edits elswhere!
 ;; See notes below.
 ;;; ==============================
 
 
 (in-package #:mon)
-;; *package*
-
 
 ;;; ==============================
 ;; SOURCE Paul Khuong's string-case/string-case.lisp :WAS `numeric-char='
@@ -131,11 +129,11 @@ It is the expansion of the SB-C::%DEFKNOWN that triggers the restart.
 ;;   ;; (tt--char-numeric= 9657 #\►)
 ;;   ;; (tt--char-numeric= 9657 9658)
 ;;   ;; (tt--char-numeric= 9657 9658)
-;;   `(values-list 
-;;     ,`(etypecase ,char-x 
-;;         (character 
+;;   `(values-list
+;;     ,`(etypecase ,char-x
+;;         (character
 ;;          (etypecase ,char-y
-;;            (character (or (and (zerop (%char-numeric= ,char-x  ,char-y)) 
+;;            (character (or (and (zerop (%char-numeric= ,char-x  ,char-y))
 ;;                                (list t ,char-x))
 ;;                           (list nil ,char-x ,char-y)))
 ;;            (char-code-integer (or (and (zerop (%char-numeric= ,char-x (code-char ,char-y)))

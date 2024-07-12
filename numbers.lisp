@@ -13,7 +13,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 ;; :SOURCE sclf/directory.lisp :COURTESY Walter C. Pelissero
 (defun bits-set-p (x bits)
@@ -489,11 +488,6 @@
 ;; list))
 ;;; ==============================
 
-;; (list-length
-;; (typep (make-array '(2) 'sequence
-;; (length (make-array '(2 2)))
-
-;; (typep (make-array '(2 2)) 'sequence)
 
 ;;; ==============================
 ;;; :NUMBERS-DOCUMENTATION
@@ -562,7 +556,7 @@ Both must be integers or markers.~%~@
 
 (fundoc 'random-number-pairs
 "Return a list of consed pairs with each elt a string and its corresponding wholenum.
-elts of list have the format:~% 
+elts of list have the format:~%
  \(\"NN\" . NN\)~%~@
 N-TIMES is the number consed pairs to generate.~%~@
 RANDOM-BOUNDS is an integer or positive float suitable for limiting `random'.~%~@
@@ -608,7 +602,7 @@ which will not signal an error as long as the mean of the values is below the
 maximum value, but on the other hand might have a worse numerical stability,
 since it will perform a multiplication on the average on every step.~%~@
 :EXAMPLE~%
- \(let \(\(seq \(loop 
+ \(let \(\(seq \(loop
 	       for i from 1.13332 to 1000.0 by 0.769
 	       collect i\)\)\)
    \(abs \(- \(number-average-seq seq :large-sum-p t\)

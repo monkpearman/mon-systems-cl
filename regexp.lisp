@@ -3,7 +3,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 ;; :COURTESY cl-etsy/base.lisp :WAS `underscore-to-dash'
 (defun string-underscore-to-dash (string)
@@ -34,15 +33,15 @@
            #.(concatenate 'string "[" (coerce '(#\  #\Newline #\Tab #\Return #\NO-BREAK_SPACE #\Page #\Vt) 'string)  "]+?"))))
     (when (string-empty-p target-string)
       (return-from string-whitespace-to-char (values target-string nil :string-empty)))
-    (locally 
-        (declare (string-not-empty target-string))
-      (if (string-all-whitespace-p target-string)
-          (if convert-all-whitespace
+    (locally
+     (declare (string-not-empty target-string))
+     (if (string-all-whitespace-p target-string)
+         (if convert-all-whitespace
               (multiple-value-bind (repl bool) (cl-ppcre:regex-replace-all wspc-scnr target-string char-nmrl-str)
                 (values repl bool :string-all-whitespace))
               (values target-string nil :string-all-whitespace))
-          (multiple-value-bind (repl bool) (cl-ppcre:regex-replace-all wspc-scnr target-string char-nmrl-str)
-            (values repl bool target-string))))))
+       (multiple-value-bind (repl bool) (cl-ppcre:regex-replace-all wspc-scnr target-string char-nmrl-str)
+         (values repl bool target-string))))))
 
 (defun string-whitespace-to-dash (target-string &key (pre-trim t) (convert-all-whitespace nil))
   (declare (string target-string)
@@ -57,10 +56,11 @@
                  (if (string-empty-p pre)
                      (if convert-all-whitespace
                          pre-trim-target-string
-                         (if pre-trim ;; 
-                             (return-from string-whitespace-to-dash (values (make-string 0 :initial-element #\nul) nil 
-                                                                            :string-empty-or-all-whitespace))
-                             ;; can't actually get here.
+                         (if pre-trim
+                             (return-from string-whitespace-to-dash
+                               (values (make-string 0 :initial-element #\nul) nil
+                                       :string-empty-or-all-whitespace))
+                           ;; Can't actually get here.
                              (return-from string-whitespace-to-dash (values pre-trim-target-string nil :string-all-whitespace))))
                      pre))))
         (let ((pre-post (pretrim-for-string-whitespace-to-foo target-string)))
@@ -76,17 +76,17 @@
       (flet ((pretrim-for-string-whitespace-to-foo (pre-trim-target-string)
                (declare (string pre-trim-target-string))
                (when (string-empty-p pre-trim-target-string)
-                 (return-from string-whitespace-to-underscore 
+                 (return-from string-whitespace-to-underscore
                    (values pre-trim-target-string nil :string-empty)))
                (let ((pre (string-trim-whitespace pre-trim-target-string)))
                  (if (string-empty-p pre)
                      (if convert-all-whitespace
                          pre-trim-target-string
                          (if pre-trim
-                             (return-from string-whitespace-to-underscore 
+                             (return-from string-whitespace-to-underscore
                                (values (make-string 0 :initial-element #\nul) nil :string-empty-or-all-whitespace))
                              ;; can't actually get here.
-                             (return-from string-whitespace-to-underscore 
+                             (return-from string-whitespace-to-underscore
                                (values pre-trim-target-string nil :string-all-whitespace))))
                      pre))))
         (let ((pre-post (pretrim-for-string-whitespace-to-foo target-string)))
@@ -96,25 +96,25 @@
 
 (declaim (inline %string-find-matching-verify-char-seq))
 (defun %string-find-matching-verify-char-seq (char-seq)
-  ;; its a vector string or list. 
+  ;; It's a vector string or list.
   ;; (%string-find-matching-verify-char-seq "abc")
   ;; (%string-find-matching-verify-char-seq '(#\a #\b #\c))
   ;; (%string-find-matching-verify-char-seq #(#\a #\b #\c))
-  ;; (%string-find-matching-verify-char-seq 
+  ;; (%string-find-matching-verify-char-seq
   ;;  (make-array 3 :element-type 'character :adjustable t :initial-contents #(#\a #\b #\c)))
   (declare ((and not-null (or list simple-string vector)) char-seq)
            (optimize (speed 3)))
   (etypecase char-seq
-    (list (the boolean (loop 
-                          for chars in (the list char-seq)
-                          always (characterp chars))))
+    (list (the boolean (loop
+                          :for chars :in (the list char-seq)
+                          :always (characterp chars))))
     (string (the boolean t))
-    (simple-vector (the boolean (loop 
-                                   for chars across (the simple-vector char-seq)
+    (simple-vector (the boolean (loop
+                                   :for chars :across (the simple-vector char-seq)
                                    always (characterp chars))))
-    (vector (the boolean (loop 
-                            for chars across (the (vector character *) char-seq)
-                            always (characterp chars))))))
+    (vector (the boolean (loop
+                            :for chars :across (the (vector character *) char-seq)
+                            :always (characterp chars))))))
 
 (declaim (inline %string-find-matching-verify-list-for-strings-only-t))
 (defun %string-find-matching-verify-list-for-strings-only-t (strings-list)
@@ -125,8 +125,8 @@
   (when (stringp strings-list)
     (return-from %string-find-matching-verify-list-for-strings-only-t (the list (list strings-list))))
   (unless (list-proper-p strings-list)
-    (proper-list-error :w-sym 'string-find-matching 
-                       :w-type 'function 
+    (proper-list-error :w-sym 'string-find-matching
+                       :w-type 'function
                        :error-args (list (quote strings) strings-list)))
   (if (each-a-string-p strings-list)
       strings-list
@@ -214,15 +214,15 @@
 ;;  => ((#\a #\b #\c) #(#\a #\b #\c))
 ;;
 ;; We currently do not allow lists of characters regardless of whether STRINGS-ONLY is null or not.
-;; It is a relatively straightforward fix to allow this but its not clear if we even _should_.
+;; It is a relatively straight forward fix to allow this but its not clear if we even _should_.
 (defun string-find-matching (regexp strings &key case-sensitive (strings-only t))
 
   (declare ((and not-null sequence) strings) ;; sequence-zerop
-           ((or string character) regexp)    ;; function) 
+           ((or string character) regexp)    ;; function)
            (boolean case-sensitive)
            (inline %string-find-matching-verify-char-seq
                    %string-find-matching-verify-list-for-strings-only-t
-                   %string-find-matching-verify-list-for-strings-only-null                   
+                   %string-find-matching-verify-list-for-strings-only-null
                    %string-find-matching-verify-vector-for-strings-only-null)
            (optimize (speed 3)))
   (let ((scanner (cl-ppcre:create-scanner regexp :case-insensitive-mode (not case-sensitive)))
@@ -240,7 +240,7 @@
              (cl-ppcre:scan scanner str)))
       (remove-if-not #'filter-matches chk-strings))))
 
-;; :SOURCE mccme-helpers/packages:file mccme-helpers/parsetype 
+;; :SOURCE mccme-helpers/packages:file mccme-helpers/parsetype
 ;; :WAS `escape-for-regex'
 (defun string-escape-for-regex (string-for-regex)
   (let ((anchor-brace (cl-ppcre:create-scanner "\\[\\^]"))
@@ -252,7 +252,7 @@
                                                             slashes-8)
                                 "\\^")))
 
- 
+
 ;;; ==============================
 ;;; :NOTE `regex-when' `regex-case' macros are probably a bad idea b/c they can fail in
 ;;; bad ways when the index into the match array doesn't match the bindings.
@@ -268,8 +268,8 @@
 ;;        ;; was for simple regexes like "FOO". e.g.:
 ;;        ;;  (cl-ppcre:scan-to-strings "FOO" "string-FOO") => "FOO", #()
 ;;        ;; returns a vector we can't meaningfully index into b/c its length is zerop!
-;;        ;; 
-;;        ;; :WAS 
+;;        ;;
+;;        ;; :WAS
 ;;        ;; (when ,match?
 ;;        ;;  (let ,(loop
 ;;        ;;         for index upfrom 0
@@ -287,7 +287,7 @@
 ;;                      for var-name in submatches
 ;;                      collect `(,var-name (aref ,submatch-vector ,index)))
 ;;                ,@body))))))
-;;             
+;;
 ;; (regex-when ("FOO" "string-FOO" foo-part more-part again) again)
 ;; (regex-when ("(.*)(-FOO)" "string-FOO" string-part foo-part) (downcase foo-part))
 ;; (regex-when ("((.*)(-FOO))" "string-FOO" string-part foo-part more-part) (list string-part foo-part more-part))
@@ -322,7 +322,7 @@
 ;; <FORMS> is zero or more forms to be executed. When <FORMS> are present these are
 ;; executed as an implicit progn with <MATCH-VARS> bindings active in the dynamic
 ;; scope of the progn.~%~@
-;; :EXAMPLE~% 
+;; :EXAMPLE~%
 ;;  \(regex-case \"string-FOO\"
 ;;    \(\(\"^-FOO\"\) \"you'll never-see-this\"\)
 ;;    \(\(\"\(.*\)\(-FOO\)\" string-part foo-part\)
@@ -343,12 +343,12 @@
 ;;; ==============================
 ;; :NOTE Following functions: `do-all-lines', `with-lines-from-files', `file-grep'
 ;; :SOURCE (URL `http://a-nickels-worth.blogspot.com/2008/02/scripting-in-cl.html')
-;; :COURESY Jacob Gabrielson 
+;; :COURESY Jacob Gabrielson
 ;;; ==============================
-;; 
+;;
 ;; (defun do-all-lines (fun-for-line &rest filenames)
 ;;   (let ((chk-filenames (pathname-file-list-if fun-for-line)))
-;;     (when (null chk-filenames) 
+;;     (when (null chk-filenames)
 ;;       (return-from do-all-lines))
 ;;     (dolist (cur-pth chk-filenames)
 ;;       (declare (pathname cur-pth))
@@ -361,7 +361,7 @@
 ;;                for line = (read-line stream nil nil)
 ;;                while line
 ;;                do (funcall fun-for-line line))
-;;             ;; do (apply fun-for-line line))                   
+;;             ;; do (apply fun-for-line line))
 ;;             )))))
 ;;
 ;; (fundoc 'do-all-lines
@@ -444,7 +444,7 @@ If REPLACEMENT-CHAR is a one character string or of type `char-code-integer' it
 is converted to a character and must satisfy predicate
 `mon:char-not-whitespace-char-p'. An error is signaled if not.~%~@
 Keyword CONVERT-ALL-WHITESPACE is a boolean. When non-nil if TARGET-STRING is
-`mon:string-all-whitespace-p' each whitespace character will be replaced. 
+`mon:string-all-whitespace-p' each whitespace character will be replaced.
 For large empty strings this may not be desirable, as such the default is NIL.~%~@
 Return value is as if by `cl:values'.
 When TARGET-STRING is not `mon:string-empty' nor `mon:string-all-whitespace-p'
@@ -507,7 +507,7 @@ by value of PRE-TRIM. Default is NIL. See examples below for usage.~%~@
  \(string-whitespace-to-dash \"Q E D\"\)~%
  \(string-whitespace-to-dash \(format nil \"~~{~~C~~}\" *whitespace-chars*\))~%
  \(string-whitespace-to-dash \(format nil \"~~{~~C~~}\" *whitespace-chars*\) :convert-all-whitespace t\)~%
- \(string-whitespace-to-dash \"\")~% 
+ \(string-whitespace-to-dash \"\")~%
  \(string-whitespace-to-dash \"    \" :pre-trim t :convert-all-whitespace nil\)~%
  \(string-whitespace-to-dash \"    \" :pre-trim nil :convert-all-whitespace t\)~%
  \(string-whitespace-to-dash \"    \" :pre-trim t :convert-all-whitespace t\)~%
@@ -518,7 +518,7 @@ by value of PRE-TRIM. Default is NIL. See examples below for usage.~%~@
         "Create a cl-ppcre:scanner closure from STRING-FOR-REGEX that \"won't miss\" when string contains regexp meta-chars.~%~@
 :EXAMPLE
  \(let* \(\(date-str    \"2011-07-24\"\)
-        \(date-str-re \(cl-ppcre:create-scanner 
+        \(date-str-re \(cl-ppcre:create-scanner
                       \(string-escape-for-regex date-str\)\)\)
         \(repl-str    \"bubba\"\)\)
    \(cl-ppcre:regex-replace-all date-str-re date-str repl-str\)\)

@@ -4,7 +4,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 (defun string-delimited-to-list (string &optional (separator #\space)
                                                   skip-terminal)
@@ -334,7 +333,6 @@
        result))))
 
 ;;; :NOTE Has sb-rt test `string-split-on-chars-TEST'
-;; string-split-on-chars
 (defun string-split-on-chars (string &optional separators white-on-white)
   (declare (string string)
            (optimize (speed 3)))
@@ -378,7 +376,6 @@
          ;; :finally (return (coerce (the array chunks) 'list))
       finally (return (map 'list #'identity (the array chunks))))))
 
-;; mon:string-trim-whitespace
 ;; (map 'list #'identity #(a b c))
 ;;; :SOURCE chunga-1.1.1/read.lisp :WAS `trim-whitespace'
 (defun string-trim-whitespace (string &key (start 0) (end (length string)))
@@ -509,11 +506,10 @@
 (defun string-insert-char (string insert-char index)
   (declare (type string string)
            (type character insert-char)
-           ;; :NOTE on SBCL x86-32 this is (mod 536870910)
-           (index index)
+           (index index) ; :NOTE on SBCL x86-32 this is (mod 536870910)
            (optimize speed))
-  #-SBCL (check-type string vector)
-  #-SBCL (check-type index index)
+  #-:SBCL (check-type string vector)
+  #-:SBCL (check-type index index)
   (let* ((oldlen (length string))
          (newlen (if (zerop oldlen)
                      (return-from string-insert-char (string insert-char))
@@ -556,8 +552,8 @@
            ;; (fixnum index)
            (index index)
            (optimize speed))
-  #-SBCL (check-type string vector)
-  #-SBCL (check-type index index)
+  #-:SBCL (check-type string vector)
+  #-:SBCL (check-type index index)
   (let ((ret (make-string (1+ (length string)))))
     (flet ((copy ()
              (when (plusp index)
@@ -608,8 +604,8 @@
            (index index)
            ;; (string string)
            )
-  #-SBCL (check-type string vector)
-  #-SBCL (check-type index index)
+  #-:SBCL (check-type string vector)
+  #-:SBCL (check-type index index)
   (if (and (array-has-fill-pointer-p string)
            (< (fill-pointer string) (array-dimension string 0)))
       (progn
@@ -1265,6 +1261,13 @@
 ;;; :STRINGS-DOCUMENTATION
 ;;; ==============================
 
+(fundoc 'simple-string-ensure
+"An error is Signaled an error if THING cannot be coerced with `cl:string'.~%~@
+:EXAMPLE~%
+ \(simple-string-ensure 'FOO\)~%
+ \(simple-string-ensure :FOO\)~%~@
+:SEE-ALSO `<XREF>'.~%▶▶▶"))
+        
 (fundoc 'string-to-char
   "Return first char of string to a character code value as if by `char-code'.~%~@
 When keyword W-CODE-CHAR is supplied convert car.~%~@

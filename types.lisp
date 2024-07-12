@@ -49,7 +49,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 
 ;;; ==============================
@@ -492,8 +491,8 @@
   `(integer 0 ,length))
 
 (deftype fixnum-bit-width ()
-  #-sbcl '(integer 0 #.(integer-length most-positive-fixnum))
-  #+sbcl '(integer 0 #.sb-vm:n-positive-fixnum-bits))
+  #-:sbcl '(integer 0 #.(integer-length most-positive-fixnum))
+  #+:sbcl '(integer 0 #.sb-vm:n-positive-fixnum-bits))
 
 ;; ,----
 ;; | #lisp 2011-07-26
@@ -506,12 +505,12 @@
 ;; | => 16777214
 ;; `----
 (deftype bignum-bit-width ()
-  #-sbcl '(integer #.(integer-length most-positive-fixnum) *)
+  #-:sbcl '(integer #.(integer-length most-positive-fixnum) *)
   ;; :NOTE x86-32 only
   ;; #+sbcl '(integer #.sb-vm:n-positive-fixnum-bits #.(- (expt 2 24) 2))
   ;; not following range is 1 under sb-bignum::maximum-bignum-length for congruency with the x86-32 above.
   ;; I'm assuming this is correct for other procs/architectures... :SEE :FILE sbcl/src/code/bignum.lisp
-  #+sbcl '(integer #.sb-vm:n-positive-fixnum-bits #.(1- sb-bignum::maximum-bignum-length)))
+  #+:sbcl '(integer #.sb-vm:n-positive-fixnum-bits #.(1- sb-bignum::maximum-bignum-length)))
 
 ;; clisp-2.49/src/array.d for LISPFUN make_array around this comment
 ;; /* table for assignment  ATYPE-byte -> vector type info */
@@ -519,14 +518,14 @@
 (deftype fixnum-exclusive ()
   ;; :WAS #-sbcl `(integer ,(+ most-negative-fixnum 2) ,(- most-positive-fixnum 2))
   ;; #+sbcl `(integer ,(lognot array-dimension-limit) ,array-dimension-limit))
-  #-sbcl '(integer #.(+ most-negative-fixnum 2)     #.(- most-positive-fixnum 2))
-  #+sbcl '(integer #.(lognot array-dimension-limit) #.array-dimension-limit))
+  #-:sbcl '(integer #.(+ most-negative-fixnum 2)     #.(- most-positive-fixnum 2))
+  #+:sbcl '(integer #.(lognot array-dimension-limit) #.array-dimension-limit))
 
 (deftype fixnum-0-or-over ()
   ;; :WAS #-sbcl `(integer 0 ,most-positive-fixnum)
   ;; :WAS #+sbcl `(unsigned-byte ,sb-vm:n-positive-fixnum-bits))
-  #-sbcl '(unsigned-byte #.(integer-length most-positive-fixnum))
-  #+sbcl '(unsigned-byte #.sb-vm:n-positive-fixnum-bits))
+  #-:sbcl '(unsigned-byte #.(integer-length most-positive-fixnum))
+  #+:sbcl '(unsigned-byte #.sb-vm:n-positive-fixnum-bits))
 ;;
 ;; (type-specifier-p 'fixnum-0-or-over)
 ;; (typep most-positive-fixnum `(integer 0 ,most-positive-fixnum))
@@ -822,8 +821,8 @@
                  (satisfies %hash-or-symbol-p-no-error)))))
 
 ;; :SOURCE sbcl/src/code/kernel.lisp
-#+sbcl(deftype closure-obj ()
-        '(satisfies closure-p))
+#+:sbcl (deftype closure-obj ()
+          '(satisfies closure-p))
 
 
 ;;; ==============================
@@ -863,7 +862,7 @@
                   type))
     (setf rtn (cons rtn (subseq rtn 0 (- (length rtn) 2))))))
 
-#+sbcl
+#+:sbcl
 (defun type-specifier-valid-p (type-specifier &optional env)
   (sb-ext:valid-type-specifier-p type-specifier env))
 
@@ -898,7 +897,7 @@
 
 ;;; ==============================
 ;;; :SOURCE sbcl/src/code/early-extensions.lisp
-#-sbcl
+#-:sbcl
 (defun type-any (op thing list)
   (declare (type function op))
   (let ((certain? t))
@@ -907,10 +906,10 @@
 	(if sub-certain?
 	    (when sub-value (return (values t t)))
 	    (setf certain? nil))))))
-#+sbcl
+#+:sbcl
 (defun type-any (op thing list)
   (sb-int:any/type op thing list))
-#-sbcl
+#-:sbcl
 (defun type-every (op thing list)
   (declare (type function op))
   (let ((certain? t))
@@ -919,7 +918,7 @@
 	(if sub-certain?
 	    (unless sub-value (return (values nil t)))
 	    (setf certain? nil))))))
-#+sbcl
+#+:sbcl
 (defun type-every (op thing list)
   (sb-int:every/type op thing list))
 
@@ -931,18 +930,18 @@
 ;;; ==============================
 #+(or sbcl clisp)
 (defun type-expand-all (type-specifier &optional env)
-  #+sbcl (sb-ext:typexpand-all type-specifier env)
-  #+clisp (ext:type-expand type-specifier))
+  #+:sbcl (sb-ext:typexpand-all type-specifier env)
+  #+:clisp (ext:type-expand type-specifier))
 
 #+(or sbcl clisp)
 (defun type-expand (type-specifier &optional env)
-  #+sbcl  (sb-ext:typexpand type-specifier env)
-  #+clisp (type-expand-all type-specifier))
+  #+:sbcl  (sb-ext:typexpand type-specifier env)
+  #+:clisp (type-expand-all type-specifier))
 
 #+(or sbcl clisp)
 (defun type-expand-1 (type-specifier &optional env)
-  #+clisp  (ext:type-expand type-specifier 1)
-  #+sbcl   (sb-ext:typexpand-1 type-specifier env))
+  #+:clisp  (ext:type-expand type-specifier 1)
+  #+:sbcl   (sb-ext:typexpand-1 type-specifier env))
 
 ;;; ==============================
 
@@ -1075,7 +1074,7 @@
 ;; (sequence-type (make-array '(1 2 3) :adjustable t))
 ;; (sequence-type (make-array '(1 2 3) :adjustable t) t)
 
-#+sbcl
+#+:sbcl
 (defun singleton-p (lst)
   (sb-int::singleton-p lst))
 
@@ -1469,8 +1468,6 @@
       for chars across maybe-good-string
       always (whitespace-char-p chars))))
 
-;; (string-empty-p nil)
-;;; ==============================
 (defun string-all-whitespace-p (string)
   (declare ((and not-null string) string)
            (optimize (speed 3)))
@@ -1726,8 +1723,6 @@
        (and (integerp integer)
             (typep (the integer integer) 'fixnum-bit-width))))
 
-;;; ==============================
-
 
 ;;; ==============================
 ;;; :SYMBOL-PREDICATES (functionp (function ))
@@ -1740,11 +1735,11 @@
   (mon:memq test-fun *standard-test-functions*))
 
 ;; :SOURCE sbcl/src/code/kernel.lisp
-#+sbcl
+#+:sbcl
 (defun closure-p (object)
   (sb-impl::closurep object))
 
-#+sbcl
+#+:sbcl
 (defun variable-special-p (symbol)
   ;; Alternatively:
   ;; #+sbcl (eq (sb-int:info :variable :kind symbol) :special))
@@ -1752,10 +1747,10 @@
 
 ;; :SOURCE clack-doc/src/doc/util.lisp
 (defun declared-special-p (symbol)
-  #+lispworks (sys:declared-special-p symbol)
-  #+allegro   (eq (sys:variable-information symbol) :special)
-  #+clozure   (ccl:proclaimed-special-p symbol)
-  #+sbcl      (variable-special-p symbol))
+  #+:lispworks (sys:declared-special-p symbol)
+  #+:allegro   (eq (sys:variable-information symbol) :special)
+  #+:clozure   (ccl:proclaimed-special-p symbol)
+  #+:sbcl      (variable-special-p symbol))
 
 ;;; ==============================
 ;; (defun variablep (symbol)
@@ -1770,7 +1765,7 @@
 ;;; These are basically the same, but w/ Alexandria's indirecting through more
 ;;; macrology around `alexandria:eswitch'.
 ;;; We normalize SBCL's X argument to reflect alexandria's FEATURE-EXPRESSION.
-#-sbcl
+#-:sbcl
 (defun featurep (feature-expression)
   (etypecase feature-expression
     (symbol (not (null (member feature-expression *features*))))
@@ -1780,7 +1775,7 @@
        (:or  (some #'featurep (rest feature-expression)))
        (:not (assert (= 2 (length feature-expression)))
              (not (featurep (second feature-expression))))))))
-#+sbcl
+#+:sbcl
 (defun featurep (feature-expression)
   (sb-int:featurep feature-expression))
 

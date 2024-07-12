@@ -125,14 +125,12 @@
    ;; (:file "completion")
    ))
 
-;; This used to work... is something funny with latest SBCL 1.0.47.1?
-;; (asdf:perform (asdf:
 (defmethod asdf:perform :after ((op asdf:load-op) (system (eql (asdf:find-system :mon))))
   (pushnew :mon cl:*features*)
   (let* ((chk-cons-file
-          #-IS-MON #.((probe-file (merge-pathnames (make-pathname :name "loadtime-bind")
+          #-:IS-MON #.((probe-file (merge-pathnames (make-pathname :name "loadtime-bind")
                                                    (load-time-value *default-pathname-defaults*))))
-          #+IS-MON #.(probe-file (translate-logical-pathname "MON:MON-SYSTEMS;loadtime-bind")))
+          #+:IS-MON #.(probe-file (translate-logical-pathname "MON:MON-SYSTEMS;loadtime-bind")))
          (chk-lb-file
           (and chk-cons-file
                (probe-file (merge-pathnames chk-cons-file (make-pathname :type "lisp"))))))

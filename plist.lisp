@@ -1,15 +1,13 @@
 ;;; :FILE mon-systems/plist.lisp
 ;;; ==============================
 
-
 
 (in-package #:mon)
-;; *package*
 
 ;; :SOURCE cllib/miscprint.lisp :WAS `alist->plist'
 (defun nplist-to-alist (plist)
   (declare (proper-plist plist))
-  #-sbcl
+  #-:sbcl
   (assert (plist-proper-p plist)
           ()
           ":FUNCTION `nplist-to-alist' -- expected an object of type `mon:proper-plist'~%~
@@ -25,12 +23,13 @@
 ;;; :SOURCE fare-utils/base/lists.lisp :`WAS `plist->alist'
 (defun plist-to-alist (plist)
   (declare (proper-plist plist))
-  #-sbcl
+  #-:sbcl
   (assert (plist-proper-p plist)
           ()
           ":FUNCTION `plist-to-alist' -- expected an object of type `mon:proper-plist'~%~
            got: ~S~%" plist)
   (loop :for (key val) :on plist by #'cddr :collect (cons key val)))
+
 #|
 
  (if (null plist)
@@ -41,7 +40,7 @@
 ;; :SOURCE cllib/miscprint.lisp :WAS `plist='
 (defun plist-eql (p1 p2 &key (test #'eql))
   (declare (proper-plist p1 p2))
-  #-sbcl (and (not (assert (plist-proper-p p1)
+  #-:sbcl (and (not (assert (plist-proper-p p1)
                            ()
                            ":FUNCTION `plist-eql' -- expected an object of type `mon:proper-plist'~%~
                             got: ~S~%" p1))
@@ -84,7 +83,6 @@
 ;;   (setf (getf plist prop) value)
 ;;   plist)
 ;;; ==============================
-;;
 (defun plist-put (plist prop val)
   (let ((pl plist))
     (setf (getf pl prop) val)
@@ -121,7 +119,7 @@
 (defun plist-remove (plist &rest keys)
   (declare (proper-plist plist)
            (optimize (speed 3)))
-  #-sbcl
+  #-:sbcl
   (assert (plist-proper-p plist)
           ()
           ":FUNCTION `plist-remove' -- expected an object of type `mon:proper-plist'~%~
@@ -136,7 +134,7 @@
 ;; :SOURCE alexandria/lists.lisp :WAS `delete-from-plist'
 (defun plist-delete (plist &rest keys)
   (declare (proper-plist plist))
-  #-sbcl
+  #-:sbcl
   (assert (plist-proper-p plist)
           ()
           ":FUNCTION `plist-delete' -- expected an object of type `mon:proper-plist'~%~
@@ -174,7 +172,7 @@
 ;; :SOURCE sbcl/src/pcl/ctor.lisp
 (defun plist-keys (plist &key test)
   (declare (proper-plist plist))
-  #-sbcl
+  #-:sbcl
   (assert (plist-proper-p plist)
           ()
           ":FUNCTION `plist-keys' -- expected an object of type `mon:proper-plist'~%~
@@ -186,10 +184,11 @@
           collect key)
       (%plist-keys-fast plist)))
 
+
 ;; :SOURCE sbcl/src/pcl/ctor.lisp
 (defun plist-values (plist &key test)
   (declare (proper-plist plist))
-  #-sbcl
+  #-:sbcl
   (assert (plist-proper-p plist)
           ()
           ":FUNCTION `plist-values' -- expected an object of type `mon:proper-plist'~%~

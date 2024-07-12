@@ -28,8 +28,7 @@
 
 
 (in-package #:mon)
-;; *package*
-;;
+
 ;; (member :MON   cl:*features*)
 
 #+:IS-MON(setq *user-name* (probe-file (translate-logical-pathname "MON:MON-SYSTEMS;loadtime-bind")))

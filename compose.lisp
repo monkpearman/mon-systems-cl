@@ -3,7 +3,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 
 ;;; ==============================
@@ -16,6 +15,7 @@
 	      (declare (function f0 f1))
 	      (lambda (&rest args) (funcall f0 (apply f1 args))))
           functions :initial-value #'identity))
+
 
 ;; :SOURCE CLOCC/cllib/port/ext.lisp
 (defun compose-all (&rest functions)

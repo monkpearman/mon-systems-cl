@@ -3,13 +3,12 @@
 
 
 (in-package #:mon)
-;; *package*
 
 (defun fset (symbol def)
   (unless (and (typep symbol 'symbol-not-a-constant)
                (not (special-operator-p  symbol)))
-    (simple-error-mon :w-sym 'fset 
-                      :w-type 'function 
+    (simple-error-mon :w-sym 'fset
+                      :w-type 'function
                       :w-spec "Arg SYMBOL not of type symbol-not-a-constant"
                       :w-got  symbol
                       :w-type-of t))
@@ -24,7 +23,7 @@
                            :w-args (list symbol def))))
   (if (null def)
       (and (fboundp symbol) (fmakunbound symbol))
-      (if (functionp def) 
+      (if (functionp def)
           (setf (fdefinition symbol) def)
           (and (fboundp def)
                (not (special-operator-p def))
@@ -38,19 +37,19 @@
                      (length arg-list))))
     (declare (type index chk-len))
     (when (oddp chk-len)
-      (simple-error-mon :w-sym  'keyword-prune 
-                        :w-type 'function 
+      (simple-error-mon :w-sym  'keyword-prune
+                        :w-type 'function
                         :w-spec "Arg ARG-LIST not `cl:evenp',~%~
                                     with &rest arg KEYS: ~S~%~
                                     with ARG-LIST of length: ~S"
                         :w-args (list keys chk-len)
                         :w-got  arg-list
-                        :w-type-of t 
+                        :w-type-of t
                         :signal-or-only nil))
-    (loop 
+    (loop
        with chk-member = (or (null keys) (and (null (car keys)) (= (length keys) 1)))
        for key-idx from 0 below chk-len by 2
-       for val-idx from 1 below chk-len by 2 
+       for val-idx from 1 below chk-len by 2
        for key = (nth key-idx arg-list)
        for val = (nth val-idx arg-list)
        ;; Don't allow nil to appear in a key postion of ARG list
@@ -68,7 +67,7 @@
                             :signal-or-only nil)
        when chk-member
        nconc (list key val)
-       else 
+       else
        unless (memq key keys)
        nconc (list  key val))))
 
@@ -89,14 +88,14 @@
         (constantly constantly))))
 
 ;; :SOURCE sbcl/contrib/sb-introspect/introspect.lisp
-#+sbcl 
+#+:sbcl
 (defun function-arglist (fn)
   (sb-introspect:function-lambda-list fn))
 
 (defun intern-soft (name &optional obarray)
   (declare (type string-not-empty name)
 	   ((or symbol string package) obarray))
-  #-sbcl (assert (string-not-null-or-empty-p sym-or-name))
+  #-:sbcl (assert (string-not-null-or-empty-p sym-or-name))
    (let ((pkg (typecase obarray
 	       ;; (null    *package*)
 	       (boolean #+sbcl (sb-int:sane-package)
@@ -105,7 +104,7 @@
 	       (string  (find-package (upcase obarray)))
 	       (symbol  (or (and (eql obarray 'do-all) 'do-all)
 			    (find-package (upcase (symbol-name obarray))))))))
-    (cond (obarray     
+    (cond (obarray
 	   (if (eql pkg 'do-all)
 	       (setf pkg (find-all-symbols (string-upcase name)))
 	       (and (or (assert (packagep pkg)) t)
@@ -128,11 +127,11 @@
 ;; `find-all-symbols' of "hrh-bubba" doesn't find a symbol b/c the reader
 ;; upcased to HRH-BUBBA.
 ;;
-;; (prog1 
-;;     (progn 
-;;       (mapc #'read-from-string 
+;; (prog1
+;;     (progn
+;;       (mapc #'read-from-string
 ;;             (list "|HRH Bubba|" "|HRH-Bubba|" "hrh-bubba"))
-;;       (mapcan #'find-all-symbols 
+;;       (mapcan #'find-all-symbols
 ;;               (list "HRH-BUBBA" "hrh-bubba" "HRH-Bubba" "HRH Bubba")))
 ;;   (dolist (un (list '|HRH Bubba| '|HRH-Bubba| 'HRH-BUBBA))
 ;;     (unintern un)))
@@ -160,7 +159,7 @@
                       :w-spec    "Arg STRING-SYM-NAME not of type `mon:string-not-empty'"
                       :w-got     string-sym-name
                       :w-type-of string-sym-name))
-  ;; The string naming a symbol is potentially immutable. 
+  ;; The string naming a symbol is potentially immutable.
   ;; Using `copy-seq' helps protect callers from mutating STRING-SYM-NAME.
   (copy-seq string-sym-name))
 
@@ -168,10 +167,10 @@
   (ref-bind rsnpci (symbol-string-name-check string-sym-name-maybe-wspc)
     (or (and (string-no-whitespace-p rsnpci) (the string rsnpci))
         (or (and trim-whitespace
-                 (not (string-contains-whitespace-p 
+                 (not (string-contains-whitespace-p
                        (setf rsnpci (string-trim-whitespace rsnpci))))
                  (the string rsnpci))
-            (simple-error-mon  
+            (simple-error-mon
              :w-sym  'symbol-string-name-chk-whitespace
              :w-type 'function
              :w-spec  "~%arg STRING-SYM-NAME-MAYBE-WSPC was: ~S~%~
@@ -181,12 +180,12 @@
                        string-length:  ~S"
              :w-args  `(,string-sym-name-maybe-wspc ,trim-whitespace
                         ,@(cdr (multiple-value-list (string-contains-whitespace-p rsnpci))))
-             :w-got    rsnpci ;; 
+             :w-got    rsnpci
              :w-type-of t
              :signal-or-only nil)))))
-    
+
 (defun read-symbol-name-preserving-case-if (symbol-string-name)
-  ;; the :trim-whitespace is for `read-symbol-name-preserving-case' 
+  ;; the :trim-whitespace is for `read-symbol-name-preserving-case'
   ;; b/c read-from-string :preserve-whitespace nil
   ;; we still signal on situations where SYMBOL-STRING-NAME is " a b "
   ;; e.g. even if we get as far as "a b" and still find whitespace in the
@@ -199,12 +198,12 @@
 
 (defun read-symbol-name-preserving-case (symbol-string-name)
   (let ((str-nm (read-symbol-name-preserving-case-if symbol-string-name)))
-    (locally 
+    (locally
         (declare (special %readtable-preserved%))
       (let ((%readtable-preserved% (copy-readtable *readtable*)))
         (setf (readtable-case %readtable-preserved%) :preserve)
         (let ((*readtable* %readtable-preserved%))
-          (values-list 
+          (values-list
            `(,@(multiple-value-list (read-from-string str-nm t 'EOF :preserve-whitespace nil))
                ,(readtable-case *readtable*))))))))
 
@@ -215,30 +214,29 @@
 ;;   (let ((ssn (symbol-string-name-check string-sym-name)))
 ;;     (string-upcase ssn)))
 
-
 (defun find-package* (package &optional w-case-preserved)
-  (ref-bind fnd-pkg 
+  (ref-bind fnd-pkg
       (typecase package
         (package            package)
         (symbol            (find-package package))
         ;; (find-package (string-for-readtable-case (symbol-name package) *readtable*)))
-        (string-not-empty  
+        (string-not-empty
          (find-package (or (and w-case-preserved package)
                            (string-for-readtable-case package *readtable*))))
-        (t  (simple-error-mon  
+        (t  (simple-error-mon
              :w-sym  'find-package*
              :w-type 'function
              :w-spec "arg PACKAGE not `cl:packagep', `cl:symbolp', or `mon:string-not-null-or-empty-p'"
              :w-got package
              :w-type-of t
              :signal-or-only nil)))
-    (and (packagep fnd-pkg) 
+    (and (packagep fnd-pkg)
          ;; (values fnd-pkg (package-name fnd-pkg) package-name)
          fnd-pkg)))
 
 (defun where-is (string-symbol-name &key w-case-preserved)
   (symbol-string-name-check string-symbol-name)
-  (or 
+  (or
    (and w-case-preserved (find-all-symbols string-symbol-name))
    (find-all-symbols (string-for-readtable-case string-symbol-name *readtable*))))
 
@@ -249,7 +247,7 @@
                                                       supplied-p)
                        &key w-case-preserved)
   (symbol-string-name-check symbol-name)
-  (find-symbol (or (and w-case-preserved 
+  (find-symbol (or (and w-case-preserved
                         (string-invert-case symbol-name :case w-case-preserved))
                    (string-for-readtable-case symbol-name *readtable*))
                (or (and (not supplied-p) package)
@@ -257,31 +255,31 @@
                         #+sbcl (sb-int:sane-package)
                         #-sbcl *package*
                         )
-                   (ref-bind wil-fnd-pkg (find-package* package) 
+                   (ref-bind wil-fnd-pkg (find-package* package)
                      wil-fnd-pkg
-                     (package-error-not package 
-                                        :w-sym 'where-is-local 
+                     (package-error-not package
+                                        :w-sym 'where-is-local
                                         :w-type 'function
                                         :w-spec "Arg PACKAGE non-existent"
                                         :signal-or-only nil)))))
-)) ;; :CLOSE EVAL-WHEN
+)) ; :CLOSE EVAL-WHEN
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (let ((sb-ext:*muffled-warnings* 'style-warning))
-(defun symbol-external-p (symbol &optional (package #+sbcl (sb-int:sane-package) 
+(defun symbol-external-p (symbol &optional (package #+sbcl (sb-int:sane-package)
                                                     #-sbcl *package* package-supplied-p)
                           &key w-case-preserved)
   (let ((sym (and (symbol-string-name-check symbol)
                   ;; keep? doesn't appear to be for `read-symbol-name-preserving-case'
-                  (not (string-all-whitespace-p symbol)) 
+                  (not (string-all-whitespace-p symbol))
                   (string-for-readtable-case symbol)
-                  (or (and w-case-preserved 
+                  (or (and w-case-preserved
                            (string-invert-case symbol :case w-case-preserved))
                       (string-for-readtable-case symbol *readtable*))))
         (chk-pkg (or (and package-supplied-p
                           (or (find-package* package)
                               (package-error-not package
-                                                 :w-sym 'symbol-external-p 
+                                                 :w-sym 'symbol-external-p
                                                  :w-type 'function
                                                  :w-spec "Arg PACKAGE supplied but not found"
                                                  :signal-or-only nil)))
@@ -293,16 +291,6 @@
                              :package ,chk-pkg
                              :symbol-name ,sym))))))))
 
-;; (translate-logical-pathname "SYS:SRC;CODE;TARGET-DEFSTRUCT.LISP")
-(defun package-external-symbols (package)
-  (let ((lst ()))
-    (ref-bind pes-pkg-if (find-package* package)
-      (do-external-symbols (s pes-pkg-if 
-                              (values (sort lst #'string-lessp) 
-                                      pes-pkg-if))
-        (push s lst))
-      (values lst 
-              package))))
 
 #|
 
@@ -315,11 +303,11 @@
  (defun function-names (f)
    (delete-duplicates
     (loop
-       :for p :in (list-all-packages) 
+       :for p :in (list-all-packages)
        :nconc (let ((names '()))
                 (do-symbols (s p)
                   (when (and (fboundp s) (eql f (symbol-function s)))
-                    (push s names))) 
+                    (push s names)))
                 names))))
 
 |#
@@ -331,61 +319,135 @@
 ;;     (list 'wpi (list (find-package* "SB-EXT")) :internal :external)
 ;;   `(,nm ,omit ,@symbol-types))
 
-#| 
+#|
 
  (let ((with-packages (list "mon")) (with-cl '()) (with-cl-user nil))
-   (loop 
+   (loop
       :for pkgs :in with-packages
       :collect (find-package* pkgs) :into with-pkg
-      :finally (return (delete-if #'null 
-                                  (nconc 
+      :finally (return (delete-if #'null
+                                  (nconc
                                    (list (and with-cl
                                               (find-package* "COMMON-LISP"))
-                                         (and with-cl-user 
+                                         (and with-cl-user
                                               (find-package* "COMMON-LISP-USER")))
                                    with-pkg)))))
 |#
 
-(defun do-all-symbols-to-stream (stream 
+(defun do-all-symbols-to-stream (stream
                                  &key
                                  with-packages
                                  with-cl
                                  with-cl-user)
   ;; (with-output-to-string (strm)
-  (with-package-iterator (wpi 
-                          (loop 
+  (with-package-iterator (wpi
+                          (loop
                              :for pkgs :in (alexandria:ensure-list with-packages)
                              :collect (find-package* pkgs) :into with-pkg
-                             :finally (return (delete-if #'null 
-                                                         (nconc 
+                             :finally (return (delete-if #'null
+                                                         (nconc
                                                           (list (and with-cl
                                                                      (find-package* "COMMON-LISP"))
-                                                                (and with-cl-user 
+                                                                (and with-cl-user
                                                                      (find-package* "COMMON-LISP-USER")))
                                                           with-pkg))))
                           :external)
-    (loop 
-       :named syms 
+    (loop
+       :named syms
        :while (multiple-value-bind (fnd sym local away) (wpi)
                 (if fnd
-                    (prog1 t 
+                    (prog1 t
                       (format stream  "~%~(~A:~A ~45T:~A~)" (package-name away) sym local))
                     (return-from syms))))))
+
+;; (translate-logical-pathname "SYS:SRC;CODE;TARGET-DEFSTRUCT.LISP")
+(defun package-external-symbols (package)
+  (let ((lst ()))
+    (ref-bind pes-pkg-if (find-package* package)
+      (do-external-symbols (s pes-pkg-if
+                              (values (sort lst #'string-lessp)
+                                      pes-pkg-if))
+        (push s lst))
+      (values lst
+              package))))
+
+(defun print-all-package-symbols (package) ;; 'mon-texinfo :mon-texinfo "MON-TEXINFO"
+  (let ((pkg (etypecase package
+               ((or keyword symbol) (find-package package))
+               (string (find-package (string-upcase package))))))
+    (if (packagep pkg)
+        (with-package-iterator (next-symbol (list pkg) ;; (list-all-packages)
+                                            :internal :external)
+          (loop
+            (multiple-value-bind (more? symbol) (next-symbol)
+              (if more?
+                  (print symbol)
+                  (return))))))
+    nil))
+
+(defun function-type (symbol &key (package :ccmmon-lisp))
+  (let* ((maybe-pkg
+           (find-package
+            (if (packagep package)
+                package
+                (or (find-package (string-upcase package))
+                    (error
+                     ":FUNCTION `maybe-get-functino-type'~%~
+                      Argument PACKAGE doesn't name a known package per cl:find-package'~%~
+                      :GOT ~S~%" package)))))
+         (maybe-sym  (and maybe-pkg
+                          (multiple-value-list (find-symbol (string-upcase symbol) maybe-pkg))))
+         (maybe-func (and maybe-sym
+                          (fboundp      (car maybe-sym))
+                          (fdefinition  (car maybe-sym)))))
+    (when maybe-func
+      (etypecase maybe-func
+        (standard-generic-function
+         ;; (format t  "~%:STANDARD-GENERIC-FUNCTION ~S~%" (car maybe-sym))
+         (values (car maybe-sym)
+                 :standard-generic-function
+                 (cadr maybe-sym)))
+        (generic-function
+         ;; (format t  "~%:GENERIC-FUNCTION ~S~%" (car maybe-sym))
+             (values (car maybe-sym)
+                     :generic-function
+                     (cadr maybe-sym)))
+        (compiled-function
+         ;; (format t  "~%:COMPILED-FUNCTION ~S~%" (car maybe-sym))
+         (cond  ((macro-function (car maybe-sym)) ;; maybe-func)
+                 ;; (format t  "~%:MACRO-FUNCTION ~S~%" (car maybe-sym))
+                 (values (car maybe-sym)
+                         :macro
+                         (cadr maybe-sym)))
+                ((symbol-function (car maybe-sym))
+                 ;; (format t  "~%:FUNCTION ~S~%" (car maybe-sym))
+                 (values (car maybe-sym)
+                         :function
+                         (cadr maybe-sym)))))
+        (function  (cond  ((macro-function (car maybe-sym)) ;; maybe-func)
+                           ;; (format t  "~%:MACRO-FUNCTION ~S~%" (car maybe-sym))
+                           (values (car maybe-sym)
+                                   :macro
+                                   (cadr maybe-sym)))
+                          ((symbol-function (car maybe-sym))
+                           ;; (format t  "~%:FUNCTION ~S~%" (car maybe-sym))
+                           (values (car maybe-sym)
+                                   :function
+                                   (cadr maybe-sym)))))))))
 
 ;;; ==============================
 ;;; :FROM Erik Naggum <erik@naggum.no> :NEWSGROUP comp.lang.lisp
 ;;; :DATE 2000/04/19 :MESSAGE-ID <3165125191606936@naggum.no>
-;;; :SUBJECT Re: getting a full symbol name 
+;;; :SUBJECT Re: getting a full symbol name
 ;;; :SEE (URL `http://groups.google.com/group/comp.lang.lisp/msg/9494248dd2c231e0')
 (defun print-symbol-name-qualified (stream object colon-p atsign-p &rest format-args)
   (declare (ignore colon-p atsign-p format-args))
   (let ((*package* (find-package :keyword)))
     (write object :stream stream :readably t)))
 
-
 ;; call-with-package-graph
 ;;; ==============================
-;; (find-all-symbols "SANE-PACKAGE") 
+;; (find-all-symbols "SANE-PACKAGE")
 ;; *package-names*
 ;; find-external-symbol
 ;; (where-is "print-symbol-with-prefix")
@@ -404,7 +466,7 @@
 ;; sb-kernel:package-external-symbols
 
 ;; (error 'undefined-function :name "mon:bubba")
-;; 
+;;
 ;; (sb-impl::print-symbol-with-prefix nil 'tt--bubba)
 
 ;; with-package-names
@@ -424,7 +486,7 @@
 
  "NO-BUBBA"
  (packagep "NO-BUBBA")
- (package-name 
+ (package-name
  (defun find-package-package-internal-symbol-count  (package-or-name)
    (sb-impl::package-internal-symbol-count (find-package "NO-BUBBA"))
 
@@ -459,12 +521,13 @@
    (format t "Errors:            ~5D~%" (length *system-error*))
    (finish-output))
 |#
- 
+
 
 
 ;;; ==============================
 ;;; :INTROSPECT-DOCUMENTATION
 ;;; ==============================
+
 
 (fundoc 'fset
   "Set symbol's function definition to definition, and return definition.~%~@
@@ -512,7 +575,7 @@ Signal an error if ARG-LIST is has length `cl:oddp' or an elt in the key
 position is of type `mon:symbol-not-null'.~%~@
 :EXAMPLE~%
  \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b \"bubba-b\"\) 'bubba-a\)~%
- \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b \"bubba-b\" bubba-c \"bubba-c\"  
+ \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b \"bubba-b\" bubba-c \"bubba-c\"
                   bubba-1 \"bubba-1\" bubba-2 \"bubba-2\" bubba-3 \"bubba-3\"\)
                 'bubba-1 'bubba-c 'bubba-2\)~%
  \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b \"bubba-b\" :bubba-key \"bubba-key\"\) :bubba-key\)~%
@@ -525,7 +588,7 @@ position is of type `mon:symbol-not-null'.~%~@
  \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b \"bubba-b\"\) '\(a bubba-a nil \"bubba\"\)\)~%~@
 ;; Following successfully signal an error:~%~@
  \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b\) 'not-a-key\)~%
- \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b \"bubba-b\" \"not-a-key\" 'not-a-key\) 
+ \(keyword-prune '\(bubba-a \"bubba-a\" bubba-b \"bubba-b\" \"not-a-key\" 'not-a-key\)
                  'bubba-a \"not-a-key\"\)~%
  \(keyword-prune '\(bubba-a \"bubba-a\" nil \"nil\" bubba-b \"bubba-b\"\) 'bubba-a\)~%
  \(keyword-prune '\(bubba-a \"bubba-a\" NIL \"NIL\" bubba-b \"bubba-b\"\) 'nil\)~%
@@ -543,7 +606,7 @@ Keyword W-CASE-PRESERVED when supplied is as per `mon:string-for-readtable-case'
 (fundoc 'where-is-local
 "Like `cl:find-symbol' but ensures that SYMBOL-NAME is `cl:string-upcase'd.~%~@
 Signal an error if SYMBOL-NAME is not of type `mon:string-not-empty'.~%~@
-If package is provided it may be a string or symbol. 
+If package is provided it may be a string or symbol.
 If package is provided but `mon:find-package*' does not find PACKAGE signal an error.~%~@
 Keyword W-CASE-PRESERVED when supplied is as per `mon:string-for-readtable-case'.~%~@
 :EXAMPLE~%
@@ -600,9 +663,9 @@ not found in the package COMMON-LISP. Default is nil.~%~@
             :pathname-directory :pathname-type   :pathname-version\)\)~%
  \(let* \(\(path \(translate-logical-pathname
               #P\"SYS:SRC;CODE;TARGET-PATHNAME.LISP\"\)\)
-       \(funs \(remove-if #'null 
+       \(funs \(remove-if #'null
                         \(map 'list #'keyword-property-to-function
-                             \(plist-keys 
+                             \(plist-keys
                               \(pathname-components path :list-or-plist :plist\)\)\)\)\)\)
   \(mapcar #'\(lambda \(x\) \(funcall x path\)\) funs\)\)~%~@
 :SEE-ALSO `mon:keyword-prune', `mon:plist-keys'.~%▶▶▶")
@@ -619,7 +682,7 @@ Return value is as if by `cl:values'.
 
 (fundoc 'do-all-symbols-to-stream
 "Return the external symbols of WITH-PACKAGES to STREAM.~%~@
-WITH-PACKAGES is a list of package-names or package-designators, 
+WITH-PACKAGES is a list of package-names or package-designators,
 If WITH-PACKAGES is an atom it is converted to a list.~%~@
 When keywords WITH-CL and WITH-CL-USER are non-nil include symbols external
 to COMMON-LISP and COMMON-LISP-USER packages.~%~@
@@ -660,6 +723,35 @@ Call from format string with the  ~~/.../ construct. e.g.:~%
  \(format nil \"~~/MON:PRINT-SYMBOL-NAME-QUALIFIED/\" 'print-symbol-name-qualified\)~%~@
 :SEE \(URL `http://groups.google.com/group/comp.lang.lisp/msg/9494248dd2c231e0'\)~%~@
 :SEE-ALSO `mon:where-is', `mon:where-is-local'.~%▶▶▶")
+
+(fundoc 'print-all-package-symbols
+"Print as if by cl:print all symbols of PACKAGE.~%~@
+PACKAGE is a string keyworkd or symbol for which `cl:find-package' returns non-nil.~%
+when PAckage is a string it is upcsed as if by `cl:string-upcase'.~%
+:EXAMPLE~%~@
+ \(print-all-package-symbols \"MON\"\)~%~@
+:SEE-ALSO `mon:function-type', `do-all-symbols-to-stream',
+`package-external-symbols', `print-all-package-symbols',
+`print-symbol-name-qualified'.~%▶▶▶")
+
+(fundoc 'function-type
+  "Return SYMBOL as if by `cl:values' with package qualitfied namespace prrefix and additional information about symbol in PACKAGE.~%~@
+cl:nth-value 0 - <PACKAGE>:<SYMBOL>
+cl:nth-value 1 - <TYPE>
+cl:nth-value 2 - <LOCATION-STATUS>~%
+Return values have the following form:~%
+ <PACKAGE>:<SYMBOL>, <TYPE>, <LOCATION-STATUS>~%
+<PACKAGE>:<SYMBOL> - the fully qualified package namespace and the symbol.~%
+<TYPE> - a keyword is one of:~% :STANDARD-GENERIC-FUNCTION, :GENERIC-FUNCTION, :FUNCTION, :MACRO~%
+<LOCATION-STATUS> - a keyword is on of:~% :INTERNAL, :EXTERHAL, :INHERITED~%
+Arg SYMBOL names a function, macro, or generic-function in package and should satisfy `cl:fboundp'.~%
+Arg PACKCAGE names a package that satsifies `cl:packagep', an error is signalled if not. Default is :common-lisp.~%
+:EXAMPLE~%
+ (function-type 'description-inventory-title :package :dbc) ; gf~%
+ (function-type 'parsed-inventory-record-parse-table-lookup-slot-value :package :dbc) ; gf~%
+ (function-type 'print-all-package-symbols :package :mtf) ; function~%
+ (function-type 'def-parsed-class-write-csv-file :package :dbc) ; macro~%~@
+:SEE-ALSO `mon:function-arglist'.~%▶▶▶~%")
 
 (fundoc 'symbol-string-name-check
         "Check that STRING-SYM-NAME is of type `mon:string-not-empty'.~%~@
@@ -710,7 +802,7 @@ If both of the above constraints are satisfied, return T.~%~@
 Dynamically binds `cl:*readtable*' to `cl:copy-readtable'd duplicate of itself.~%~@
 SYMBOL-STRING-NAME is a string satisfying `mon:read-symbol-name-preserving-case-if',
 signal an error if not.~%~@
-Return value is as if by `cl:values'. 
+Return value is as if by `cl:values'.
 The first two values are as per `cl:read-from-string'~%
  - First value is a symbol read.~%
  - Second value is an integer value zero or above indicating the length of
@@ -718,10 +810,10 @@ The first two values are as per `cl:read-from-string'~%
  - Third value is :preserve.~%~@
 :EXAMPLE~%
  \(let \(\(gthr
-        \(loop 
+        \(loop
            :with syms-rd = \(list \"Hrh-Bubba\" \"|Hrh-Bubba|\"\)
            :for syms in syms-rd
-           :collect \(multiple-value-list 
+           :collect \(multiple-value-list
                      \(read-symbol-name-preserving-case syms\)\) into prsrv
            :collect \(multiple-value-list \(read-from-string syms\)\) into stndrd
            :finally \(return \(nconc prsrv stndrd\)\)\)\)\)
@@ -746,7 +838,7 @@ to make, so let's try to recover gracefully instead.~%~@
 `sb-int:keywordicate'.~%▶▶▶"))
 
 
-#+sbcl 
+#+sbcl
 (setf (documentation 'sb-impl::symbol-hash 'function)
       #.(format nil
 "Return built-in SBCL hash value for SYMBOL.~%~@

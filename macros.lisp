@@ -81,18 +81,18 @@
 ;;; ==============================
 
 ;;; Now imports `alexandria/with-gensyms' from alexandria/macros.lisp
-;; #-sbcl
+;; #-:sbcl
 ;; (defmacro with-gensyms (syms &body body)
 ;;   `(let ,(mapcar #'(lambda (s)
 ;;                      `(,s (gensym)))
 ;;                  syms)
 ;;      ,@body))
 
-#-sbcl
+#-:sbcl
 (defmacro with-gensyms (syms &body body)
   `(alexandria:with-gensyms ,syms ,@body))
 
-#+sbcl
+#+:sbcl
 (defmacro with-gensyms (syms &body body)
   `(sb-int:with-unique-names ,syms ,@body))
 
@@ -134,7 +134,7 @@
                    (cons 'funcall (if (eq (caar xx) 'quote)
                                       (cons (cadar xx) (cdr rr)) rr))
                    rr))))
-     ;; #-sbcl (with-gensyms ("-COMPOSE-" arg)
+     ;; #-:sbcl (with-gensyms ("-COMPOSE-" arg)
     (with-gensyms (arg)
       `(lambda (,arg) ,(rec functions arg)))))
 
@@ -365,7 +365,7 @@
 
 ;; :SOURCE sbcl/src/code/run-program.lisp :WAS `round-bytes-to-words'
 ;; SB-IMPL::ROUND-BYTES-TO-WORDS
-#+sbcl
+#+:sbcl
 (defmacro bytes-round-to-words (n-bytes)
   ;; N-MACHINE-WORD-BITS the natural width of a machine word (as seen in e.g. register width,
   ;; address space)
@@ -524,11 +524,21 @@
 ;;; until/while using `do'
 (defmacro until (test &body body)
   `(do () (,test) ,@body))
-;;; Alternative version w/out the while call from krmcl/macros.lisp
-;;; (defmacro while (test &body body)
-;;;   `(do () ((not ,test)) ,@body))
+
+;; Alternative version w/out the while call from krmcl/macros.lisp
+;; (defmacro while (test &body body)
+;;   `(do () ((not ,test)) ,@body))
+;;
+;; Francogrex's
+;; (defmacro while (condition &rest body)
+;;   (let ((var (gensym)))
+;;     `(do ((,var nil (progn ,@body)))
+;; 	 ((null ,condition) ,var))))
+
+;; (let ((a 0)) (while (> 3 a) (setq a (1+ a))) a)
 (defmacro while (test &body body)
   `(until (not ,test) ,@body))
+
 
 ;;; ==============================
 ;; (URL `http://paste.lisp.org/display/125328')
@@ -545,16 +555,7 @@
 (defmacro until.hexstream (test &body body)
   `(while (not ,test)
      ,@body))
-;;
-;; (let ((a 0)) (while (> 3 a) (setq a (1+ a))))
-;; (let ((a 0)) (while.hexstream (> 3 a) (setq a (1+ a))) a)
-;;
-;; Francogrex's
-;; (defmacro while (condition &rest body)
-;;   (let ((var (gensym)))
-;;     `(do ((,var nil (progn ,@body)))
-;; 	 ((null ,condition) ,var))))
-;;
+
 ;;; ==============================
 ;; :PASTE-AUTHOR stassats
 ;; :PASTE-DATE   2011-10-05
@@ -675,7 +676,7 @@
      (replace ,vector ,vector :start1 ,pos :start2 (1+ ,pos) :end1 (1- ,num) :end2 ,num)
      (setf (svref ,vector (1- ,num)) nil)
      ,vector))
-) ;; :CLOSE eval-when
+) ; :CLOSE eval-when
 
 ;; :COURTESY cllib/withtype.lisp :WAS `map-vec'
 (defmacro vector-map (type len &rest args)
@@ -807,7 +808,7 @@ Automates the oft found macro idiom:~%
  \(macroexpand
   '\(with-gensyms \(a-sym b-sym\) \(list \(identity a-sym\) \(identity b-sym\)\)\)\)~%
  \(with-gensyms \(a-sym b-sym\) \(list \(identity a-sym\) \(identity b-sym\)\)\)~%~@
-:NOTE When #+sbcl This is `sb-int:with-unique-names' and returns with slightly
+:NOTE When #+:sbcl This is `sb-int:with-unique-names' and returns with slightly
 different format than the \"On Lisp\" variant, e.g.~%
  \(with-gensyms \(a-sym b-sym\) `\(,a-sym ,b-sym\)\)~%
  \(with-gensyms \(asym  bsym\)  `\(,asym  ,bsym\)\)~%~@
@@ -974,9 +975,11 @@ On a Common Lisp return is as if by values.~%~@
 The order of execution is thus test, body, test, body and so on
 until test returns nil.~%~@
 :EXAMPLE~%~@
- { ... <EXAMPLE> ... }~%~@
+ \(let \(\(a 0\)\)
+  \(while \(> 3 a\) \(setq a \(1+ a\)\)\)
+  a\)~%~@
 :EMACS-LISP-COMPAT~%~@
-:SEE-ALSO `mon:until'.~%▶▶▶")
+:SEE-ALSO `mon:until', `mon:for', `mon:dosequence', `collect'.~%▶▶▶")
 
 (fundoc 'for
    "A curly-braced `for` style function.~%~@
@@ -1293,7 +1296,7 @@ producing a symbol in the current package.~%~@
 :SEE-ALSO `sb-int:symbolicate', `sb-int:keywordicate', `sb-int:sane-package'.~%▶▶▶")
 
 ;;; sbcl/src/code/early-extensions.lisp
-#+sbcl
+#+:sbcl
 (setf (documentation 'collect 'function)
       #.(format nil
 		"Collect some values somehow.~%~@
@@ -1318,7 +1321,7 @@ including macros and lambdas.~%~@
  { ... <EXAMPLE> ... }~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶"))
 
-#+sbcl
+#+:sbcl
 (setf (documentation 'sb-int:dohash 'function)
       #.(format nil
  "Iterate over the entries in a HASH-TABLE, first obtaining the lock

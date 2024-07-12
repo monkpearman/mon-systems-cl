@@ -42,7 +42,7 @@ MON_SYSTEM_FILES="mon.asd
 mon-test.asd
 DEPENDENCIES
 LICENSE.txt
-README
+README.md
 make-mon-systems-etags.sh
 mon-systems-make-tarball.sh
 mon-systems-move-to-git.sh

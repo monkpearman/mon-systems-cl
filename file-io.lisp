@@ -20,7 +20,7 @@
 
 
 (in-package #:mon)
-;; *package*
+
 
 ;; :SORUCE git://git.feelingofgreen.ru/executor :FILE executor/portable-spawn.lisp
 (defmacro with-pipe-stream ((stream-var &rest make-pipe-stream-args) &body body)
@@ -89,8 +89,8 @@
 ;; (with-output-to-string-or-stream (i) (princ "bubba" i) (princ "bubba2" i))
 (defmacro with-output-to-string-or-stream ((var &optional (string-or-stream var)) &body body)
   ;; (macroexpand-1 '(with-output-to-string-or-stream (i) "bubba"))
-  (#-sbcl alexandria:with-unique-names
-   #+sbcl sb-int:with-unique-names
+  (#-:sbcl alexandria:with-unique-names
+   #+:sbcl sb-int:with-unique-names
    (shared)
    `(flet ((,shared (,var)
              ,@body))
@@ -104,10 +104,12 @@
 ;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git')
 ;; :FILE i4-diet-utils.lisp :WAS `with-input-file'
 ;; :NOTE Requires flexi-streams `make-flexi-stream'
-;; (defmacro with-input-file ((file-var file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
+;; (defmacro with-input-file ((file-var file &key #+:sbcl (external-format #.(sb-impl::default-external-format)) #-:sbcl (external-format :default))
 (defmacro with-input-file ((file-var file
-                            &key (external-format :utf-8) ;; (element-type '(unsigned-byte 8))
-                                 ) &body body)
+                            &key
+                            ;; (element-type '(unsigned-byte 8))
+                            (external-format :utf-8))
+                           &body body)
   (alexandria:once-only (file external-format) ; keep order of evaluation
     (let ((in (gensym)))
       `(with-open-file (,in ,file
@@ -120,7 +122,7 @@
 
 ;; (sb-impl::default-external-format)
 ;; quickproject/quickproject.lisp
-;; (defmacro with-new-file ((stream file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default)) &body body)
+;; (defmacro with-new-file ((stream file &key #+:sbcl (external-format #.(sb-impl::default-external-format)) #-:sbcl (external-format :default)) &body body)
 (defmacro with-new-file ((stream file &key (external-format :utf-8)) &body body)
   `(with-open-file (,stream ,file
                             :direction :output
@@ -131,8 +133,7 @@
      ;;(let ((*print-case* :downcase))
      ,@body))
 
-
-;; (defmacro with-new-file-renaming-old ((stream file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default)) &body body)
+;; (defmacro with-new-file-renaming-old ((stream file &key #+:sbcl (external-format #.(sb-impl::default-external-format)) #-:sbcl (external-format :default)) &body body)
 (defmacro with-new-file-renaming-old ((stream file &key (external-format :utf-8)) &body body)
   `(with-open-file (,stream ,file
                             :direction :output
@@ -143,11 +144,11 @@
      ,@body))
 
 ;;
-;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git') 
+;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git')
 ;; :SEE (URL `https://github.com/ivan4th/i4-diet-utils')
 ;; :FILE i4-diet-utils.lisp :WAS `with-overwrite'
 ;; :NOTE Requires flexi-streams `make-flexi-stream'
-;; (defmacro with-file-overwritten ((file-var file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default)) &body body) 
+;; (defmacro with-file-overwritten ((file-var file &key #+:sbcl (external-format #.(sb-impl::default-external-format)) #-:sbcl (external-format :default)) &body body)
 (defmacro with-file-overwritten ((file-var file
                                   ;; (element-type '(unsigned-byte 8))
 
@@ -161,14 +162,13 @@
                                    :element-type '(unsigned-byte 8))
          (let ((,file-var (flexi-streams:make-flexi-stream ,out :external-format ,external-format)))
            ,@body)))))
-;;
+
 ;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git')
 ;; :FILE i4-diet-utils.lisp :WAS `write-file'
-;; (defun write-file (string file &key  #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
+;; (defun write-file (string file &key  #+:sbcl (external-format #.(sb-impl::default-external-format)) #-:sbcl (external-format :default))
 (defun write-file (string file &key (external-format :utf-8))
   (with-file-overwritten (out file :external-format external-format)
     (write-string string out)))
-
 
 (defun write-file-header (file-stream)
   ;; does not perform any error checking to ensure that file-stream is an open output stream.
@@ -177,10 +177,9 @@
   (fresh-line file-stream)
   (format file-stream ";;; :FILE ~S~&;;; ~,,v,v:A~&" (pathname file-stream) 64 #\= ""))
 
-;;
 ;; :SOURCE (URL `git://github.com/ivan4th/i4-diet-utils.git')
 ;; :FILE i4-diet-utils.lisp :WAS `snarf-file'
-;; (defun read-file-to-string (file &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
+;; (defun read-file-to-string (file &key #+:sbcl (external-format #.(sb-impl::default-external-format)) #-:sbcl (external-format :default))
 (defun read-file-to-string (file &key (external-format :utf-8))
   (with-output-to-string (out)
     (with-input-file (in file :external-format external-format)
@@ -190,7 +189,7 @@
         do (princ read out)
         do (terpri out)))))
 
-;; (defun read-file-list-from-fprint0-file (pathname-or-namestring &key #+sbcl (external-format #.(sb-impl::default-external-format)) #-sbcl (external-format :default))
+;; (defun read-file-list-from-fprint0-file (pathname-or-namestring &key #+:sbcl (external-format #.(sb-impl::default-external-format)) #-:sbcl (external-format :default))
 (defun read-file-list-from-fprint0-file (pathname-or-namestring &key (external-format :default)) ;; (element-type 'character))
   (declare (pathname-or-namestring pathname-or-namestring))
   (with-open-file (fprint0-img-file  pathname-or-namestring
@@ -239,21 +238,20 @@
 
 ;; :SORUCE git://git.feelingofgreen.ru/executor :FILE executor/portable-spawn.lisp
 (defun make-pipe-stream (&key (element-type 'base-char) (external-format :default) (buffering :full))
-  #+sbcl
+  #+:sbcl
   (multiple-value-bind (r w) (sb-posix:pipe)
     (make-two-way-stream
      (sb-sys:make-fd-stream r :input t :element-type element-type :external-format external-format :buffering buffering)
      (sb-sys:make-fd-stream w :output t :element-type element-type :external-format external-format :buffering buffering)))
-  #+ecl
+  #+:ecl
   (si:make-pipe)
-  #+ccl
+  #+:ccl
   (multiple-value-bind (r w) (ccl::pipe)
     (make-two-way-stream
      (ccl::make-fd-stream r :direction :input  :element-type element-type :encoding (ccl::external-format-character-encoding external-format) :buffering buffering)
      (ccl::make-fd-stream w :direction :output :element-type element-type :encoding (ccl::external-format-character-encoding external-format) :buffering buffering)))
   #-(or sbcl ecl ccl)
   (not-implemented 'make-pipe-stream))
-
 
 ;; :SORUCE git://git.feelingofgreen.ru/executor :FILE executor/portable-spawn.lisp
 ;; :WAS `close-pipe-read-side'
@@ -292,9 +290,9 @@
                            :if-does-not-exist :create)
             (salza2:with-compressor (compressor 'salza2:gzip-compressor
                                                 :callback (salza2:make-stream-output-callback ostream))
-              ;; :WAS (salza2:compress-octet-vector (babel:string-to-octets string :encoding :utf-8) compressor) 
-              #+sbcl (salza2:compress-octet-vector (sb-ext:string-to-octets string :external-format :utf-8) compressor)
-              #-sbcl (salza2:compress-octet-vector (flex:string-to-octets   string :external-format :utf-8) compressor))))
+              ;; :WAS (salza2:compress-octet-vector (babel:string-to-octets string :encoding :utf-8) compressor)
+              #+:sbcl (salza2:compress-octet-vector (sb-ext:string-to-octets string :external-format :utf-8) compressor)
+              #-:sbcl (salza2:compress-octet-vector (flex:string-to-octets   string :external-format :utf-8) compressor))))
     (if cnt-byte
         (values rtn-path cnt-byte)
         (values nil 'non-local-exit))))
@@ -324,8 +322,8 @@
 
 ;;; ==============================
 ;; :NOTE `mon:pathname-file-list-if' doesn't catch symlinks when non-SBCL!
-#+sbcl
-(defun gzip-files-and-delete-source (files-list) 
+#+:sbcl
+(defun gzip-files-and-delete-source (files-list)
   (let ((cln-dirs-syms (pathname-file-list-if files-list :as-pathnames nil)))
     (flet  ((gzip-file-and-delete (in-file)
               (declare (string in-file))
@@ -347,11 +345,11 @@
 ;;                                :encoding :utf-8))
 ;;; ==============================
 (defun read-file-gunzip-to-string (gzip-pathname)
-  #-sbcl (flex:octets-to-string
+  #-:sbcl (flex:octets-to-string
           (with-open-file (in gzip-pathname :element-type '(unsigned-byte 8) :direction :input)
             (flex:with-output-to-sequence (out) (chipz:decompress out 'chipz:gzip in)))
           :external-format :utf-8)
-  #+sbcl (sb-ext:octets-to-string
+  #+:sbcl (sb-ext:octets-to-string
           (with-open-file (in gzip-pathname :element-type '(unsigned-byte 8) :direction :input)
             (flex:with-output-to-sequence (out) (chipz:decompress out 'chipz:gzip in)))
           :external-format :utf-8))
@@ -383,7 +381,7 @@ If FILE-NAME exists its contents are overwritten as if by :if-exists :supersede
    \(with-temp-file \(tf mp\)
      \(princ \"bubba\" tf\)\)\)~%~@
 :EMACS-LISP-COMPAT Similiar to `with-temp-buffer'.~%~@
-:SEE-ALSO `with-each-stream-line', `with-opened-file', 
+:SEE-ALSO `with-each-stream-line', `with-opened-file',
 `alexandria:write-string-into-file', `alexandria:read-file-into-string',
 `alexandria:with-input-from-file', `alexandria:with-output-to-file'.~%▶▶▶")
 
@@ -397,7 +395,7 @@ If FILE-NAME exists its contents are overwritten as if by :if-exists :supersede
 "<DOCSTR>~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
-:SEE-ALSO `mon:with-temp-file', `mon:with-opened-file', 
+:SEE-ALSO `mon:with-temp-file', `mon:with-opened-file',
 `alexandria:write-string-into-file', `alexandria:read-file-into-string',
 `alexandria:with-input-from-file', `alexandria:with-output-to-file'.~%▶▶▶")
 
@@ -450,7 +448,7 @@ FILE is a pathname as per `mon:with-input-file'.~%~@
 Keyword EXTERNAL-FORMAT is as per `flexi-streams:make-flexi-stream'.
 Default is :utf-8.~%~@
 :EXAMPLE~%
- \(let \(\(fl \(merge-pathnames 
+ \(let \(\(fl \(merge-pathnames
 	    \(make-pathname :directory '\(:relative \"notes\"\)
 			   :name \"test\"\)
 	    \(pathname-system \"mon\"\)\)\)

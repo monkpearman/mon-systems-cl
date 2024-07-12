@@ -77,7 +77,7 @@
 ;;; (find-method (fdefinition 'dbc-var-binding) nil '(dbc-system-subdir))
 ;;; (find-method (fdefinition (setf dbc-var-binding)) nil '(dbc-system-subdir t) nil)
 ;;; (find-method (fdefinition '(setf dbc-var-binding)) nil '(t dbc-system-subdir) nil)
-;;; (find-method #'(setf <SYMBOL>) nil '(<SPECIALIZER(S)>) nil) 
+;;; (find-method #'(setf <SYMBOL>) nil '(<SPECIALIZER(S)>) nil)
 ;;; (find-method (function <SYMBOL>) nil '(<CLASS>) nil)
 ;;; (find-method (fdefinition '(setf <SYMBOL>)) nil '(<SPECIALIZER(S)>) nil)
 ;;;
@@ -112,7 +112,7 @@
 		     (sb-mop:class-direct-subclasses class)))
 	       (apply #'append subclasses
 		      (mapcar #'collect-subclasses subclasses)))))
-    (mapcar #'class-name (remove-duplicates (collect-subclasses 
+    (mapcar #'class-name (remove-duplicates (collect-subclasses
 					     (if (symbolp class)
 						 (find-class class) class))))))
 
@@ -129,13 +129,13 @@
 	     `(slot-value ,slot 'sb-pcl::name))
 	   (slot-initargs (slot)
 	     `(slot-value ,slot 'sb-pcl::initargs))
-	   (slot-one-initarg (slot) 
+	   (slot-one-initarg (slot)
 	     `(car (slot-initargs ,slot)))
 	   (slot-alloc (slot)
 	     `(sb-pcl::slot-definition-allocation ,slot)))
-;;	   
+;;
 (defun class-slot-list (class &optional (all t))
-  (mapcan (if all 
+  (mapcan (if all
 	      (%compose list slot-name)
               (lambda (slot)
                 (when (eq (slot-alloc slot) :instance)
@@ -146,7 +146,7 @@
   (class-slots1 class))
 ;;
 (defun class-slot-initargs (class &optional (all t))
-  (mapcan (if all 
+  (mapcan (if all
 	      (%compose list slot-one-initarg)
               (lambda (slot)
                 (when (eq (slot-alloc slot) :instance)
@@ -168,7 +168,7 @@
 ;;; Zetalisp function. :WAS `instancep'
 (defgeneric class-instance-p (object)
   (:documentation "Is OBJECT an instance of the class standard-object."))
-(defmethod class-instance-p ((object t)) nil) 
+(defmethod class-instance-p ((object t)) nil)
 (defmethod class-instance-p ((object standard-object)) t)
 
 (defun slot-value-or (obj slot &optional default)
@@ -185,7 +185,7 @@
   ;; (format nil "~S" (class-name (find-class 'parsed-ref)))
   (declare (optimize (speed 0) (safety 0) (compilation-speed 0) (debug 3)))
   (symbol-not-null-or-error class :w-locus "CLASS" :signal-or-only nil)
-  (let* ((pkg (or (and package 
+  (let* ((pkg (or (and package
                        (or (find-package* package)
                            (package-error-not package
                                               :w-sym  'find-class-name-as-string
@@ -195,8 +195,8 @@
                                               :signal-or-only nil)))
                   #+sbcl (sb-int:sane-package)
                   #-sbcl *package*))
-         (class-sym-p (and 
-                       (ref-bind gotit (multiple-value-list 
+         (class-sym-p (and
+                       (ref-bind gotit (multiple-value-list
                                         (where-is-local (symbol-name class) pkg))
                          ;; (progn (break "refbind got: ~S" gotit)
                          (and (car gotit)
@@ -205,7 +205,7 @@
                          )))
          (fnd-cls (ref-bind fc (car class-sym-p)
                     ;; This is still searching for non-existent classes.
-                    ;; (progn 
+                    ;; (progn
                     ;;   (break "refbind got: ~S" fc)
                     ;;   (find-class fc)) )))
                     (find-class fc) )))
@@ -263,7 +263,7 @@
             ;; Don't finalize if it isn't yet.
             (values nil nil (format nil ";; class ~S not `sb-mop:class-finalized-p'" fc)))
         (error 'simple-error
-               :format-control "class ~S not found with `cl:find-class'" 
+               :format-control "class ~S not found with `cl:find-class'"
                :format-arguments `(,class)))))
 
 
@@ -287,7 +287,7 @@
 ;; (sb-mop:class-slots (find-class 'dbc:base-description))
 ;; (sb-mop:class-finalized-p (find-class 'dbc:base-description)) (where-is "base-entity")
 ;; (slot-definition-and-name 'dbc:entity-regexp 'dbc::match-entity-class)
-;; (slot-definition-and-name 'bubba nil) 
+;; (slot-definition-and-name 'bubba nil)
 ;;; ==============================
 
 
@@ -304,7 +304,7 @@
 
 (fundoc 'slot-definition-and-name
         "Return SLOT-DEFINITION-NAME object of CLASS.~%~@
-Return value is as if by `cl:values': 
+Return value is as if by `cl:values':
  SLOT-DEFINITION-NAME
  SLOT-NAME-OR-DEF
 If `class-finalized-p' fails to return nth-value 0 and 1 are nil and a third
@@ -321,7 +321,7 @@ Signal an error if CLASS is not found with `cl:find-class'.~%~@
 :SEE-ALSO `class-slot-list', `class-slot-initargs',
 `structure-slots'.~%▶▶▶")
 
-(fundoc 'class-name-of 
+(fundoc 'class-name-of
 "Return the `cl:class-name' that OBJECT is `cl:class-of'.~%~@
 When OBJECT is an instance of `cl:standard-object' and satisfies
 `class-instance-p' return value is the name of the class it belongs to..~%~@
@@ -344,7 +344,7 @@ _except itself_.~%~@
 "Find the class-name of CLASS in PACKAGE.~%~@
 When found return-value is as if by `cl:values'.
 Returned values have the form:~%
- \"<CLASS>\" 
+ \"<CLASS>\"
   <CLASS>
   <PKG>[:|::]<CLASS>
   { :INTERNAL | :EXTERNAL | :INHERITED | :PRESENT }~%~@

@@ -9,7 +9,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 (defun bool-vector-p (object)
   (typep object 'bool-vector))
@@ -17,8 +16,8 @@
 (defun make-bool-vector (length init)
   (declare (array-length length)
            ((or bit boolean) init))
-  (make-array length 
-              :element-type 'bit 
+  (make-array length
+              :element-type 'bit
               :initial-element (etypecase init
                                  (bit (or (and (= init 1) 1) 0))
                                  (boolean (or (and init 1) 0)))))
@@ -38,19 +37,19 @@
   (declare (type simple-string-or-null input-string)
            (optimize (speed 3) (space 0) (safety 1)))
   (unless (simple-string-null-or-empty-p input-string)
-    (let* ( ;; :WAS (s (string-left-trim " " 
+    (let* ( ;; :WAS (s (string-left-trim " "
            ;;                    (string-right-trim " "  (the simple-string input-string))))
            (s (string-trim-whitespace (the simple-string input-string)))
            (len (1- (length (the simple-string s))))
-           (result (make-array (1+ len) 
-                               :element-type 'bit 
+           (result (make-array (1+ len)
+                               :element-type 'bit
                                :initial-element 0)))
       ;; On SBCL we won't get to the second type decl. when `s` is the empty
       ;; string b/c of the first declaration and NIL can't happen per the
       ;; `unless' form above. But, even if we did, we wouldn't get further b/c
       ;; where `s` is "" `len` is -1 and the lower bounds of mon:index is 0.
       `(declare (type string-all-digit-char-0-or-1 s)
-                (type array-length len) 
+                (type array-length len)
                 (type (simple-bit-vector ,len) result))
       (loop
          :for flip0 :from 0 :to len
@@ -97,9 +96,9 @@
 	   (type (or null array-length) end)
 	   (optimize (speed 3) (safety 1) (debug 0)))
   (let* ((str-len
-          (and 
+          (and
            (or (string-not-empty-p string)
-               (string-empty-error :w-sym 'string-ascii-to-byte-array 
+               (string-empty-error :w-sym 'string-ascii-to-byte-array
                                    :w-type 'function
                                    :w-locus 'string
                                    :signal-or-only nil))
@@ -119,38 +118,37 @@
          (end (or end (the array-length str-len))))
     (declare (type simple-string string)
              (type array-length end))
-    (loop 
-       :for i :from start :below end 
+    (loop
+       :for i :from start :below end
        :do (setf (aref vec i) (char-code (schar string i)))
        :finally (return vec))))
 ;;
-;; 
-#+sbcl
+#+:sbcl
 (defun byte-array-to-string (vector &key (start 0) end (external-format :default))
   (declare ((vector (unsigned-byte 8)) vector))
-  (sb-ext:octets-to-string vector 
-                           :start start 
-                           :end end 
+  (sb-ext:octets-to-string vector
+                           :start start
+                           :end end
 			   ;;sb-impl::*external-formats*
-                           :external-format external-format)) 
+                           :external-format external-format))
 
-#+sbcl
+#+:sbcl
 (defun string-to-byte-array (string &key (start 0) end null-terminate
                              (external-format :default))
   (declare (type string string))
-  (sb-ext:string-to-octets string 
-                           :start start 
-                           :end end 
+  (sb-ext:string-to-octets string
+                           :start start
+                           :end end
 			   ;;sb-impl::*external-formats*
-                           :external-format external-format 
+                           :external-format external-format
                            :null-terminate null-terminate))
 
 ;;  Destructively truncate simple vector VECTOR to LENGTH.
-#+sbcl
+#+:sbcl
 (defun vector-shrink (vector length)
   (sb-kernel:shrink-vector vector length))
 
-#+sbcl
+#+:sbcl
 (define-compiler-macro vector-shrink (vector length)
   `(sb-kernel:shrink-vector ,vector ,length))
 
@@ -171,13 +169,13 @@
 (defun vector-remove-elts (psn-lst vec)
   (let* ((vec-size (length vec))
          (ret (make-array (- vec-size (length psn-lst)))))
-    (loop 
-       :with ret-pos = 0 
+    (loop
+       :with ret-pos = 0
        :with rem = (pop psn-lst)
        :for vec-pos :upfrom 0 :while rem
-       :if (= rem vec-pos) 
+       :if (= rem vec-pos)
         :do (setq rem (pop psn-lst))
-       :else 
+       :else
         :do (setf (aref ret ret-pos) (aref vec vec-pos)) (incf ret-pos)
        :end
        :finally (replace ret vec :start1 ret-pos :start2 vec-pos))
@@ -187,8 +185,8 @@
 (defun vector-binary-search (value vector &key (key #'identity))
   ;; Binary search for simple vectors
   (declare (simple-vector vector))
-  #+sbcl (sb-impl::binary-search value vector key)
-  #-sbcl (labels ((recurse (start end)
+  #+:sbcl (sb-impl::binary-search value vector key)
+  #-:sbcl (labels ((recurse (start end)
                     (when (< start end)
                       (let* ((i (+ start (truncate (- end start) 2)))
                              (elt (svref vector i))
@@ -221,7 +219,7 @@
   (declare ((simple-array *) vector))
   (nshuffle-vector (copy-seq vector)))
 
-;; #+sbcl (defun dovector (elt vector &optional result &rest body)
+;; #+:sbcl (defun dovector (elt vector &optional result &rest body)
 ;;       (sb-int::dovector elt vector result) ;body))
 
 ;;; :SOURCE ltk-0.91/ltk.lisp
@@ -229,14 +227,14 @@
   (declare (string string))
   (make-array (or (and string  (length string)) 0)
               :element-type 'character
-              :initial-contents string 
-              :adjustable t 
+              :initial-contents string
+              :adjustable t
               :fill-pointer t))
 
 ;; :SOURCE (URL `http://groups.google.com/group/comp.lang.lisp/msg/f527904bd5167a83')
-;; :COURTESY Erik Naggum comp.lang.lisp :DATE 2004/01/17 
+;; :COURTESY Erik Naggum comp.lang.lisp :DATE 2004/01/17
 ;; :SUBJECT Re: simple-array vs displaced-to
-(defun array-get-undisplaced (array)  
+(defun array-get-undisplaced (array)
   (let ((length (length array))
         (start 0))
     (declare (array-length length))
@@ -251,7 +249,7 @@
 ;; :SOURCE sbcl/src/compiler/bit-util.lisp
 ;; :NOTE These are all declaimed inline
 ;; SBCL uses these in conjunction with constraints via the sparse sets of :FILE sset.lisp
-;; 
+;;
 ;; ,----
 ;; | Historically, CMUCL and SBCL have used a sparse set implementation
 ;; | for which most operations are O(n) (see sset.lisp), but at the
@@ -264,11 +262,11 @@
 ;; | compile time for most Lisp systems, and as much as 20-30% for some
 ;; | particularly CP-dependent systems.
 ;; `---- :SOURCE :FILE sbcl/src/compiler/constraint.lisp
-;;     
+;;
 ;; ,----
 ;; | Bit-vectors win over lightweight hashes for copy, union,
 ;; | intersection, difference, but lose for iteration if you iterate
-;; | over the whole vector.  
+;; | over the whole vector.
 ;; `---- :SOURCE comments for structure def of `conset'
 ;;
 ;;
@@ -278,14 +276,14 @@
 ;;; ==============================
 
 ;;; :SOURCE sbcl/src/compiler/bit-util.lisp :WAS `clear-bit-vector'
-#+sbcl
+#+:sbcl
 (defun bit-vector-clear (bool-vec)
   (declare (type simple-bit-vector bool-vec))
   ;; :WAS (fill vec 0))
   (sb-kernel:vector-fill* bool-vec 0 0 (length bool-vec)))
 ;;
 ;;; :SOURCE sbcl/src/compiler/bit-util.lisp :WAS `set-bit-vector'
-#+sbcl
+#+:sbcl
 (defun bit-vector-set (bool-vec)
   (declare (type simple-bit-vector bool-vec))
   ;; :WAS (fill vec 1))
@@ -318,7 +316,7 @@
 
 ;;; ==============================
 ;;; Follwing functions are GPLv3 Copyright (c) 2008-2011 Keith James. All rights reserved.
-;;; :SOURCE uk.co.deoxybyte-utilities/vector-utilities 
+;;; :SOURCE uk.co.deoxybyte-utilities/vector-utilities
 ;;; `vector-positions', `vector-split-indices', `vector-split'
 ;;; ==============================
 (defun vector-positions (elt vector &key (start 0) end (test #'eql))
@@ -336,19 +334,19 @@
              vector-spec: ~S~%"
             (length vector)
             start
-            end 
+            end
             (type-of vector))
-    (loop 
+    (loop
        for i from start below end
        when (funcall test elt (aref vector i))
        collect i)))
-;; *print-readably*
+
 (defun vector-split-indices (elt vector &key (start 0) end (test #'eql))
   "Returns two values, a list of start indices and a list of end
 indices into VECTOR between START and END such that if used as
 start/end arguments to subseq, VECTOR will be split on ELT. ELT is
 compared with elements in VECTOR using TEST, which defaults to EQL."
-  (declare (optimize (speed 3) 
+  (declare (optimize (speed 3)
                      ;;(safety 1)
                      (debug 0)))
   (declare (type vector vector))
@@ -386,7 +384,7 @@ compared with elements in VECTOR using TEST, which defaults to EQL."
       (cond ((and starts ends)
              (loop
                 for i in starts
-                for j in ends  
+                for j in ends
                 when (not (and remove-empty-subseqs
                                (= i j)))
                 collect (if displace-to-vector
@@ -431,9 +429,6 @@ compared with elements in VECTOR using TEST, which defaults to EQL."
       (setf (sb-sys:sap-ref-word sap 0) header
             (sb-sys:sap-ref-word sap sb-vm:n-word-bytes) length)))
   vector)
-
-
-
 
 
 
@@ -486,7 +481,7 @@ Both IN-BOOL-VEC and W-BOOL-VEC are of type `simple-bit-vector'.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `bool-vector-p', `make-bool-vector',. `bit-vector-copy',
-`bit-vector-set', `bit-vector-clear'~%▶▶▶")
+`bit-vector-set', `bit-vector-clear'.~%▶▶▶")
 
 (fundoc 'string-to-bit-vector
 "Convert the simple-string INPUT-STRING to a bit-vector.~%~@
@@ -513,7 +508,7 @@ INPUT-BIT-VECTOR should satisfy `cl:simple-bit-vector-p', signal an error if not
 `mon:string-to-byte-array', `mon:bit-vector-to-string', `mon:string-to-bit-vector',
 `mon:char-char-length', `mon:code-point'.~%▶▶▶")
 
-#+sbcl
+#+:sbcl
 (fundoc 'bit-vector-set
 ";; Fill the `simple-bit-vector' BOOL-VEC with ones.~%~@
 :EXAMPLE~%~@
@@ -521,7 +516,7 @@ INPUT-BIT-VECTOR should satisfy `cl:simple-bit-vector-p', signal an error if not
 :SEE-ALSO `bool-vector-p', `make-bool-vector', `bit-vector-replace',
 `bit-vector-copy', `bit-vector-clear'.~%▶▶▶")
 
-#+sbcl
+#+:sbcl
 (fundoc 'bit-vector-clear
 "Clear the bits `simple-bit-vector' BOOL-VEC to zeros.~%~@
 :EXAMPLE~%~@
@@ -562,7 +557,7 @@ a displaced array.~%
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'make-string-adjustable 
+(fundoc 'make-string-adjustable
 "Convenience feature for `cl:make-array' specialized for strings.~%~@
 Optional arg STRING is when non-nil is a string to use as :initial-contents for returned array.~%~@
 Specs of returned array are as follows:~%
@@ -580,7 +575,7 @@ Specs of returned array are as follows:~%
    \(values v-p-e-string \(fill-pointer v-p-e-string\)\)\)~%~@
 :SEE-ALSO `cl:make-string', `cl:with-output-to-string', `cl:format'.~%▶▶▶")
 
-;; #+sbcl (setf (documentation 'dovector 'function)
+;; #+:sbcl (setf (documentation 'dovector 'function)
 ;;       #.(format nil
 ;; "like `dolist', but with one-dimensional arrays~%~@
 ;; :EXAMPLE~%~%~@\(let \(gthr\)
@@ -598,24 +593,24 @@ Signal an error if STRING contains any character whose CHAR-CODE is greater than
  ;=> #(224 233 201 237 243 252)~%
  \(type-of \(string-ascii-to-byte-array \"aeiou\"\)\)~%
  \(string-ascii-to-byte-array \"\(string-ascii-to-byte-array \\\"áéíóü\\\"\)\"\)~%
- \(byte-array-to-string 
-  \(string-ascii-to-byte-array \"\(string-ascii-to-byte-array \\\"áéíóü\\\"\)\"\) 
+ \(byte-array-to-string
+  \(string-ascii-to-byte-array \"\(string-ascii-to-byte-array \\\"áéíóü\\\"\)\"\)
   :external-format :iso-8859-1\)~%~@
 Following fails successfully:~%
  \(string-ascii-to-byte-array \"aeiou►\"\)~%
 :SEE-ALSO `mon:string-ascii-to-byte-array', `mon:byte-array-to-string',
 `mon:string-to-byte-array', `mon:bit-vector-to-string', `mon:string-to-bit-vector',
 `mon:char-char-length', `mon:code-point'.~%▶▶▶")
- 
+
 (fundoc 'byte-array-to-hex-string
 "Convert subsequence of VECTOR between START and END to string
 Returnded String is a hexadecimal representation of the bytes of VECTOR.~%~@
 VECTOR is a vector of type \(unsigned-byte 8\).~%~@
 ELEMENT-TYPE controls the element-type of the returned string.
 Default is `cl:base-char'.~%~@
-:EXAMPLE~% 
+:EXAMPLE~%
  \(byte-array-to-hex-string \(string-ascii-to-byte-array \"áíéÉó\"\)\)~%
- \(parse-integer 
+ \(parse-integer
   \(subseq \(byte-array-to-hex-string \(string-ascii-to-byte-array \"áíéÉó\"\)\) 0 2\)
   :radix 16\)~%
 :NOTE When sb-unicode is in *features*, following may not return as expected:~%~@
@@ -623,9 +618,9 @@ Default is `cl:base-char'.~%~@
  ;=> \"c3a1\"~%
  \(parse-integer \"c3a1\":radix 16\)
  ;=> 50081, 4~%
- (code-char 50081) 
+ (code-char 50081)
  ;=> #\HANGUL_SYLLABLE_SSYEOG~%
- \(byte-array-to-hex-string 
+ \(byte-array-to-hex-string
   \(string-to-byte-array \"á\" :external-format :iso-8859-1\)\)~%~@
  ;=> \"e1\"
  (parse-integer \"e1\" :radix 16)
@@ -636,7 +631,7 @@ Default is `cl:base-char'.~%~@
 `mon:byte-array-to-string', `mon:bit-vector-to-string', `mon:string-to-bit-vector',
 `mon:char-char-length', `mon:code-point'.~%▶▶▶")
 
-#+sbcl 
+#+:sbcl
 (fundoc 'byte-array-to-string
 "Convert octets of VECTOR to string.~%~@
 VECTOR is an array of element-type \(unsigned-byte 8\). Signal an error if not.~%~@
@@ -649,7 +644,7 @@ Keyword END is an index into VECTOR to end at.~%~@
  \(loop for kk being each hash-key of sb-impl::*external-formats* collect kk\)~%~@
 :SEE-ALSO `mon:string-to-byte-array', `mon:string-ascii-to-byte-array'.~%▶▶▶")
 
-#+sbcl
+#+:sbcl
 (fundoc 'string-to-byte-array
 "Convert STRING from START to END to a vector of octets.~%~@
 Return value is of type (simple-array (unsigned-byte 8) *).~%~@
@@ -670,7 +665,7 @@ data structures/strings.~%~@
 ;;; ==============================
 (fundoc 'vector-split
  "Return a list of vectors splitting VECTOR at ELT, between START and END.~%~@
-ELT is compared with elements in VECTOR using 
+ELT is compared with elements in VECTOR using
 Keyword START is and END are as with `cl:position'.~%~@
 Keyword TEST is a function, default is EQL.~%~@
 Keyword REMOVE-EMPTY-SUBSEQS when non-nil indicates empty subsequences should be

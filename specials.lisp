@@ -4,7 +4,6 @@
 
 
 (in-package #:mon)
-;; *package*
 
 (defmacro defconst (name value &optional doc)
   `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)
@@ -100,7 +99,7 @@
   ;; other possible values
   ;; "README" "CHANGELOG" "ChangeLog" "TAGS" "COPYING"
   '(".gitignore" ".hgignore" ".bzrignore"
-    ".BridgeCache" ".BridgeCacheT" "Thumbs.db"))
+    ".BridgeCache" ".BridgeCacheT" "Thumbs.db" ".DS_Store"))
 
 (defconst* *standard-test-functions* list
   (list 'eq     #'eq
