@@ -299,7 +299,6 @@
  ;; :PASTE-BY    pjb
  ;; :PASTE-DATE 2011-07-22
  ;; :PASTE-URL (URL `http://paste.lisp.org/display/123441')
-
  (defun function-names (f)
    (delete-duplicates
     (loop
