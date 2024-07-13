@@ -116,15 +116,15 @@ ensure_docs_dir ()
 }
 
 
-ensure_readme ()
-{
- if [ ! -e $MON_SYSTEM_GIT/README ]
-  then
-     echo "Creating empty README file: $MON_SYSTEM_GIT/README"
-     echo 
-     touch $MON_SYSTEM_GIT/README
-  fi
-}
+# ensure_readme ()
+# {
+#  if [ ! -e $MON_SYSTEM_GIT/README ]
+#   then
+#      echo "Creating empty README file: $MON_SYSTEM_GIT/README"
+#      echo 
+#      touch $MON_SYSTEM_GIT/README
+#   fi
+# }
 
 
 ensure_loadtime_bind ()
@@ -212,7 +212,7 @@ ensure_docs_dir
 copy_mon_files
 copy_mon_test_files
 copy_mon_doc_files
-ensure_readme
+# ensure_readme
 ensure_loadtime_bind
 etags_src
 etags_after_copy

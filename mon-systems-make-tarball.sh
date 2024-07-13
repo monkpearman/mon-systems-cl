@@ -16,21 +16,32 @@
 ### I F*CKING HATE SHELL SCRIPTING!!!
 ### ==============================
 
-## tar cvzf 
-## date '+%Y-%m-%d'"
-## date %y-%m-%d
-
 ### CL_MON_CODE=$DEVHOME/some/path/to/mon
 
+## "$MON_SYSTEM_SRC $MON_SYSTEM_SRC/tests $MON_SYSTEM_TAR"
+
+DEVHOME=$DEVHOME
+
+CL_MON_CODE=$DEVHOME/CL-MON-CODE
+
 MON_SYSTEM_NM="mon-systems"
+
 MON_SYSTEM_SRC=$CL_MON_CODE/mon-systems
 
 MON_SYSTEM_TAR_TOP=$CL_MON_CODE/SYSTEMS-tmp/MS-tmp
+
 MON_SYSTEM_TAR_DIR=$MON_SYSTEM_TAR_TOP/mon-systems
 
+TAR_DATE=$(date '+%Y-%m-%d')
 
-TAR_DATE="date +%y-%m-%d"
-TAR_TARGET_NAME=$
+TAR_TARGET_NAME=$MON_SYSTEM_NM
+
+# echo $DEVHOME
+# echo $CL_MON_CODE
+# echo $MON_SYSTEM_NM
+# echo $MON_SYSTEM_SRC
+# echo $MON_SYSTEM_TAR_TOP
+# echo $MON_SYSTEM_TAR_DIR
 
 
 # TESTING
@@ -56,6 +67,7 @@ chronos.lisp
 class-doc.lisp
 class-utils.lisp
 compose.lisp
+completion.lisp
 conditions.lisp
 deprecated.lisp
 docs.lisp
@@ -89,7 +101,7 @@ usec-tests.lisp"
 
 ensure_abort_dirs () 
 {
-    for j in `echo "$MON_SYSTEM_SRC $MON_SYSTEM_SRC/tests $MON_SYSTEM_TAR"`;do
+    for j in `echo "$MON_SYSTEM_SRC $MON_SYSTEM_SRC/tests $MON_SYSTEM_TAR_DIR"`;do
         if [ ! -d "$j" ]
             then 
             echo "A required directory was non-existent: $j";
@@ -101,10 +113,10 @@ ensure_abort_dirs ()
 
 ensure_tests_dir ()
 {
-    if [ ! -d "$MON_SYSTEM_TAR/tests" ]
+    if [ ! -d "$MON_SYSTEM_TAR_DIR/tests" ]
         then
-        mkdir -p "$MON_SYSTEM_TAR/tests";
-        echo "Created previously non-existent directory: $MON_SYSTEM_TAR/tests"
+        mkdir -p "$MON_SYSTEM_TAR_DIR/tests";
+        echo "Created previously non-existent directory: $MON_SYSTEM_TAR_DIR/tests"
         echo
     fi
 }
@@ -112,21 +124,21 @@ ensure_tests_dir ()
 
 ensure_readme ()
 {
- if [ ! -e $MON_SYSTEM_TAR/README ]
+ if [ ! -e $MON_SYSTEM_TAR_DIR/README.md ]
   then
-     echo "Creaating empty README file: $MON_SYSTEM_TAR/README"
+     echo "Creaating empty README file: $MON_SYSTEM_TAR_DIR/README.md"
      echo 
-     touch $MON_SYSTEM_TAR/README
+     touch $MON_SYSTEM_TAR_DIR/README.md
   fi
 }
 
 
 ensure_loadtime_bind ()
 {
- if [ ! -e $MON_SYSTEM_TAR/loadtime-bind ]
+ if [ ! -e $MON_SYSTEM_TAR_DIR/loadtime-bind ]
   then
-     echo "Creaating template file: $MON_SYSTEM_TAR/loadtime-bind"
-     printf "\n(\"<USERNAME>\" . \"<MONIKER>\")\n\n" > $MON_SYSTEM_TAR/loadtime-bind
+     echo "Creaating template file: $MON_SYSTEM_TAR_DIR/loadtime-bind"
+     printf "\n(\"<USERNAME>\" . \"<MONIKER>\")\n\n" > $MON_SYSTEM_TAR_DIR/loadtime-bind
   fi
 }
 
@@ -138,9 +150,9 @@ copy_mon_files ()
         echo ":FILE $MON_SYSTEM_SRC/$f does not exist";  
         echo
         else                         # On to next.
-         cp "$MON_SYSTEM_SRC/$f" "$MON_SYSTEM_TAR/$f";
+         cp "$MON_SYSTEM_SRC/$f" "$MON_SYSTEM_TAR_DIR/$f";
          echo "Copied :FILE $f"; 
-         echo "From   :SOURCE $MON_SYSTEM_SRC/ to :DEST $MON_SYSTEM_TAR/";
+         echo "From   :SOURCE $MON_SYSTEM_SRC/ to :DEST $MON_SYSTEM_TAR_DIR/";
          echo
      fi
  done;
@@ -156,10 +168,10 @@ copy_mon_test_files ()
         echo ":FILE $MON_SYSTEM_SRC/tests/$f does not exist";  
         echo
      else                         # On to next.
-         # cp `echo $MON_SYSTEM_SRC/tests/$f $MON_SYSTEM_TAR/tests/$f`;
-	 cp $MON_SYSTEM_SRC/tests/$f $MON_SYSTEM_TAR/tests/$f;
+         # cp `echo $MON_SYSTEM_SRC/tests/$f $MON_SYSTEM_TAR_DIR/tests/$f`;
+	 cp $MON_SYSTEM_SRC/tests/$f $MON_SYSTEM_TAR_DIR/tests/$f;
          echo "Copied :FILE $f"; 
-         echo "From   :SOURCE $MON_SYSTEM_SRC/tests to :DEST $MON_SYSTEM_TAR/tests";
+         echo "From   :SOURCE $MON_SYSTEM_SRC/tests to :DEST $MON_SYSTEM_TAR_DIR/tests";
          echo
      fi
  done;
@@ -177,22 +189,58 @@ etags_src ()
 
 etags_after_copy ()
 {
- cd $MON_SYSTEM_TAR
- find . -name '*.lisp' -print | xargs etags -o ./TAGS --language=lisp
- echo "etags created :FILE $MON_SYSTEM_TAR/TAGS"
+ cd $MON_SYSTEM_TAR_DIR
+z find . -name '*.lisp' -print | xargs etags -o ./TAGS --language=lisp
+ echo "etags created :FILE $MON_SYSTEM_TAR_DIR/TAGS"
  echo
 }
 
-cd $MON_SYSTEM_SRC
+
+tar_it_up ()
+{
+cd $MON_SYSTEM_TAR_TOP
+tar -czvf mon-systems-$TAR_DATE.tgz ./mon-systems
+echo "creating tar file mon-systems-$TAR_DATE.tgz in directory: $MON_SYSTEM_TAR_TOP"
+}
+
+
+clean_it_up ()
+{ 
+ for f in $MON_SYSTEM_FILES; do 
+     if [ ! -e "$MON_SYSTEM_TAR_DIR/$f" ]                     # Check if file exists.
+     then
+        echo ":FILE $MON_SYSTEM_TAR_DIR/$f does not exist";  
+        echo
+     else                         # On to next.
+         rm -f "$MON_SYSTEM_TAR_DIR/$f";
+         echo "Removed :FILE $MON_SYSTEM_TAR_DIR/$f"; 
+         echo
+     fi
+ done;
+ for f in $MON_SYSTEM_TEST_FILES; do 
+     if [ ! -e "$MON_SYSTEM_TAR_DIR/tests/$f" ]                     # Check if file exists.
+     then
+         echo ":FILE $MON_SYSTEM_TAR_DIR/$f does not exist";  
+         echo
+     else
+         rm -f "$MON_SYSTEM_TAR_DIR/tests/$f";
+         echo "Removed :FILE $MON_SYSTEM_TAR_DIR/tests/$f"; 
+     fi
+ done;
+}
+
+echo $MON_SYSTEM_SRC
 
 ensure_abort_dirs
 ensure_tests_dir
 copy_mon_files
 copy_mon_test_files
-ensure_readme
+# ensure_readme
 ensure_loadtime_bind
 etags_src
 etags_after_copy
+tar_it_up
+clean_it_up
 
 exit 0
 
