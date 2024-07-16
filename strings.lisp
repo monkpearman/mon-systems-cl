@@ -332,6 +332,34 @@
 	 do (replace result string :start1 index))
        result))))
 
+(defun string-split-bag (string-or-null char-or-char-bag)
+  (declare (or (string null) string-or-null)
+           (or (character list) char-or-char-bag))
+ (labels ((map-trim-whitespace (bag)
+             (mapcar #'(lambda (thing)
+                         (if (null thing) 
+                             thing
+                             (string-trim-whitespace thing)))
+                     bag))
+           (rmv-if (seq) (remove-if #'string-all-whitespace-p  seq))
+           (char-or-bag-if (cobi) (if (characterp cobi)
+                                      (list cobi)
+                                      (if (or (null cobi)
+                                              (not (and (listp cobi)
+                                                         (every #'characterp cobi))))
+                                     (error ":FUNCTION `split-bag', argument CHAR-OR-CHAR-BAG is not a character or list of characters'~%:GOT ~S~%"  cobi)
+                                        cobi)))
+           (mem-split (y) (member y (char-or-bag-if char-or-char-bag)))
+           (split-if (son) (split-sequence:split-sequence-if #'mem-split
+                                                             son
+                                                             :remove-empty-subseqs t)))
+   (if (null string-or-null)
+       nil
+       (progn
+        (unless (stringp string-or-null)
+          (error ":FUNCTION `split-bag', argument STRING-OR-NULL does not satisfy `cl:stringp'~%:GOT ~S~%"  string-or-null))
+        (map-trim-whitespace (rmv-if (split-if string-or-null)))))))
+
 ;;; :NOTE Has sb-rt test `string-split-on-chars-TEST'
 (defun string-split-on-chars (string &optional separators white-on-white)
   (declare (string string)
@@ -1266,7 +1294,7 @@
 :EXAMPLE~%
  \(simple-string-ensure 'FOO\)~%
  \(simple-string-ensure :FOO\)~%~@
-:SEE-ALSO `<XREF>'.~%▶▶▶"))
+:SEE-ALSO `<XREF>'.~%▶▶▶")
         
 (fundoc 'string-to-char
   "Return first char of string to a character code value as if by `char-code'.~%~@
@@ -1586,6 +1614,26 @@ Signal an error when SUBSTRING is length 0.~%~@
 `mon:string-trim-whitespace', `mon:string-split-newline',
 `mon:string-substitute', `mon:string-split-multi', `mon:string-split-spaces',
 `mon:string-upto-char', `mon:string-split-on-chars'.~%▶▶▶")
+
+(fundoc 'string-split-bag
+"SPLIT STRING-OR-NULL with character(s) of CHAR-OR-CHAR-BAG return a list of string(s).~%
+STRING-OR-NULL is a string or NIL.
+CHAR-OR-CHAR-BAG is a character or a list of characters.
+When STRING-OR-NULL is NIL return NIL.
+:EXAMPLE~%~@
+\(string-split-bag \" , . | foo , ,, . | BAR | , | \" \(list #\\, #\\. #\\|\)\)~%~@
+\(string-split-bag \" , . | foo , ,, . | BAR | , | \" \(list #\\, #\\. #\\| \)\)~%~@
+\(string-split-bag \" , . | foo , ,, . | BAR | , | 
+ \"  `\(#\\, #\\. #\\| ,@\(remove #\\ \(symbol-value 'mon::*whitespace-chars*\)\)\)\)~%~@
+\(string-split-bag \"\" \(list #\\, #\\. #\\|\)\)~%~@
+\(string-split-bag nil \(list #\\, #\\. #\\|\)\)~%~@
+\(string-split-bag \"\" #\\,\)~%~@
+\(string-split-bag nil #\\,\)~%~@
+:SEE-ALSO `mon:substring', `mon:string-remove-backslashes',
+`mon:string-trim-whitespace', `mon:string-split-newline',
+`mon:string-substitute', `mon:string-split-multi', `mon:string-split-spaces',
+`mon:string-upto-char', `mon:string-split-on-chars'.~%▶▶▶")
+
 
 ;; #+sbcl
 ;; (fundoc 'string-remove-backslashes

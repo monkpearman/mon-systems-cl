@@ -13,7 +13,6 @@
 ;; 				 :name "mon"
 ;; 				 :type "texinfo"))
 
-
 ;; (mon-docs:document-package :mon
 ;;                            (make-pathname
 ;;                             :directory `,(pathname-directory (merge-pathnames "docs/" (sb-ext:parse-native-namestring (sb-unix:posix-getcwd/))))
@@ -131,7 +130,7 @@
    #:node-name
    #:title-name
    ;; documented variables and params.
-   #:*documentation-types*
+   #:*texinfo-documentation-types*
    #:*texinfo-escaped-chars*
    #:*itemize-start-characters*
    #:*symbol-characters*
@@ -156,11 +155,11 @@
 
 (defparameter *undocumented-packages* '(sb-pcl sb-int sb-kernel sb-sys sb-c)
 "list of SBCL internal packages that won't get documented.~%
-:SEE-ALSO `*documentation-types*', `*texinfo-escaped-chars*',
+:SEE-ALSO `*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'.~%▶▶▶")
 
-(defparameter *documentation-types*
+(defparameter *texinfo-documentation-types*
   '(compiler-macro
     function
     method-combination
@@ -169,7 +168,7 @@
     type
     variable)
   "A list of symbols accepted as second argument of `documentation'
-:SEE-ALSO `*documentation-types*', `*texinfo-escaped-chars*',
+:SEE-ALSO `*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'.~%▶▶▶")
 
@@ -181,26 +180,26 @@
   "Characters and their replacement names that `alphanumize' uses. If
 the replacements contain any of the chars they're supposed to replace,
 you deserve to lose.
-:SEE-ALSO `*documentation-types*', `*texinfo-escaped-chars*',
+:SEE-ALSO `*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'~%▶▶▶")
 
 (defparameter *characters-to-drop* '(#\\ #\` #\')
   "Characters that should be removed by `alphanumize'.~%
-:SEE-ALSO `*documentation-types*', `*texinfo-escaped-chars*',
+:SEE-ALSO `*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'.~%▶▶▶")
 
 ;; :NOTE If we add "►" here we could get #\@ inserted
 (defparameter *texinfo-escaped-chars* "@{}"
   "Characters that must be escaped with #\@ for Texinfo.~%
-:SEE-ALSO `*documentation-types*', `*texinfo-escaped-chars*',
+:SEE-ALSO `*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'.~%▶▶▶")
 
 (defparameter *itemize-start-characters* '(#\* #\-)
   "Characters that might start an itemization in docstrings when at the start of a line.
-:SEE-ALSO `*documentation-types*', `*texinfo-escaped-chars*',
+:SEE-ALSO `*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'.~%▶▶▶")
 
@@ -210,13 +209,13 @@ you deserve to lose.
   ;; :OLD "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*:-+&#'"
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ*:-+&#'"
   "List of characters that make up symbols in a docstring.~%
-:SEE-ALSO `*documentation-types*', `*texinfo-escaped-chars*',
+:SEE-ALSO `*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'.~%▶▶▶")
 
 (defparameter *symbol-delimiters* "`," ;; :WAS " ,.!?;"
 "The characters that delimit symbols.~%
-`*documentation-types*', `*texinfo-escaped-chars*',
+`*texinfo-documentation-types*', `*texinfo-escaped-chars*',
 `*itemize-start-characters*', `*symbol-characters*', `*characters-to-drop*',
 `*character-replacements*', `*undocumented-packages*'.~%▶▶▶" )
 
@@ -360,7 +359,7 @@ Names are either symbols or lists of symbols.~%
 
 ;;; Node names for DOCUMENTATION instances
 
-(defgeneric name-using-kind/name (kind name doc))
+(defgeneric nname-using-kind/name (kind name doc))
 
 (defmethod name-using-kind/name (kind (name string) doc)
   (declare (ignore kind doc))
@@ -369,20 +368,35 @@ Names are either symbols or lists of symbols.~%
 (defmethod name-using-kind/name (kind (name symbol) doc)
   (declare (ignore kind))
   ;; :OLD (format nil "~@[~A:~]~A" (short-package-name (get-package doc)) name))
-  (format nil "~A:~A" (package-name (get-package doc)) name))
+  ;; (format nil "~A:~A" (package-name (get-package doc)) name))
+  (format nil "~A ~A" (package-name (get-package doc)) name))
 
 (defmethod name-using-kind/name (kind (name list) doc)
   (declare (ignore kind))
   (assert (setf-name-p name))
   ;; :OLD (format nil "(setf ~@[~A:~]~A)" (short-package-name (get-package doc)) (second name)))
-  (format nil "(setf ~A:~A)" (package-name (get-package doc)) (second name)))
+  ;; :WAS (format nil "(setf ~A:~A)" (package-name (get-package doc)) (second name)))
+  (format nil "(setf ~A ~A)" (package-name (get-package doc)) (second name)))
 
 (defmethod name-using-kind/name ((kind (eql 'method)) name doc)
-  (format nil "~A~{ ~A~} ~A"
-          (name-using-kind/name nil (first name) doc)
-          (second name)
-          (third name)))
-
+  ;; :WAS
+  ;; (format nil "~A~{ ~A~} ~A"
+  ;;         (name-using-kind/name nil (first name) doc)
+  ;;         (second name)
+  ;;         (third name)))
+  (flet ((specializers (ll)
+           (let (result)
+             (dolist (arg ll)
+               (cond
+                 ((member arg lambda-list-keywords) (return))
+                 ((atom arg) (push t result))
+                 (t (push (second arg) result))))
+             (nreverse result))))
+    (format nil "~A~{ ~A~} ~A"
+            (name-using-kind/name nil (first name) doc)
+            (second name)
+            (specializers (third name)))))
+x
 (defun node-name (doc)
   "Return TexInfo node name as a string for a DOCUMENTATION instance.~%
 :SEE-ALSO `document-package', `generate-includes',`collect-documentation',
@@ -570,7 +584,7 @@ there is no corresponding docstring.
     (method
      (third (get-name doc)))
     (t
-     ;; KLUDGE: Eugh.
+     ;; :KLUDGE Eugh.
      ;;
      ;; believe it or not, the above comment was written before CSR
      ;; came along and obfuscated this.  (2005-07-04)
@@ -598,8 +612,14 @@ there is no corresponding docstring.
                       (cond ((or key optional) (car x))
                             (t (clean (car x))))
                       (clean (cdr x) :key key :optional optional))))))
-         (clean (sb-introspect:function-lambda-list (get-name doc))))))))
+         ;; :WAS (clean (sb-introspect:function-lambda-list (get-name doc))))))))
+         ;; :SEE https://sourceforge.net/p/sbcl/sbcl/ci/0c844eaf20701e9551fefbc1e8d98ee9a09b53ad/tree/doc/manual/docstrings.lisp
+         (multiple-value-bind (ll unknown) (sb-introspect:function-lambda-list (get-name doc))
+           (if unknown
+               (values nil t)
+               (clean ll))))))))
 
+;;; ==============================
 (defun get-string-name (x)
   (let ((name (get-name x)))
     (cond ((symbolp name)
@@ -996,11 +1016,35 @@ a tabulation. Ie, if it is:~%
 (defun texinfo-anchor (doc)
   (format *texinfo-output* "@anchor{~A}~%" (node-name doc)))
 
+;; ;WAS
 ;;; :KLUDGE &AUX *PRINT-PRETTY* here means "no linebreaks please"
+;; (defun texinfo-begin (doc &aux *print-pretty*)
+;;   (let ((kind (get-kind doc)))
+;;     ;; :OLD (format *texinfo-output* "@~A {~:(~A~)} ~({~A}~@[ ~{~A~^ ~}~]~)~%"
+;;     (format *texinfo-output* "@~A {~:(~A~)} ~(~A~@[ ~{~A~^ ~}~]~)~%"
+;;             (case kind
+;;               ((package constant variable)
+;;                "defvr")
+;;               ((structure class condition type)
+;;                "deftp")
+;;               (t
+;;                "deffn"))
+;;             (map 'string (lambda (char) (if (eql char #\-) #\Space char)) (string kind))
+;;             (title-name doc)
+;;             ;; &foo would be amusingly bold in the pdf thanks to TeX/Texinfo
+;;             ;; interactions,so we escape the ampersand -- amusingly for TeX.
+;;             ;; sbcl.texinfo defines macros that expand @&key and friends to &key.
+;;             (mapcar (lambda (name)
+;;                       (if (member name lambda-list-keywords)
+;;                           (format nil "@~A" name)
+;;                           name))
+;;                     (lambda-list doc)))))
+
+
+;;; KLUDGE: &AUX *PRINT-PRETTY* here means "no linebreaks please"
 (defun texinfo-begin (doc &aux *print-pretty*)
   (let ((kind (get-kind doc)))
-    ;; :OLD (format *texinfo-output* "@~A {~:(~A~)} ~({~A}~@[ ~{~A~^ ~}~]~)~%"
-    (format *texinfo-output* "@~A {~:(~A~)} ~(~A~@[ ~{~A~^ ~}~]~)~%"
+    (format *texinfo-output* "@~A {~:(~A~)} ~(~A~)"
             (case kind
               ((package constant variable)
                "defvr")
@@ -1009,16 +1053,27 @@ a tabulation. Ie, if it is:~%
               (t
                "deffn"))
             (map 'string (lambda (char) (if (eql char #\-) #\Space char)) (string kind))
-            (title-name doc)
-            ;; &foo would be amusingly bold in the pdf thanks to TeX/Texinfo
-            ;; interactions,so we escape the ampersand -- amusingly for TeX.
-            ;; sbcl.texinfo defines macros that expand @&key and friends to &key.
-            (mapcar (lambda (name)
-                      (if (member name lambda-list-keywords)
-                          (format nil "@~A" name)
-                          name))
-                    (lambda-list doc)))))
+            (title-name doc))
+    (multiple-value-bind (lambda-list unknown) (lambda-list doc)
+      (cond (unknown
+             (format *texinfo-output* " @emph{lambda list not known}"))
+            ((not lambda-list))
+            (t
+             ;; &foo would be amusingly bold in the pdf thanks to
+             ;; TeX/Texinfo interactions,so we escape the ampersand --
+             ;; amusingly for TeX.  sbcl.texinfo defines macros that
+             ;; expand @andkey and friends to &key.
+             (format *texinfo-output* " ~(~{~A~^ ~}~)"
+                     (mapcar (lambda (name)
+                               (if (member name lambda-list-keywords)
+                                   (format nil "@and~A{}"
+                                           (remove #\- (subseq (string name) 1)))
+                                   name))
+                             lambda-list)))))
+    (format *texinfo-output* "~%")))
 
+                     
+;;; ==============================
 (defun texinfo-index (doc)
   (let ((title (title-name doc)))
     (case (get-kind doc)
@@ -1106,7 +1161,7 @@ a tabulation. Ie, if it is:~%
         collect doc))
 
 (defun collect-name-documentation (name)
-  (loop for type in *documentation-types*
+  (loop for type in *texinfo-documentation-types*
         for doc = (maybe-documentation name type)
         when doc
         collect doc))
@@ -1114,7 +1169,7 @@ a tabulation. Ie, if it is:~%
 (defun collect-symbol-documentation (symbol)
   "Collects all docs for a SYMBOL and (SETF SYMBOL), returns a list of
 the form DOC instances.~%
-:SEE `*documentation-types*' for the possible values of doc-type.~%
+:SEE `*texinfo-documentation-types*' for the possible values of doc-type.~%
 :SEE-ALSO `generate-includes'.~%▶▶▶"
   (nconc (collect-name-documentation symbol)
          (collect-name-documentation (list 'setf symbol))))
@@ -1170,7 +1225,7 @@ PACKAGE itself.~%
 ;;; warranted.  The package information should be present for clarity, because
 ;;; these produce body text as well as index entries (though in info output it's
 ;;; more important to use a very restricted character set because the info reader
-;;; parses the link, and colon is a special character).  In TeX output we make
+;;; parses the link, and colon as a special character).  In TeX output we make
 ;;; the package name unconditionally small, and arrange such that the start of
 ;;; the symbol name is at a constant horizontal offset, that offset being such
 ;;; that the longest package names have the "sb-" extending into the left margin.
@@ -1206,7 +1261,7 @@ PACKAGE itself.~%
 (defun generate-includes (directory &rest packages)
   "Create files in DIRECTORY containing Texinfo markup of all docstrings of each
 exported symbol in PACKAGES.~%
-DIRECTORY is created if necessary.
+DIRECTORY is created if necessary.~%
 If a namestring is supplied for DIRECTORY which doesn't end in a slash, you lose.~%
 The generated include files are of the form:~%
 \"<doc-type>_<packagename>_<symbol-name>.texinfo\"~%
