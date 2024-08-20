@@ -49,14 +49,10 @@ TAR_TARGET_NAME=$MON_SYSTEM_NM
 
 # mon-systems/mon-systems-move-to-git.sh
 
-MON_SYSTEM_FILES="mon.asd
-mon-test.asd
+MON_SYSTEM_FILES="
 DEPENDENCIES
 LICENSE.txt
 README.md
-make-mon-systems-etags.sh
-mon-systems-make-tarball.sh
-mon-systems-move-to-git.sh
 alist.lisp
 arrays.lisp
 bit-twiddle.lisp
@@ -66,8 +62,8 @@ chars.lisp
 chronos.lisp
 class-doc.lisp
 class-utils.lisp
-compose.lisp
 completion.lisp
+compose.lisp
 conditions.lisp
 deprecated.lisp
 docs.lisp
@@ -81,6 +77,11 @@ introspect.lisp
 io.lisp
 loadtime-bind.lisp
 macros.lisp
+make-mon-systems-etags.sh
+mon-systems-make-tarball.sh
+mon-systems-move-to-git.sh
+mon-test.asd
+mon.asd
 numbers.lisp
 package.lisp
 plist.lisp
@@ -98,6 +99,12 @@ testing.lisp
 timing.lisp
 timings.lisp
 usec-tests.lisp"
+
+#/docs
+MON_SYSTEM_DOC_FILE="ifnottex.texinfo
+mon-top-level.texinfo
+mon.info
+mon-systems.texinfo"
 
 ensure_abort_dirs () 
 {
@@ -177,6 +184,23 @@ copy_mon_test_files ()
  done;
 }
 
+copy_mon_doc_files ()
+{ 
+ for f in $MON_SYSTEM_DOC_FILES; do 
+     if [ ! -e "$MON_SYSTEM_SRC/docs/$f" ]                     # Check if file exists.
+     then
+        echo ":FILE $MON_SYSTEM_SRC/docs/$f does not exist";  
+        echo
+     else                         # On to next.
+         # cp `echo $MON_SYSTEM_SRC/tests/$f $MON_SYSTEM_GIT/docs/$f`;
+	 cp $MON_SYSTEM_SRC/docs/$f $MON_SYSTEM_GIT/docs/$f;
+         echo "Copied :FILE $f"; 
+         echo "From   :SOURCE $MON_SYSTEM_SRC/docs to :DEST $MON_SYSTEM_GIT/docs";
+         echo
+     fi
+ done;
+}
+
 etags_src ()
 { 
     cd $MON_SYSTEM_SRC
@@ -235,6 +259,7 @@ ensure_abort_dirs
 ensure_tests_dir
 copy_mon_files
 copy_mon_test_files
+copy_mon_doc_files
 # ensure_readme
 ensure_loadtime_bind
 etags_src

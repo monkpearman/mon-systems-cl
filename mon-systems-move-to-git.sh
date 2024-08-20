@@ -27,14 +27,10 @@ MON_SYSTEM_GIT=$CL_MON_CODE/mon-systems-GIT
 
 # mon-systems/mon-systems-move-to-git.sh
 
-MON_SYSTEM_FILES="mon.asd
-mon-test.asd
+MON_SYSTEM_FILES="
 DEPENDENCIES
 LICENSE.txt
 README.md
-make-mon-systems-etags.sh
-mon-systems-make-tarball.sh
-mon-systems-move-to-git.sh
 alist.lisp
 arrays.lisp
 bit-twiddle.lisp
@@ -44,6 +40,7 @@ chars.lisp
 chronos.lisp
 class-doc.lisp
 class-utils.lisp
+completion.lisp
 compose.lisp
 conditions.lisp
 deprecated.lisp
@@ -58,6 +55,11 @@ introspect.lisp
 io.lisp
 loadtime-bind.lisp
 macros.lisp
+make-mon-systems-etags.sh
+mon-systems-make-tarball.sh
+mon-systems-move-to-git.sh
+mon-test.asd
+mon.asd
 numbers.lisp
 package.lisp
 plist.lisp
@@ -80,8 +82,7 @@ usec-tests.lisp"
 MON_SYSTEM_DOC_FILE="ifnottex.texinfo
 mon-top-level.texinfo
 mon.info
-mon.texinfo
-texinfo-macros.texinfo"
+mon-systems.texinfo"
 
 ensure_abort_dirs () 
 {

@@ -35,10 +35,12 @@ etags ./alist.lisp \
 ./chronos.lisp \
 ./class-doc.lisp \
 ./class-utils.lisp \
+./completion.lisp \
 ./compose.lisp \
 ./conditions.lisp \
 ./deprecated.lisp \
-./docs.lisp
+./docs.lisp \
+./emacs-compat.lisp \
 ./environ.lisp \
 ./file-dir.lisp \
 ./file-io.lisp \
