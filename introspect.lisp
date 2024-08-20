@@ -734,22 +734,21 @@ when PAckage is a string it is upcsed as if by `cl:string-upcase'.~%
 `print-symbol-name-qualified'.~%▶▶▶")
 
 (fundoc 'function-type
-  "Return SYMBOL as if by `cl:values' with package qualitfied namespace prrefix and additional information about symbol in PACKAGE.~%~@
-cl:nth-value 0 - <PACKAGE>:<SYMBOL>
-cl:nth-value 1 - <TYPE>
-cl:nth-value 2 - <LOCATION-STATUS>~%
+  "Return SYMBOL as if by `cl:values' with package qualitfied namespace prrefix
+\(except that local package is unqualified\), and additional information about symbol in PACKAGE.~%~@
 Return values have the following form:~%
- <PACKAGE>:<SYMBOL>, <TYPE>, <LOCATION-STATUS>~%
-<PACKAGE>:<SYMBOL> - the fully qualified package namespace and the symbol.~%
-<TYPE> - a keyword is one of:~% :STANDARD-GENERIC-FUNCTION, :GENERIC-FUNCTION, :FUNCTION, :MACRO~%
-<LOCATION-STATUS> - a keyword is on of:~% :INTERNAL, :EXTERHAL, :INHERITED~%
-Arg SYMBOL names a function, macro, or generic-function in package and should satisfy `cl:fboundp'.~%
-Arg PACKCAGE names a package that satsifies `cl:packagep', an error is signalled if not. Default is :common-lisp.~%
+  <PACKAGE>:<SYMBOL>, <TYPE>, <LOCATION-STATUS>~%
+- <PACKAGE>:<SYMBOL> - The fully qualified package namespace and the symbol.~%
+- <TYPE> - A keyword, is one of:~%  :STANDARD-GENERIC-FUNCTION, :GENERIC-FUNCTION, :FUNCTION, :MACRO~%
+- <LOCATION-STATUS> - A keyword, is on of:~%~%  :INTERNAL, :EXTERHAL, :INHERITED~%
+Arg SYMBOL names a function, macro, or generic-function in package and should
+satisfy `cl:fboundp'.~%
+Arg PACKCAGE names a package that satsifies `cl:packagep', an error is signaled
+if not. Default is :common-lisp.~%
 :EXAMPLE~%
- (function-type 'description-inventory-title :package :dbc) ; gf~%
- (function-type 'parsed-inventory-record-parse-table-lookup-slot-value :package :dbc) ; gf~%
- (function-type 'print-all-package-symbols :package :mtf) ; function~%
- (function-type 'def-parsed-class-write-csv-file :package :dbc) ; macro~%~@
+ (function-type 'quickload :package :quicklisp) ; gf~%
+ (function-type 'print-all-package-symbols :package :mon) ; function~%
+ (function-type 'line-up-first :package :alexandria-2) ; macro~%~@
 :SEE-ALSO `mon:function-arglist'.~%▶▶▶~%")
 
 (fundoc 'symbol-string-name-check
