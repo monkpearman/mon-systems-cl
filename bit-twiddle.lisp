@@ -46,9 +46,9 @@
 
 ;; :SOURCE (URL `http://tumblr.com/xon4ysenfw') :DATE 2011-09-29
 (defun bit-format (integer &optional (width 8) stream)
+  (declare (type integer integer))
   (format stream "~v,'0B" width integer))
 
-;;
 (defun number-to-bit-list (unsigned-integer)
   (declare (type (integer 0 *) unsigned-integer)
            (optimize (speed 3)))
@@ -68,7 +68,6 @@
 ;;       (let ((mod-ui-list (list (mod unsigned-integer 2))))
 ;;         (nconc (number-to-bit-list (ash unsigned-integer -1))
 ;;                mod-ui-list))))
-
 
 (defun number-to-bit-vector (unsigned-integer)
   (declare ((integer 0 *) unsigned-integer)
@@ -109,7 +108,7 @@
                            (number-to-bit-vector-bignum
                             (the bignum-0-or-over unsigned-integer)))))))
 
-
+
 (defun bit-vector-leading-byte (bit-vector)
   (declare (simple-bit-vector bit-vector))
   (if (< (length bit-vector) 8)
@@ -123,6 +122,18 @@
       ;; then (dpb (sbit bit-vector bit-vector-index) (byte 1 result-index) result)
       ;; finally (return result))
       ))
+
+;;
+;; :PASTE-DATE 2011-08-10
+;; :PASTE-TITLE "Annotation number 1: another version"
+;; :PASTED-BY Xach
+;; :PASTE-URL (URL `http://paste.lisp.org/+2NN1/1')
+(defun bit-vector-to-integer (bit-vector)
+  (declare (bit-vector bit-vector)
+           (optimize (speed 3)))
+  (let ((j 0))
+    (dotimes (i (length bit-vector) j)
+      (setf j (logior (bit bit-vector i) (ash j 1))))))
 
 ;; :SOURCE (URL `http://www.lispforum.com/viewtopic.php?f=2&t=1205#p6269')
 ;; with modifications
@@ -148,8 +159,6 @@
 ;; :PASTED-BY stassats
 ;; :PASTE-URL (URL `http://paste.lisp.org/+2NN1/2')
 (defun %bit-vector-to-integer.stassats (bit-vector)
-  "Return BIT-VECTOR's representation as a positive integer.
-Stas version using `cl:flet' and `cl:loop'."
   (let* ((word-size 64)
          (length (length bit-vector))
          (result 0)
@@ -164,24 +173,13 @@ Stas version using `cl:flet' and `cl:loop'."
          repeat (floor length word-size)
          do (setf result (logior (build-word)
                                  (ash result (1- word-size)))))
-      (loop while (< index (1- length))
-         do (setf result (logior (bit bit-vector (incf index))
+      (loop
+        while (< index (1- length))
+        do (setf result (logior (bit bit-vector (incf index))
                                  (ash result 1)))))
     result))
-;;
-;; :PASTE-DATE 2011-08-10
-;; :PASTE-TITLE "Annotation number 1: another version"
-;; :PASTED-BY Xach
-;; :PASTE-URL (URL `http://paste.lisp.org/+2NN1/1')
-(defun bit-vector-to-integer (bit-vector)
-  "Return BIT-VECTOR's representation as a positive integer.
-Xach version using `cl:dotimes'."
-  (declare (bit-vector bit-vector)
-           (optimize (speed 3)))
-  (let ((j 0))
-    (dotimes (i (length bit-vector) j)
-      (setf j (logior (bit bit-vector i) (ash j 1))))))
 
+
 (defun boolean-to-bit (boolean &optional no-error)
   (declare (optimize (speed 3)))
   (multiple-value-bind (boolp boolval) (booleanp boolean)
@@ -199,9 +197,8 @@ Xach version using `cl:dotimes'."
 
 (defalias 'bit-from-boolean 'boolean-to-bit)
 
-
 ;;; ==============================
-;; SBCL's definition of `cl:logbitp' checks the follwing props of  INDEX
+;; SBCL's definition of `cl:logbitp' checks the follwing props of INDEX
 ;; sb-vm:n-word-bits => 32 sb-vm:n-lowtag-bits => 3 (- 32 3) => 29
 ;; If INDEX is greater than 29 it checks it sign else it does as below:
 (declaim (inline octet-logbitp-1-or-0))
@@ -243,6 +240,7 @@ Xach version using `cl:dotimes'."
            (optimize (speed 3)))
   (setf (sbit bit-vector (logxor index 7)) 1-or-0))
 
+
 ;;(if (octet-set-bit-vector-index-xor bv i (octet-logbitp-1-or-0 i byte-int)
 (declaim (inline octet-set-bit-vector-index-xor-if))
 (defun octet-set-bit-vector-index-xor-if (bit-vector index octet)
@@ -288,21 +286,22 @@ Xach version using `cl:dotimes'."
      finally (return ba-array)))
 
 ;; :SOURCE usenet-legend/io.lisp
-(defun bit-vector-octets (bv)
-  (declare (type simple-bit-vector bv)
+(defun bit-vector-octets (bit-vector)
+  (declare (type simple-bit-vector bit-vector)
            (optimize speed))
-  (let ((octets (make-array (ceiling (length bv) 8)
+  (let ((octets (make-array (ceiling (length bit-vector) 8)
                             :element-type 'octet
                             :initial-element 0)))
-    (loop for bit across bv
-       for i from 0 below (length bv)
-       do (multiple-value-bind (j k) (floor i 8)
-            (setf (aref octets j)
-                  (logior (ash bit k) (aref octets j)))))
+    (loop
+      for bit across bit-vector
+      for i from 0 below (length bit-vector)
+      do (multiple-value-bind (j k) (floor i 8)
+           (setf (aref octets j)
+                 (logior (ash bit k) (aref octets j)))))
     (values octets
-            (length bv))))
+            (length bit-vector))))
 
-
+
 ;;; ==============================
 ;;; :NOTE An alternative version using `cl:read-from-string':
 ;;;  (funcall #'(lambda (x) (read-from-string (format nil "#*~2R" x))) 254)
@@ -355,8 +354,9 @@ Xach version using `cl:dotimes'."
 ;; I was surprised to find that the extra LOGXOR and IF conditional on zerop
 ;; to be so costly...
 
+
 ;;; ==============================
-;; :NOTE The original version letf room for modifications on non
+;; :NOTE The original version left room for modifications on non
 ;; `unsigned-byte-8' integers by instead take the (integer-length <BYTE-INT>)
 ;; such that we could create alternative versions capable of generating any
 ;; length bv we need for any integer. These notes and the various
@@ -412,6 +412,7 @@ Xach version using `cl:dotimes'."
 ;;       (octet-set-bit-vector-index-xor-if bv i byte-int))))
 ;;; ==============================
 
+
 (defun byte-request-integer (array offset length &key little-endian sign-extend)
   (declare (byte-array array)
            ((integer  0 15)      offset)
@@ -461,20 +462,19 @@ Xach version using `cl:dotimes'."
 ;; (SIMPLE-ARRAY (UNSIGNED-BYTE 8) (5))
 ;;  (byte-request-integer arr 0 5)
 
-
-;; :SOURCE monkeylib-binary-data/common-datatypes.lisp :WAS `swap-bytes'
-(defun byte-swap (code)
-  (declare (unsigned-byte-16 code))
-  #-sbcl (assert (<= code #xffff))
-  (rotatef (ldb (byte 8 0) code) (ldb (byte 8 8) code))
-  code)
-
 ;; :NOTE Better to use byte-request-integer
-(defun bytes-to-int (bytes start end)
+(defun bytes-to-integer (bytes start end)
   ;; (reduce (lambda (x y) (+ (* 256 x) y)) bytes :start start :end end))
-  (reduce (lambda (x y) (logior (ash x 8) y)) bytes :start start :end end))
+  (reduce #'(lambda (x y) (logior (ash x 8) y)) bytes :start start :end end))
 
-;;
+
+;; :SOURCE monkeylib-binary-data/common-datatypes.lisp :WAS `swap-bytes'
+(defun byte-swap (unsigned-byte-16)
+  (declare (unsigned-byte-16 unsigned-byte-16))
+  #-sbcl (assert (<= unsigned-byte-16 #xffff))
+  (rotatef (ldb (byte 8 0) unsigned-byte-16) (ldb (byte 8 8) unsigned-byte-16))
+  unsigned-byte-16)
+
 ;;; ==============================
 ;; (defun tt--number-byte-array (num)
 ;;   (let* ((octet-count (nth-value 0 (truncate (+ (integer-length num) 7) 8)))
@@ -483,7 +483,7 @@ Xach version using `cl:dotimes'."
 ;;     (dotimes (cnt octet-count)
 ;;       (setf (aref ba-out cnt) (ldb (byte 8 (- bit-count (ash (1+ cnt) 3))) num)))
 ;;     ba-out))
-(defun number-to-byte-array (num)
+(defun number-to-byte-array (unsigned-integer)
   ;; (number-to-byte-array 825973027016)
   ;; (logand 825973027016 255)          ;=> 200
   ;; (logand (ash 825973027016 -8) 255) ;=> 48
@@ -491,16 +491,16 @@ Xach version using `cl:dotimes'."
   ;; (logand (ash 12603348 -8) 255)     ;=> 79
   ;; (logand (ash 49231 -8) 255)        ;=> 192
   ;; (ash 192 -8)                       ;=> 0
-  (declare ((integer 0 *) num))
-  (if (zerop num)
+  (declare ((integer 0 *) unsigned-integer))
+  (if (zerop unsigned-integer)
       (values (make-array 1 :element-type 'unsigned-byte-8 :initial-element 0) 1)
-      (let* ((type-cnt (byte-octets-for-integer num))
+      (let* ((type-cnt (byte-octets-for-integer unsigned-integer))
              (byte-arr (make-array type-cnt :element-type 'unsigned-byte-8 :initial-element 0)))
-        (declare ((mod 17) type-cnt) ;; bail on any number bigger than 128bits
-                 ((integer 1 *) num)
+        (declare ((mod 17) type-cnt) ;; bail on any unsigned-integerber bigger than 128bits
+                 ((integer 1 *) unsigned-integer)
                  (byte-array byte-arr))
         (loop
-           :for val = num :then (ash val -8)
+           :for val = unsigned-integer :then (ash val -8)
            :for count downfrom (1- type-cnt) downto 0
            ;; Knock down all 1 bits above 255 to 0
            :do (setf (aref byte-arr count) (logand val #XFF))
@@ -509,8 +509,8 @@ Xach version using `cl:dotimes'."
 ;; (number-to-byte-array most-positive-fixnum)
 ;; => #(63 255 255 255 255 255 255 255)
 ;;
-;; (multiple-value-bind (byts len) (number-to-byte-array 825973027016)
-;;   (bytes-to-int byts 0 len))
+ ;; (multiple-value-bind (byts len) (number-to-byte-array 825973027016)
+ ;;   (bytes-to-integer byts 0 len))
 
 ;;; ==============================
 (defun string-to-sha1-byte-array (string)
@@ -529,13 +529,35 @@ Xach version using `cl:dotimes'."
 ;;; :BIT-TWIDDLE-DOCUMENTATION
 ;;; ==============================
 
+(fundoc 'bit-format
+"Print INTEGER padded to WIDTH to STREAM as if by `cl:format'.~%~@
+:EXAMPLE~%
+ \(bit-format 42\)
+ => 00101010~%
+\(bit-format 42 16\)
+ => 0000000000101010~%~@
+:SEE-ALSO `<XREF>'.~%▶▶▶")
+
+(fundoc 'bit-vector-to-integer
+"Return BIT-VECTOR's representation as a positive integer.~%
+:EXAMPLE~%~@
+ \(bit-vector-to-integer \(number-to-bit-vector 666\)\)~%
+:NOTE Xach Beane version from paste.lisp.org using `cl:dotimes'.~%
+:SEE-ALSO ``%bit-vector-to-integer.mon', `%bit-vector-to-integer.stassats''.~%▶▶▶")
 
 (fundoc '%bit-vector-to-integer.mon
   "Return BIT-VECTOR's representation as a positive integer.~%
-MON version using `cl:flet' and `cl:reduce'.~%
 :EXAMPLE~%~@
- { ... <EXAMPLE> ... } ~%~@
-:SEE-ALSO `<XREF>'.~%▶▶▶")
+ \(%bit-vector-to-integer.mon \(number-to-bit-vector 666\)\)~%
+:NOTE MON version using `cl:flet' and `cl:reduce'.~%
+:SEE-ALSO `bit-vector-to-integer',`%bit-vector-to-integer.stassats'.~%▶▶▶")
+
+(fundoc '%bit-vector-to-integer.stassats
+  "Return BIT-VECTOR's representation as a positive integer.~%
+:EXAMPLE~%~@
+ \(%bit-vector-to-integer.stassats \(number-to-bit-vector 666\)\)~%~@
+Stas B version from paste.lisp.org using `cl:flet' and `cl:loop'.~%
+:SEE-ALSO `%bit-vector-to-integer.mon'.~%▶▶▶")
 
 (fundoc 'boolean-to-bit
 "Convert BOOLEAN to a bit \(an integer either 0 or 1\).~%~@
@@ -590,9 +612,10 @@ If BOOLEAN is not T, NIL, 0, or 1 return: NIL,<BOOLEAN>~%~@
 `mon:string-all-digit-char-0-or-1', `symbol-not-null'.~%▶▶▶")
 
 (fundoc 'byte-swap
-"Return the CODE with its bytes rotated of CODE.~%~@
-CODE is an integer value of type mon:unsigned-byte-16.~%~@
+"Return UNSIGNED-BYTE-16 with its bytes rotated..~%~@
+UNSIGNED-BYTE-16 is an integer value of type `mon:unsigned-byte-16'.~%~@
 :EXAMPLE~%
+ \(eq \(byte-swap #xFFF0\) \(byte-swap 65520\)\)~% ;=> T~%
  \(byte-swap #xF0FF\)~% ;=> 65520~%
  \(byte-swap #xFFF0\)~% ;=> 61695~%
  \(byte-swap \(byte-swap #xF0FF\)\)~% ;=> 61695
@@ -601,7 +624,6 @@ e.g~%
  65535 \(16 bits, #xFFFF, #o177777, #b1111111111111111\)
  61695 \(16 bits, #xF0FF, #o170377, #b1111000011111111\)
  65520 \(16 bits, #xFFF0, #o177760, #b1111111111110000\)~%~@
- { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'string-to-sha1-byte-array
@@ -609,19 +631,19 @@ e.g~%
 Arg STRING is a string and may contain UTF-8 characters.~%~@
 :EXAMPLE~%
  \(let \(\(target-str \(mon-test:make-random-string 16\)\)\)
-   \(values \(string-to-sha1-byte-array target-str\) target-str\)\)~@
-:NOTE we can compare the output of `string-to-sha1-byte-array' with output
-Emacs lisp' `sha1-binary':
+   \(values \(string-to-sha1-byte-array target-str\) target-str\)\)~%
+:NOTE We can compare the output of `string-to-sha1-byte-array' with output
+Emacs lisp' `sha1-binary':~%
  CL>  \(string-to-sha1-byte-array \"bubba\"\)
-        => #\(32 193 148 189 4 164 89 163 52 78 106 202 121 61 200 118 132 25 134 11\)
+        => #\(32 193 148 189 4 164 89 163 52 78 106 202 121 61 200 118 132 25 134 11\)~%
  elisp> \(vconcat \(sha1-binary \"bubba\"\)\)
-         => [32 193 148 189 4 164 89 163 52 78 106 202 121 61 200 118 132 25 134 11]~%~@
+        => [32 193 148 189 4 164 89 163 52 78 106 202 121 61 200 118 132 25 134 11]~%
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'number-to-byte-array
-"Return NUMBER as if by `cl:values' a byte-array and the count of its elements.~%~@
-BYTE-ARRAY is in big-endian format with LSB as first elt and MSB as last elt.~%~@
-The number represented by BYTE-ARRAY may be any positive integer representable
+"Return UNSIGNED-INTEGER as a byte-array and the count of its elements as if by `cl:values'.~%~@
+Returned byte-array is in big-endian format with LSB as first elt and MSB as last elt.~%~@
+The UNSIGNED-INTEGER represented by BYTE-ARRAY may be any positive integer representable
 in 128 bits.~%~@
 :EXAMPLE~%
  825973027016
@@ -674,13 +696,14 @@ sign extension:
       with sign extension\"\) family of instructions.~%~@
 :EXAMPLE~%~@
   \(byte-request-integer \(byte-number-to-byte-array 281474976710654\) 0 6\)~%
-:SEE-ALSO `<XREF>'.~%▶▶▶")
+:SEE-ALSO `bytes-to-integer'.~%▶▶▶")
 
-(fundoc 'bytes-to-int
-"Like request-integer but likely slower as results are accumulated as if by
-`cl:reduce'.~%~@
+(fundoc 'bytes-to-integer
+"Like `byte-request-integer' but likely slower as results are accumulated as if by
+`cl:reduce'. IOW, use `byte-request-integer'.~%~@
 :EXAMPLE~%~@
- { ... <EXAMPLE> ... } ~%~@
+ (multiple-value-bind (byts len) (number-to-byte-array 825973027016)
+   (bytes-to-integer byts 0 len)) ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 (fundoc 'octet-to-bit-vector
@@ -767,15 +790,6 @@ The elts of array are indexed by their octet value as generated with `mon:octet-
  => \(1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\)~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
-(fundoc 'bit-format
-"Print INTEGER padded to WIDTH to STREAM.~%~@
-:EXAMPLE~%
-\(bit-format 42\)
- => 00101010~%
- \(bit-format 42 16\)
-  => 0000000000101010~%~@
-:SEE-ALSO `<XREF>'.~%▶▶▶")
-
 (fundoc 'bit-vector-leading-byte
         "Return an integer made of eight bits from BIT-VECTOR (a simple-bit-vector).
 :EXAMPLE~%
@@ -783,6 +797,14 @@ The elts of array are indexed by their octet value as generated with `mon:octet-
  \(bit-vector-leading-byte \(number-to-bit-vector 888\)\)~%
  \(bit-vector-leading-byte \(number-to-bit-vector 1046\)\)~%~@
 :SEE-ALSO `bit-vector-to-integer', `number-to-bit-vector'.~%▶▶▶")
+
+(fundoc 'bit-vector-octets
+"Return the octets of BIT-VECTOR~%~@
+:EXAMPLE~%~@
+ \(bit-vector-octets \(number-to-bit-vector 666\)\) ~%~@
+:SEE-ALSO `<XREF>'.~%▶▶▶")
+
+
 
 ;;; ==============================
 

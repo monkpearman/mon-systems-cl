@@ -1410,7 +1410,7 @@ accessed as `mon:it' by external calling forms.
                      #xFF
                      #x00\)
  collect \(list \(byte-octets-for-integer ints\) \(integer-length ints\) ints\)\)~%~@
-:SEE-ALSO `mon:bytes-round-to-words', `mon:bytes-to-int',
+:SEE-ALSO `mon:bytes-round-to-words', `mon:bytes-to-integer',
 `mon:byte-request-integer', `cl:byte-size', `cl:byte-position'.~%▶▶▶")
 
 (fundoc 'bytes-round-to-words
@@ -1425,7 +1425,7 @@ Comparatively when N-BYTES is in the range [11,17] it can be represented in 12,
  \(loop for x from 11 below 18 collect `\(,x . ,\(bytes-round-to-words x\)\)\)~%~@
 :EXAMPLE~%~@
  \(macroexpand '\(bytes-round-to-words 17\)\)
-:SEE-ALSO `byte-octets-for-integer', `mon:bytes-to-int', `cl:byte-size',
+:SEE-ALSO `byte-octets-for-integer', `mon:bytes-to-integer', `cl:byte-size',
 `cl:byte-position'.~%▶▶▶")
 
 (fundoc 'multiple-value-nth-p

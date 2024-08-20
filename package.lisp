@@ -859,7 +859,7 @@
    #:octet-set-bit-vector-index-xor
    #:octet-set-bit-vector-index-xor-if
    #:make-array-of-octet-bit-vectors
-   #:bytes-to-int
+   #:bytes-to-integer
    #:string-to-sha1-byte-array  ;; ironclad:make-digest, ironclad:update-digest, sb-ext:string-to-octets
    #:number-to-byte-array
    ;;
