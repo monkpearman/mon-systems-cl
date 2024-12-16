@@ -259,7 +259,7 @@
 
 (defun open-stream-output-stream-p (stream &key allow-booleans allow-fill-pointer-strings w-error)
   (if (or (and allow-booleans (booleanp stream))
-          (and allow-fill-pointer-strings 
+          (and allow-fill-pointer-strings
                (string-with-fill-pointer-p stream))
           (and (streamp stream)
                (open-stream-p (the stream stream))
