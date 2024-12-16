@@ -161,7 +161,7 @@
         (mantissa-size 1)
         (sign 1))
     `(declare ((and (vector character ,radix) (not simple-array)) radix-array))
-    (with-input-from-string (float-stream (string-upcase 
+    (with-input-from-string (float-stream (string-upcase
 					   (string-trim-whitespace float-string
 								   :start start
 								   :end (or end (length float-string)))))
