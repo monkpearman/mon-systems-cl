@@ -215,8 +215,8 @@ of type `cl:type-error' is signaled if not.~%~@
   :my-slot-b \"docstring for MY-SLOT-B\"
   :class-doc \"docstring for MY-CLASS\"
   :doc-hash-table *default-class-documentation-table*\)~%
- \(class-doc 'my-class :my-slot-a\)~%
- \(class-doc 'my-class :class-doc\)~%
+ \(classdoc 'my-class :my-slot-a\)~%
+ \(classdoc 'my-class :class-doc\)~%
  (remhash 'my-class 'mon:*default-class-documentation-table*)~%~@
 :SEE-ALSO `mon:classdoc', `mon:documented-class-slot-doc',
 `mon:documented-class-with-docs', `mon:make-documented-class',
@@ -291,7 +291,7 @@ of a :CLASS-DOC/<DOCSTRING> key/value pair is optional. When provided, the key
 (fundoc '%verify-hash-table-for-documented-class
 "If DOC-HASH-TABLE is ommitted return hash-table of special variable
 `*default-class-documentation-table*'.~%~@
-If DOC-HASH-TABLE is non-nil check if it is `hash-or-symbol-p' if so return a
+If DOC-HASH-TABLE is non-nil, check if it is `hash-or-symbol-p'. If so, return a
 hash-table, else signal a `cl:type-error'.~%~@
 Helper function for `mon:make-documented-class' when making instances of class
 `documented-class-with-docs'.~%~@
