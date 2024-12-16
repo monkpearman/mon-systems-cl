@@ -342,10 +342,6 @@
        collect i)))
 
 (defun vector-split-indices (elt vector &key (start 0) end (test #'eql))
-  "Returns two values, a list of start indices and a list of end
-indices into VECTOR between START and END such that if used as
-start/end arguments to subseq, VECTOR will be split on ELT. ELT is
-compared with elements in VECTOR using TEST, which defaults to EQL."
   (declare (optimize (speed 3)
                      ;;(safety 1)
                      (debug 0)))
@@ -663,6 +659,16 @@ data structures/strings.~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
 ;;; ==============================
+
+(fundoc 'vector-split-indices
+  "Returns two values, a list of start indices and a list of end
+indices into VECTOR between START and END such that if used as
+start/end arguments to subseq, VECTOR will be split on ELT. ELT is
+compared with elements in VECTOR using TEST, which defaults to EQL.
+:EXAMPLE~%~@
+ { ... <EXAMPLE> ... } ~%~@
+:SEE-ALSO `vector-split'.~%▶▶▶")
+
 (fundoc 'vector-split
  "Return a list of vectors splitting VECTOR at ELT, between START and END.~%~@
 ELT is compared with elements in VECTOR using
@@ -675,7 +681,7 @@ be displaced to the actual subsequences within VECTOR. In such case subsequences
 will share structure with VECTOR.~%~@
 :EXAMPLE~%~@
  { ... <EXAMPLE> ... } ~%~@
-:SEE-ALSO `<XREF>'.~%▶▶▶")
+:SEE-ALSO `vector-split-indices'.~%▶▶▶")
 ;;
 (fundoc 'vector-positions
 "Return list indices into VECTOR from START to END where ELT satisfies TEST.~%~@
@@ -695,7 +701,9 @@ Keyword KEY is a function function with which to transform VECTOR elements.~%~@
  { ... <EXAMPLE> ... } ~%~@
 :SEE-ALSO `<XREF>'.~%▶▶▶")
 
+
 ;;; ==============================
+
 
 
 ;; Local Variables:
